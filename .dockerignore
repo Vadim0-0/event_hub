@@ -1,0 +1,29 @@
+# виртуальное окружение и кэши Python
+.venv
+venv
+__pycache__
+*.py[cod]
+*$py.class
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.coverage
+htmlcov
+
+# секреты (в контейнер — через env_file / environment в compose)
+.env
+.env.*
+
+# git и IDE
+.git
+.gitignore
+.vscode
+.idea
+
+# документация и локальные файлы
+*.md
+README*
+
+# сам Docker-контекст (не нужны внутри образа)
+Dockerfile
+.dockerignore
