@@ -17,7 +17,6 @@ class InvalidCredentialsError(Exception):
   """Wrong email or password"""
   pass
 
-
 # User registration, password hashing, saving to the DB
 async def register_user(data: UserRegister, db: AsyncSession) -> User:
   result = await db.execute(select(User).where(User.email == data.email))

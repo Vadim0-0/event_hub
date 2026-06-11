@@ -34,11 +34,11 @@ class EventFullError(Exception):
 
 
 async def join_event(
-  db: AsyncSession,
-  *,
-  event_id: int, 
-  user_id: int,
-):
+    db: AsyncSession,
+    *,
+    event_id: int, 
+    user_id: int,
+  ):
   # check if an event exists
   event = await db.get(Event, event_id, with_for_update=True)
   if event is None:
@@ -96,7 +96,9 @@ async def join_event(
 async def get_event_participants(
   db: AsyncSession,
   *,
-  event_id: int
+  event_id: int,
+  skip: int,
+  limit: int,
 ):
    # check if an event exists
   event = await db.get(Event, event_id)
@@ -108,6 +110,8 @@ async def get_event_participants(
     .where(EventRegistration.event_id == event_id)
     .options(selectinload(EventRegistration.user))
     .order_by(EventRegistration.registered_at)
+    .offset(skip)
+    .limit(limit)
   )
 
   registrations = result.unique().scalars().all()
