@@ -16,6 +16,7 @@ async def get_current_user(
   credentials: HTTPAuthorizationCredentials = Depends(security),
   db: AsyncSession = Depends(get_db),
 ) -> User:
+
   try:
     user_id = decode_access_token(credentials.credentials)
   except InvalidTokenError:
