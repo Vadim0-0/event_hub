@@ -43,7 +43,7 @@ async def join_event(
   event = await db.get(Event, event_id, with_for_update=True)
   if event is None:
     raise EventNotFoundError(
-      f"Event '{event.title}' (id:{event_id}) not found"
+      f"Event (id:{event_id}) not found"
     )
 
   # The registered user is the creator
@@ -103,7 +103,7 @@ async def get_event_participants(
    # check if an event exists
   event = await db.get(Event, event_id)
   if event is None:
-    raise EventNotFoundError(f"Event '{event.title}' (id:{event_id}) not found")
+    raise EventNotFoundError(f"Event (id:{event_id}) not found")
 
   result = await db.execute(
     select(EventRegistration)
