@@ -4,7 +4,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 class UserRegister(BaseModel):
-  username: str = Field(min_length=3, max_length=100, pattern=r"^[a-zA-Z0-9_]+$", default="user")
+  username: str = Field(min_length=3, max_length=100, pattern=r"^[a-zA-Z0-9_ ]+$", default="user")
   email: EmailStr
   password: str = Field(min_length=8)
 
