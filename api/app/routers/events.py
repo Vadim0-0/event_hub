@@ -55,9 +55,9 @@ async def get_user_events(
 
 @router.get("/{event_id}", response_model=EventOut, summary="Get event by ID")
 async def get_event(
-    event_id: int,
-    db: AsyncSession = Depends(get_db),
-  ):
+  event_id: int,
+  db: AsyncSession = Depends(get_db),
+):
 
   """
     Get event by ID
@@ -71,10 +71,10 @@ async def get_event(
 
 @router.post("/{event_id}/join", response_model=RegistrationOut, status_code=201, summary='Registration for the event')
 async def join_event(
-    event_id: int,
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-  ):
+  event_id: int,
+  db: AsyncSession = Depends(get_db),
+  current_user: User = Depends(get_current_user)
+):
   """
     Registration for the event
   """
@@ -99,11 +99,11 @@ async def join_event(
 
 @router.get("/{event_id}/participants", response_model=list[ParticipantOut], summary="Get a list of event participants")
 async def get_participants(
-    event_id: int,
-    db: AsyncSession = Depends(get_db),
-    skip: int = 0,
-    limit: int = 100
-  ):
+  event_id: int,
+  db: AsyncSession = Depends(get_db),
+  skip: int = 0,
+  limit: int = 100
+):
   """
     Get a list of event participants
   """
@@ -122,3 +122,27 @@ async def get_participants(
     ParticipantOut(user=reg.user, registered_at=reg.registered_at)
     for reg in registrations
   ]
+
+
+@router.patch("/{event_id}", response_model=EventOut, summary="Update event")
+async def update_event(
+  event_id: int,
+  event_data: EventUpdate,
+  db: AsyncSession = Depends(get_db),
+  current_user: User = Depends(get_current_user),
+):
+  """
+    Update event
+  """
+
+  try:
+    return await events_service.update_event(
+      event_data=event_data,
+      event_id=event_id,
+      db=db,
+      user_id=current_user.id
+    )
+  except events_service.EventNotFoundError as e:
+      raise HTTPException(status_code=404, detail=str(e))
+  except events_service.PermissionDeniedError as e:
+      raise HTTPException(status_code=403, detail=str(e)) 
