@@ -431,3 +431,111 @@ async def test_get_participants_nonexistent_event(client: AsyncClient):
 
   response = await client.get("/events/999999999/participants")
   assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_update_event(client: AsyncClient, user_data_factory, event_data_factory):
+  """ Test update event """
+
+  creator_data = user_data_factory()
+  await register_user(client, creator_data)
+
+  creator_headers = await login_user(
+    client, 
+    email = creator_data["email"],
+    password =  creator_data["password"]
+  )
+
+  event_data = event_data_factory()
+
+  create_event = await client.post(
+    EVENTS_URL,
+    json=event_data,
+    headers=creator_headers,
+  )
+  event_id = create_event.json()["id"]
+
+  update_event = await client.patch(
+    f"/events/{event_id}",
+    json = {
+      "title": "New Title"
+    },
+    headers=creator_headers
+  )
+  assert update_event.status_code == 200
+
+  update_event_data = update_event.json()
+
+  assert update_event_data["title"] == "New Title"
+
+
+@pytest.mark.asyncio
+async def test_update_event_not_authenticated(client: AsyncClient, user_data_factory, event_data_factory):
+  """ Test event update without authorization """
+
+  creator_data = user_data_factory()
+  await register_user(client, creator_data)
+
+  creator_headers = await login_user(
+    client, 
+    email = creator_data["email"],
+    password =  creator_data["password"]
+  )
+
+  event_data = event_data_factory()
+
+  create_event = await client.post(
+    EVENTS_URL,
+    json=event_data,
+    headers=creator_headers,
+  )
+  event_id = create_event.json()["id"]
+
+  update_event = await client.patch(
+    f"/events/{event_id}",
+    json = {
+      "title": "New Title"
+    }
+  )
+  assert update_event.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_update_event_other_authenticated(client: AsyncClient, user_data_factory, event_data_factory):
+  """ Test event update other authorization """
+
+  creator_data = user_data_factory()
+  await register_user(client, creator_data)
+
+  creator_headers = await login_user(
+    client, 
+    email = creator_data["email"],
+    password =  creator_data["password"]
+  )
+
+  event_data = event_data_factory()
+
+  create_event = await client.post(
+    EVENTS_URL,
+    json=event_data,
+    headers=creator_headers,
+  )
+  event_id = create_event.json()["id"]
+
+  other_user = user_data_factory()
+  await register_user(client, other_user)
+
+  other_headers = await login_user(
+    client, 
+    email = other_user["email"],
+    password =  other_user["password"]
+  )
+
+  update_event = await client.patch(
+    f"/events/{event_id}",
+    json = {
+      "title": "New Title"
+    },
+    headers=other_headers
+  )
+  assert update_event.status_code == 403
