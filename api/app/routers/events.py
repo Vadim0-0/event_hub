@@ -146,3 +146,25 @@ async def update_event(
       raise HTTPException(status_code=404, detail=str(e))
   except events_service.PermissionDeniedError as e:
       raise HTTPException(status_code=403, detail=str(e)) 
+
+
+@router.delete("/{event_id}", status_code=204, summary="Delete event")
+async def delete_event(
+  event_id: int,
+  db: AsyncSession = Depends(get_db),
+  current_user: User = Depends(get_current_user),
+):
+  """
+    Delete event
+  """
+
+  try:
+    await events_service.delete_event(
+      db=db,
+      event_id=event_id,
+      user_id=current_user.id
+    )
+  except events_service.EventNotFoundError as e:
+      raise HTTPException(status_code=404, detail=str(e))
+  except events_service.PermissionDeniedError as e:
+      raise HTTPException(status_code=403, detail=str(e)) 

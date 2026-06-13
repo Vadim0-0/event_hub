@@ -1,3 +1,4 @@
+from re import A
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -86,3 +87,22 @@ async def update_event(event_data: EventUpdate, db: AsyncSession, event_id: int,
   await db.refresh(event)
   
   return event
+
+
+async def delete_event(db: AsyncSession, event_id: int, user_id: int):
+  result = await db.execute(
+    select(Event)
+    .where(Event.id == event_id)
+  )
+  event = result.scalar_one_or_none()
+
+  if event is None:
+    raise EventNotFoundError(f"Event (id:{event_id}) not found")
+
+  if event.creator_id != user_id:
+    raise PermissionDeniedError("Only the creator can update the event")
+
+  await db.delete(event)
+  await db.commit()
+  
+  return None
