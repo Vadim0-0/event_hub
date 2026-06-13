@@ -470,6 +470,29 @@ async def test_update_event(client: AsyncClient, user_data_factory, event_data_f
 
 
 @pytest.mark.asyncio
+async def test_update_nonexistent_event(client: AsyncClient, user_data_factory, event_data_factory):
+  """ Test update non-existent event """
+
+  creator_data = user_data_factory()
+  await register_user(client, creator_data)
+
+  creator_headers = await login_user(
+    client, 
+    email = creator_data["email"],
+    password =  creator_data["password"]
+  )
+
+  update_event = await client.patch(
+    "/events/9999",
+    json = {
+      "title": "New Title"
+    },
+    headers=creator_headers
+  )
+  assert update_event.status_code == 404
+
+
+@pytest.mark.asyncio
 async def test_update_event_not_authenticated(client: AsyncClient, user_data_factory, event_data_factory):
   """ Test event update without authorization """
 
@@ -539,3 +562,98 @@ async def test_update_event_other_authenticated(client: AsyncClient, user_data_f
     headers=other_headers
   )
   assert update_event.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_delete_event(client: AsyncClient, user_data_factory, event_data_factory):
+  """ Test delete event """
+
+  creator_data = user_data_factory()
+  await register_user(client, creator_data)
+
+  creator_headers = await login_user(
+    client, 
+    email = creator_data["email"],
+    password =  creator_data["password"]
+  )
+
+  event_data = event_data_factory()
+
+  create_event = await client.post(
+    EVENTS_URL,
+    json=event_data,
+    headers=creator_headers,
+  )
+  event_id = create_event.json()["id"]
+
+  delete_event = await client.delete(
+    f"/events/{event_id}",
+    headers=creator_headers
+  )
+  assert delete_event.status_code == 204
+
+
+@pytest.mark.asyncio
+async def test_delete_event_not_authenticated(client: AsyncClient, user_data_factory, event_data_factory):
+  """ Test event delete without authorization """
+
+  creator_data = user_data_factory()
+  await register_user(client, creator_data)
+
+  creator_headers = await login_user(
+    client, 
+    email = creator_data["email"],
+    password =  creator_data["password"]
+  )
+
+  event_data = event_data_factory()
+
+  create_event = await client.post(
+    EVENTS_URL,
+    json=event_data,
+    headers=creator_headers,
+  )
+  event_id = create_event.json()["id"]
+
+  delete_event = await client.patch(
+    f"/events/{event_id}",
+  )
+  assert delete_event.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_delete_event_other_authenticated(client: AsyncClient, user_data_factory, event_data_factory):
+  """ Test delete update other authorization """
+
+  creator_data = user_data_factory()
+  await register_user(client, creator_data)
+
+  creator_headers = await login_user(
+    client, 
+    email = creator_data["email"],
+    password =  creator_data["password"]
+  )
+
+  event_data = event_data_factory()
+
+  create_event = await client.post(
+    EVENTS_URL,
+    json=event_data,
+    headers=creator_headers,
+  )
+  event_id = create_event.json()["id"]
+
+  other_user = user_data_factory()
+  await register_user(client, other_user)
+
+  other_headers = await login_user(
+    client, 
+    email = other_user["email"],
+    password =  other_user["password"]
+  )
+
+  delete_event = await client.delete(
+    f"/events/{event_id}",
+    headers=other_headers
+  )
+  assert delete_event.status_code == 403
