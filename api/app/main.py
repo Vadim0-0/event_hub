@@ -5,10 +5,14 @@ from fastapi import Depends, FastAPI
 from .config import Settings, get_settings
 from .routers import auth, events
 
+from .redis_client import init_redis, close_redis
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+  await init_redis()
   yield
+  await close_redis()
 
 
 app = FastAPI(title="Authentication", lifespan=lifespan)
