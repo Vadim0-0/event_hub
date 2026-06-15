@@ -31,10 +31,10 @@ async def create_event(
 
 @router.get("/", response_model=list[EventOut], summary="Get events")
 async def list_events(
-    db: AsyncSession = Depends(get_db),
-    skip: int = 0,
-    limit: int = 100
-  ):
+  db: AsyncSession = Depends(get_db),
+  skip: int = 0,
+  limit: int = 100
+):
   """ Get list of upcoming events """
 
   return await events_service.list_events(db, skip=skip, limit=limit)
@@ -42,11 +42,11 @@ async def list_events(
 
 @router.get("/my", response_model=list[EventOut], summary="Get user events")
 async def get_user_events(
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-    skip: int = 0,
-    limit: int = 100
-  ):
+  db: AsyncSession = Depends(get_db),
+  current_user: User = Depends(get_current_user),
+  skip: int = 0,
+  limit: int = 100
+):
   """
     Get list of events created by the current user
   """
@@ -94,6 +94,30 @@ async def join_event(
   except registration_service.AlreadyRegisteredError as e:
     raise HTTPException(status_code=409, detail=str(e))
   except registration_service.EventFullError as e:
+    raise HTTPException(status_code=409, detail=str(e))
+
+
+@router.delete("/{event_id}/leave", status_code=204, summary='Leave the event')
+async def leave_event(
+  event_id: int,
+  db: AsyncSession = Depends(get_db),
+  current_user: User = Depends(get_current_user)
+):
+  """
+    Leave the event
+  """
+
+  try:
+    return await registration_service.leave_event(
+      db,
+      event_id=event_id,
+      user_id=current_user.id
+    )
+  except registration_service.EventNotFoundError as e:
+    raise HTTPException(status_code=404, detail=str(e))
+  except registration_service.NotRegisteredError as e:
+    raise HTTPException(status_code=404, detail=str(e))
+  except registration_service.EventAlreadyStartedError as e:
     raise HTTPException(status_code=409, detail=str(e))
 
 

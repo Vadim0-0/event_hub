@@ -33,12 +33,17 @@ class EventFullError(Exception):
   pass
 
 
+class NotRegisteredError(Exception):
+  """User is not registered for this event"""
+  pass
+
+
 async def join_event(
-    db: AsyncSession,
-    *,
-    event_id: int, 
-    user_id: int,
-  ):
+  db: AsyncSession,
+  *,
+  event_id: int, 
+  user_id: int,
+):
   # check if an event exists
   event = await db.get(Event, event_id, with_for_update=True)
   if event is None:
@@ -90,6 +95,41 @@ async def join_event(
   await db.refresh(registration)
 
   return registration
+
+
+async def leave_event(
+  db: AsyncSession,
+  *,
+  event_id: int, 
+  user_id: int,
+):
+  # check if an event exists
+  event = await db.get(Event, event_id, with_for_update=True)
+  if event is None:
+    raise EventNotFoundError(
+      f"Event (id:{event_id}) not found"
+    )
+
+  result = await db.execute(
+    select(EventRegistration).where(
+      EventRegistration.user_id == user_id,
+      EventRegistration.event_id == event_id,
+    )
+  )
+
+  registration = result.scalar_one_or_none()
+  if registration is None:
+    raise NotRegisteredError(
+      f"User (id:{user_id}) is not registered for event (id:{event_id})"
+    )
+
+  if event.starts_at < datetime.now(timezone.utc):
+    raise EventAlreadyStartedError(
+      f"Event '{event.title}' (id:{event.id}) has already started"
+    )
+
+  await db.delete(registration)
+  await db.commit()
 
 
 # getting a list of registered users
