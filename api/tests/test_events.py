@@ -181,6 +181,7 @@ async def test_get_all_events(client: AsyncClient, user_data_factory, event_data
   assert events_data[1]["title"] == event2_data["title"]
 
 
+# Join Event
 @pytest.mark.asyncio
 async def test_join_event(client: AsyncClient, user_data_factory, event_data_factory):
   """ Test event registration """
@@ -368,6 +369,202 @@ async def test_join_nonexistent_event(client: AsyncClient, user_data_factory):
     headers=user_headers,
   )
   assert response.status_code == 404
+
+
+# Leave Event
+@pytest.mark.asyncio
+async def test_leave_event(client: AsyncClient, user_data_factory, event_data_factory):
+  """ Test leave event """
+  creator_data = user_data_factory()
+  await register_user(client, creator_data)
+
+  creator_headers = await login_user(
+    client, 
+    email = creator_data["email"],
+    password =  creator_data["password"]
+  )
+
+  user_data = user_data_factory()
+  await register_user(client, user_data)
+
+  user_headers = await login_user(
+    client,
+    email = user_data["email"],
+    password =  user_data["password"]
+  )
+
+  event_data = event_data_factory()
+
+  create_event = await client.post(
+    EVENTS_URL,
+    json=event_data,
+    headers=creator_headers,
+  )
+  event_id = create_event.json()["id"]
+
+  await client.post(
+    f"/events/{event_id}/join",
+    headers=user_headers,
+  )
+
+  response = await client.delete(
+    f"/events/{event_id}/leave",
+    headers=user_headers,
+  )
+  assert response.status_code == 204
+
+
+@pytest.mark.asyncio
+async def test_leave_event_twice(client: AsyncClient, user_data_factory, event_data_factory):
+  """ Test leave event twice """
+  creator_data = user_data_factory()
+  await register_user(client, creator_data)
+
+  creator_headers = await login_user(
+    client, 
+    email = creator_data["email"],
+    password =  creator_data["password"]
+  )
+
+  user_data = user_data_factory()
+  await register_user(client, user_data)
+
+  user_headers = await login_user(
+    client,
+    email = user_data["email"],
+    password =  user_data["password"]
+  )
+
+  event_data = event_data_factory()
+
+  create_event = await client.post(
+    EVENTS_URL,
+    json=event_data,
+    headers=creator_headers,
+  )
+  event_id = create_event.json()["id"]
+
+  await client.post(
+    f"/events/{event_id}/join",
+    headers=user_headers,
+  )
+
+  await client.delete(
+    f"/events/{event_id}/leave",
+    headers=user_headers,
+  )
+
+  response = await client.delete(
+    f"/events/{event_id}/leave",
+    headers=user_headers,
+  )
+  assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_leave_event_nonexistent(client: AsyncClient, user_data_factory, event_data_factory):
+  """ Test leaving an event when the event does not exist """
+  user_data = user_data_factory()
+  await register_user(client, user_data)
+
+  user_headers = await login_user(
+    client,
+    email = user_data["email"],
+    password =  user_data["password"]
+  )
+
+  response = await client.delete(
+    f"/events/9999/leave",
+    headers=user_headers,
+  )
+  assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_leave_event_not_registered(client: AsyncClient, user_data_factory, event_data_factory):
+  """ Test leaving an event when the user is not registered """
+  creator_data = user_data_factory()
+  await register_user(client, creator_data)
+
+  creator_headers = await login_user(
+    client, 
+    email = creator_data["email"],
+    password =  creator_data["password"]
+  )
+
+  user_data = user_data_factory()
+  await register_user(client, user_data)
+
+  user_headers = await login_user(
+    client,
+    email = user_data["email"],
+    password =  user_data["password"]
+  )
+
+  event_data = event_data_factory()
+
+  create_event = await client.post(
+    EVENTS_URL,
+    json=event_data,
+    headers=creator_headers,
+  )
+  event_id = create_event.json()["id"]
+
+  response = await client.delete(
+    f"/events/{event_id}/leave",
+    headers=user_headers,
+  )
+  assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_leave_event_when_already_started(client: AsyncClient, user_data_factory, event_data_factory):
+  """ Test leave event when already started """
+  creator_data = user_data_factory()
+  await register_user(client, creator_data)
+
+  creator_headers = await login_user(
+    client, 
+    email = creator_data["email"],
+    password =  creator_data["password"]
+  )
+
+  user_data = user_data_factory()
+  await register_user(client, user_data)
+
+  user_headers = await login_user(
+    client,
+    email = user_data["email"],
+    password =  user_data["password"]
+  )
+
+  event_data = event_data_factory()
+
+  create_event = await client.post(
+    EVENTS_URL,
+    json=event_data,
+    headers=creator_headers,
+  )
+  event_id = create_event.json()["id"]
+
+  await client.post(
+    f"/events/{event_id}/join",
+    headers=user_headers,
+  )
+
+  await client.patch(
+    f"/events/{event_id}",
+    json = {
+      "starts_at": (datetime.now(timezone.utc) - timedelta(days=1)).isoformat(),
+    },
+    headers=creator_headers
+  )
+
+  response = await client.delete(
+    f"/events/{event_id}/leave",
+    headers=user_headers,
+  )
+  assert response.status_code == 409
 
 
 @pytest.mark.asyncio
