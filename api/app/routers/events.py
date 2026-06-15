@@ -17,10 +17,10 @@ router = APIRouter(prefix="/events", tags=["events"])
 
 @router.post("/", response_model=EventOut, status_code=201, summary="Creating new event")
 async def create_event(
-    event_data: EventCreate,
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-  ):
+  event_data: EventCreate,
+  db: AsyncSession = Depends(get_db),
+  current_user: User = Depends(get_current_user),
+):
   """
     Creating event.
     Requires authentication.
