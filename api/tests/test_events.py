@@ -224,6 +224,46 @@ async def test_join_event(client: AsyncClient, user_data_factory, event_data_fac
 
 
 @pytest.mark.asyncio
+async def test_join_event_when_already_started(client: AsyncClient, user_data_factory, event_data_factory):
+  """ Test leaving an event when already started """
+  creator_data = user_data_factory()
+  await register_user(client, creator_data)
+
+  creator_headers = await login_user(
+    client, 
+    email = creator_data["email"],
+    password =  creator_data["password"]
+  )
+
+  user_data = user_data_factory()
+  await register_user(client, user_data)
+
+  user_headers = await login_user(
+    client,
+    email = user_data["email"],
+    password =  user_data["password"]
+  )
+
+  event_data = event_data_factory()
+
+  create_event = await client.post(
+    EVENTS_URL,
+    json={
+      **event_data,
+      "starts_at": (datetime.now(timezone.utc) - timedelta(days=1)).isoformat(),
+    },
+    headers=creator_headers,
+  )
+  event_id = create_event.json()["id"]
+
+  response = await client.post(
+    f"/events/{event_id}/join",
+    headers=user_headers,
+  )
+  assert response.status_code == 409
+
+
+@pytest.mark.asyncio
 async def test_join_event_when_full(client: AsyncClient, user_data_factory, event_data_factory):
   """ Test registration for a completed event """
 
@@ -519,7 +559,7 @@ async def test_leave_event_not_registered(client: AsyncClient, user_data_factory
 
 @pytest.mark.asyncio
 async def test_leave_event_when_already_started(client: AsyncClient, user_data_factory, event_data_factory):
-  """ Test leave event when already started """
+  """ Test leaving an event when already started """
   creator_data = user_data_factory()
   await register_user(client, creator_data)
 
@@ -567,6 +607,7 @@ async def test_leave_event_when_already_started(client: AsyncClient, user_data_f
   assert response.status_code == 409
 
 
+# Participants
 @pytest.mark.asyncio
 async def test_get_participants(client: AsyncClient, user_data_factory, event_data_factory):
   """ Test getting a list of participants """
