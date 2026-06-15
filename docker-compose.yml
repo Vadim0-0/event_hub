@@ -18,6 +18,18 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  redis:
+    image: redis:8-alpine
+    container_name: event_hub_redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
   
   api:
     build: ./api
@@ -30,8 +42,12 @@ services:
       POSTGRES_HOST: db
       POSTGRES_PORT: 5432
       SECRET_KEY: ${SECRET_KEY}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     expose:
       - "8000" 
