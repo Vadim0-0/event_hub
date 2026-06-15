@@ -66,6 +66,7 @@ async def login_user(client, email: str, password: str) -> dict:
   return {"Authorization": f"Bearer {token}"}
 
 
+# Creating Event
 @pytest.mark.asyncio
 async def test_creating_event(client: AsyncClient, user_data_factory, event_data_factory):
   """ Creating event """
@@ -316,7 +317,7 @@ async def test_join_event_when_full(client: AsyncClient, user_data_factory, even
     f"/events/{event_id}/join",
     headers=extra_user_headers,
   )
-  response.status_code == 409
+  assert response.status_code == 409
 
 
 @pytest.mark.asyncio
@@ -671,6 +672,7 @@ async def test_get_participants_nonexistent_event(client: AsyncClient):
   assert response.status_code == 404
 
 
+# Update Event
 @pytest.mark.asyncio
 async def test_update_event(client: AsyncClient, user_data_factory, event_data_factory):
   """ Test update event """
@@ -802,6 +804,7 @@ async def test_update_event_other_authenticated(client: AsyncClient, user_data_f
   assert update_event.status_code == 403
 
 
+# Delete Event
 @pytest.mark.asyncio
 async def test_delete_event(client: AsyncClient, user_data_factory, event_data_factory):
   """ Test delete event """
@@ -853,7 +856,7 @@ async def test_delete_event_not_authenticated(client: AsyncClient, user_data_fac
   )
   event_id = create_event.json()["id"]
 
-  delete_event = await client.patch(
+  delete_event = await client.delete(
     f"/events/{event_id}",
   )
   assert delete_event.status_code == 401
