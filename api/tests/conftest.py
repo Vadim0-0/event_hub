@@ -7,6 +7,7 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine  
 from fakeredis.aioredis import FakeRedis
+from unittest.mock import AsyncMock, patch
 
 load_dotenv(Path(__file__).parent / ".env.test", override=True)
 
@@ -65,10 +66,15 @@ async def client(db_session):
 
   app.dependency_overrides[get_db] = override_get_db
   app.dependency_overrides[get_redis] = lambda: fake_redis
-  
-  transport = ASGITransport(app=app)
-  async with AsyncClient(transport=transport, base_url="http://test") as ac:
-    yield ac
+
+  mock_enqueue = AsyncMock(return_value=None)
+  with (
+    patch("app.routers.events.enqueue_job", mock_enqueue),
+    patch("app.routers.auth.enqueue_job", mock_enqueue),
+  ):
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+      yield ac
   
   app.dependency_overrides.clear()
   await fake_redis.aclose()
