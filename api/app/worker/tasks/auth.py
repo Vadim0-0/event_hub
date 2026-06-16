@@ -1,0 +1,9 @@
+from .notifications import send_email
+
+async def send_welcome_email(ctx, user_id: int, user_email: str):
+  await send_email(
+    to=user_email,
+    subject="Welcome to Event Hub",
+    body=f"Hi! Your account #{user_id} is ready.",
+  )
+  return {"user_id": user_id, "status": "sent"}

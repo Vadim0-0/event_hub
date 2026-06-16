@@ -35,6 +35,17 @@ class Settings(BaseSettings):
       return self.redis_url
     return f"redis://{self.redis_host}:{self.redis_port}/{self.redis_db}"
 
+  # --- ARQ (Task Queue) Settings ---
+  arq_redis_db: int = 1 
+
+  @computed_field
+  @property
+  def arq_redis_url(self) -> str:
+    if self.redis_url:
+      base = self.redis_url.rsplit("/", 1)[0]
+      return f"{base}/{self.arq_redis_db}"
+    return f"redis://{self.redis_host}:{self.redis_port}/{self.arq_redis_db}"
+
   # --- PostgreSQL Settings ---
   database_url: str | None = None
   postgres_user: str = "postgres"

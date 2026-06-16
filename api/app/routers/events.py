@@ -1,3 +1,4 @@
+from sqlalchemy import select
 from fastapi import APIRouter, Depends, HTTPException
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -6,6 +7,7 @@ from ..database import get_db
 from ..dependencies import get_current_user
 from ..models.user import User
 from ..models.event import Event
+from ..models.registration import EventRegistration
 from ..schemas.event import EventCreate, EventUpdate, EventOut
 from ..schemas.registration import RegistrationOut, ParticipantOut
 from ..services import events as events_service
@@ -14,6 +16,8 @@ from ..cache import cache_get, cache_set, cache_delete, cache_delete_pattern
 from ..redis_client import get_redis
 from ..config import settings
 from ..services import event_cache
+
+from ..worker.enqueue import enqueue_job
 
 router = APIRouter(prefix="/events", tags=["events"])
 
@@ -33,6 +37,12 @@ async def create_event(
   new_event = await events_service.create_event(event_data, db, current_user.id)
 
   await event_cache.invalidate_event_lists(redis, current_user.id)
+
+  await enqueue_job(
+    "send_event_created_notification",
+    new_event.id,
+    current_user.email,
+  )
 
   return new_event
 
@@ -149,6 +159,9 @@ async def join_event(
   except registration_service.EventFullError as e:
     raise HTTPException(status_code=409, detail=str(e))
 
+  await enqueue_job("send_registration_confirmed_notification", event_id, current_user.email)
+  await enqueue_job("send_new_participant_notification", event_id, current_user.email)
+
   await event_cache.invalidate_event_participants(redis, event_id)
   
   return registration
@@ -247,6 +260,8 @@ async def update_event(
   except events_service.PermissionDeniedError as e:
     raise HTTPException(status_code=403, detail=str(e)) 
 
+  await enqueue_job("send_event_updated_notification", event_id)
+
   cache_key = f"event:{event_id}"
   await cache_delete(redis, cache_key)
 
@@ -265,6 +280,20 @@ async def delete_event(
   """
     Delete event
   """
+  result = await db.execute(
+    select(User.email, Event.title)
+    .join(EventRegistration, EventRegistration.user_id == User.id)
+    .join(Event, Event.id == EventRegistration.event_id)
+    .where(EventRegistration.event_id == event_id)
+  )
+  participants = result.all()
+  
+  if not participants:
+    participant_emails = []
+    event_title = ""
+  else:
+    participant_emails = [p.email for p in participants]
+    event_title = participants[0].title
 
   try:
     await events_service.delete_event(
@@ -282,3 +311,10 @@ async def delete_event(
   await cache_delete(redis, cache_key)
 
   await event_cache.invalidate_event_completely(redis, event_id, current_user.id)
+
+  await enqueue_job(
+    "send_event_deleted_notification",
+    event_id,
+    event_title,
+    participant_emails,
+  )

@@ -6,12 +6,14 @@ from .config import Settings, get_settings
 from .routers import auth, events
 
 from .redis_client import init_redis, close_redis
-
+from .worker.enqueue import init_arq_pool, close_arq_pool
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
   await init_redis()
+  await init_arq_pool()
   yield
+  await close_arq_pool()
   await close_redis()
 
 
