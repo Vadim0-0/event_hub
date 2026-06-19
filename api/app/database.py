@@ -1,5 +1,3 @@
-# database connection module
-
 from sqlalchemy.orm import declarative_base
 from .config import settings
 

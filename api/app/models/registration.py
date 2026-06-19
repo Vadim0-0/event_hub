@@ -1,5 +1,3 @@
-# description of the event_registrations table
-
 from datetime import datetime
 from sqlalchemy import DateTime, ForeignKey, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship

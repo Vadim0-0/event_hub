@@ -1,5 +1,3 @@
-# description of the events table
-
 from datetime import datetime
 from sqlalchemy import String, Text, DateTime, ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship

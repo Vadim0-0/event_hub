@@ -1,5 +1,3 @@
-# Description of what data the API receives and transmits to the JSON
-
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
 

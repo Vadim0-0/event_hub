@@ -1,5 +1,3 @@
-# Central configuration management for the API-application
-
 from functools import lru_cache
 from pathlib import Path
 
