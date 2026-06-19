@@ -11,9 +11,20 @@ from .tasks import (
   send_leave_confirmed_notification,
   send_participant_left_notification,
 )
+from ..redis_client import init_redis, close_redis
+
+
+async def startup(ctx):
+  await init_redis()
+
+
+async def shutdown(ctx):
+  await close_redis()
 
 
 class WorkerSettings:
+  on_startup = startup
+  on_shutdown = shutdown
   functions = [
     send_welcome_email,
     send_event_created_notification,
