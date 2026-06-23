@@ -96,3 +96,14 @@ jobs:
 
       - name: Apply migrations
         run: alembic upgrade head
+
+  # ── Job 3: Docker build ────────────────────────────────────
+  docker-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Build Docker images
+        run: docker compose build api worker
