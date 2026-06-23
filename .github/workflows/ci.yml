@@ -64,7 +64,7 @@ jobs:
     services: 
       postgres:
         image: postgres:16-alpine
-        evn: 
+        env:
           POSTGRES_USER: auth_user
           POSTGRES_PASSWORD: auth_password
           POSTGRES_DB: event_hub_test
