@@ -100,6 +100,10 @@ jobs:
   # ── Job 3: Ruff lint & format ─────────────────────────────
   lint:
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: api
   
     steps:
       - name: Checkout code
