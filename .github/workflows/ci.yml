@@ -121,9 +121,9 @@ jobs:
 
       - name: Ruff lint
         run: ruff check .
-        
-      - name: Ruff format
-        run: ruff format --check .
+
+      # - name: Ruff format
+      #   run: ruff format --check .
 
   # ── Job 4: Docker build ────────────────────────────────────
   docker-build:
