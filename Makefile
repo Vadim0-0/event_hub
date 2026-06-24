@@ -74,3 +74,10 @@ test: ## Run pytest locally (requires postgres + api/tests/.env.test)
 
 test-docker: ## Run pytest inside api container
 	$(COMPOSE) exec api pytest -v
+
+# --- Ruff ---
+lint:
+	cd api && ruff check .
+	
+format:
+	cd api && ruff format .
