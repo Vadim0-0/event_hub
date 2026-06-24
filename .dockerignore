@@ -10,6 +10,7 @@ __pycache__
 .coverage
 htmlcov
 build
+event_hub_api.egg-info
 
 # секреты (в контейнер — через env_file / environment в compose)
 .env

@@ -57,6 +57,9 @@ all = [
   "event-hub-api[test,dev]",
 ]
 
+[tool.setuptools.packages.find]
+include = ["app*"]
+
 [tool.ruff]
 target-version = "py312"
 line-length = 100
