@@ -1,8 +1,7 @@
-.vscode
-
 # api
 .venv
 __pycache__
+build
 
 .env
 .env.test

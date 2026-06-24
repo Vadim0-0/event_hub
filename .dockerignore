@@ -9,6 +9,7 @@ __pycache__
 .ruff_cache
 .coverage
 htmlcov
+build
 
 # секреты (в контейнер — через env_file / environment в compose)
 .env
