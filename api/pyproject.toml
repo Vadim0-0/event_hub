@@ -1,0 +1,96 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "event-hub-api"
+version = "0.1.0"
+description = "Event Hub API"
+requires-python = ">=3.12"
+
+dependencies = [
+  # Web framework
+  "fastapi==0.136.3",
+  "uvicorn[standard]==0.48.0",
+
+  # Database & ORM
+ "sqlalchemy==2.0.50",
+  "asyncpg==0.30.0",
+  "alembic==1.13.0",
+
+  # Validation & settings
+  "pydantic==2.13.4",
+  "pydantic-settings==2.14.1",
+  "email-validator==2.3.0",
+  "python-dotenv==1.0.0",
+
+  # Authentication & security
+  "python-jose[cryptography]==3.5.0",
+  "bcrypt==4.0.0",
+
+  # HTTP & forms
+  "python-multipart==0.0.31",
+
+  # Cache & background jobs
+  "redis==5.3.1",
+  "aiocache==0.12.3",
+  "arq==0.28.0",
+]
+
+# Optional: test and dev tools
+[project.optional-dependencies]
+# Testing
+test = [
+  "pytest==9.0.3",
+  "pytest-asyncio==1.4.0",
+  "httpx==0.28.1",
+  "fakeredis==2.36.1",
+]
+
+# Linting
+dev = [
+  "ruff==0.15.18",
+]
+
+# Everything for local development
+all = [
+  "event-hub-api[test,dev]",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+# Import paths for isort rules
+src = ["app", "tests", "alembic"]
+
+exclude = [
+  ".venv",
+  ".ruff_cache",
+  "alembic/versions",
+]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]
+
+[tool.ruff.lint.per-file-ignores]
+# Side-effect imports for Alembic metadata
+"alembic/env.py" = ["F401"]
+
+# Forward references in model type hints
+"app/models/*.py" = ["F821"]
+
+# Allow f-strings without placeholders in tests
+"tests/*.py" = ["F541"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+# Test runner
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_default_fixture_loop_scope = "function"
