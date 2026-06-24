@@ -1,7 +1,5 @@
-import os
 from dotenv import load_dotenv
 from pathlib import Path
-import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine  
@@ -16,9 +14,9 @@ from app.main import app
 
 get_settings.cache_clear()
 
-from app.models.user import User
-from app.models.event import Event
-from app.models.registration import EventRegistration
+from app.models.user import User # noqa: F401
+from app.models.event import Event # noqa: F401
+from app.models.registration import EventRegistration # noqa: F401
 from app.redis_client import get_redis
 
 settings = get_settings()

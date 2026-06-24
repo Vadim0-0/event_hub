@@ -1,6 +1,5 @@
 from httpx import AsyncClient
 import pytest
-import pytest_asyncio
 from datetime import datetime, timedelta, timezone
 
 EVENTS_URL = "/events/"

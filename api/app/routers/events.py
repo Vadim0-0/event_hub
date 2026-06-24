@@ -12,7 +12,7 @@ from ..schemas.event import EventCreate, EventUpdate, EventOut
 from ..schemas.registration import RegistrationOut, ParticipantOut
 from ..services import events as events_service
 from ..services import registrations as registration_service
-from ..cache import cache_get, cache_set, cache_delete, cache_delete_pattern
+from ..cache import cache_get, cache_set, cache_delete
 from ..redis_client import get_redis
 from ..config import settings
 from ..services import event_cache

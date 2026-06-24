@@ -1,5 +1,3 @@
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
 from .notifications import send_email
 
 from ...database import AsyncSessionLocal
