@@ -1,4 +1,5 @@
 version: 2
+enable-beta-ecosystems: true
 
 updates:
   # Python
@@ -40,8 +41,8 @@ updates:
     commit-message:
       prefix: "deps(docker)"
 
-  # Images in docker-compose
-  - package-ecosystem: "docker"
+  # Images in docker-compose.yml
+  - package-ecosystem: "docker-compose"
     directory: "/"
     schedule:
       interval: "weekly"
