@@ -4,19 +4,19 @@ updates:
   # Python
   - package-ecosystem: "pip"
     directory: "/api"
-    schedule: 
+    schedule:
       interval: "weekly"
       day: "monday"
       time: "09:00"
       timezone: "Europe/Moscow"
     open-pull-requests-limit: 10
-    labels: 
+    labels:
       - "dependencies"
       - "python"
     commit-message:
       prefix: "deps(pip)"
       include: "scope"
-  
+
   # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -28,7 +28,7 @@ updates:
       - "ci"
     commit-message:
       prefix: "deps(actions)"
-  
+
   # Dockerfile
   - package-ecosystem: "docker"
     directory: "/api"
