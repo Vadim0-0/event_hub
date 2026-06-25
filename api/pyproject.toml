@@ -16,7 +16,7 @@ dependencies = [
   # Database & ORM
  "sqlalchemy==2.0.50",
   "asyncpg==0.30.0",
-  "alembic==1.13.0",
+  "alembic==1.18.4",
 
   # Validation & settings
   "pydantic==2.13.4",
