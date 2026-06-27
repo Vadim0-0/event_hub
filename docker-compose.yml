@@ -89,7 +89,7 @@ services:
       - api
 
   nginx:
-    image: nginx:1.25-alpine
+    image: nginx:1.31-alpine
     container_name: event_hub_nginx
     restart: unless-stopped
     ports:
