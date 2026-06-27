@@ -16,7 +16,11 @@ class PermissionDeniedError(Exception):
 
 
 # Creating an event
-async def create_event(data: EventCreate, db: AsyncSession, creator_id: int) -> Event:
+async def create_event(
+  data: EventCreate, 
+  db: AsyncSession, 
+  creator_id: int
+) -> Event:
 
   event = Event(
     title = data.title,
@@ -33,7 +37,11 @@ async def create_event(data: EventCreate, db: AsyncSession, creator_id: int) -> 
   return event
 
 
-async def list_events(db: AsyncSession, skip: int, limit: int):
+async def list_events(
+  db: AsyncSession, 
+  skip: int, 
+  limit: int
+):
 
   result = await db.execute(
     select(Event)
@@ -46,7 +54,12 @@ async def list_events(db: AsyncSession, skip: int, limit: int):
   return result.scalars().all()
 
 
-async def get_user_events(db: AsyncSession, user_id: int, skip: int, limit: int):
+async def get_user_events(
+  db: AsyncSession,
+  user_id: int, 
+  skip: int, 
+  limit: int
+):
   result = await db.execute(
     select(Event)
     .where(Event.creator_id == user_id)
@@ -57,14 +70,22 @@ async def get_user_events(db: AsyncSession, user_id: int, skip: int, limit: int)
   return result.scalars().all()
 
 
-async def get_event_by_id(db: AsyncSession, event_id: int) -> Event:
+async def get_event_by_id(
+  db: AsyncSession, 
+  event_id: int
+) -> Event:
   event = await db.get(Event, event_id)
   if event is None:
     raise EventNotFoundError(f"Event (id:{event_id}) not found")
   return event
 
 
-async def update_event(event_data: EventUpdate, db: AsyncSession, event_id: int, user_id: int):
+async def update_event(
+  event_data: EventUpdate, 
+  db: AsyncSession, 
+  event_id: int, 
+  user_id: int
+):
   result = await db.execute(
     select(Event)
     .where(Event.id == event_id)
@@ -88,7 +109,11 @@ async def update_event(event_data: EventUpdate, db: AsyncSession, event_id: int,
   return event
 
 
-async def delete_event(db: AsyncSession, event_id: int, user_id: int):
+async def delete_event(
+  db: AsyncSession, 
+  event_id: int, 
+  user_id: int
+):
   result = await db.execute(
     select(Event)
     .where(Event.id == event_id)
