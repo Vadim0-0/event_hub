@@ -1,4 +1,4 @@
-# виртуальное окружение и кэши Python
+# API
 .venv
 venv
 __pycache__
@@ -11,6 +11,15 @@ __pycache__
 htmlcov
 build
 event_hub_api.egg-info
+
+# Web
+node_modules
+.nuxt
+.output
+.data
+.nitro
+.cache
+dist
 
 # секреты (в контейнер — через env_file / environment в compose)
 .env
