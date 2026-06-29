@@ -1,4 +1,3 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: false },
@@ -10,6 +9,8 @@ export default defineNuxtConfig({
   },
 
   css: [
+    '~/assets/styles/base/fonts.css',
+    '~/assets/styles/base/reset.css',
     '~/assets/styles/base/tailwind.css',
     '~/assets/styles/main.scss',
   ],
@@ -19,13 +20,14 @@ export default defineNuxtConfig({
     '@nuxt/ui',
     '@nuxt/test-utils',
     '@nuxtjs/i18n',
-    '@nuxtjs/ionic',
+    // '@nuxtjs/ionic',
     // '@nuxtjs/ngrok',
     '@pinia/nuxt',
     '@vee-validate/nuxt',
     '@vueuse/nuxt',
     'dayjs-nuxt',
-    // '@nuxtjs/eslint-module'
+    // '@nuxtjs/eslint-module',
+    'lenis/nuxt',
   ],
 
   i18n: {
