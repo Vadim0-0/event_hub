@@ -1,1 +1,45 @@
-@import "tailwindcss";
+@import "tailwindcss" important;
+
+/*
+
+  sm: 640px
+  md: 768px
+  lg: 1024px
+  xl: 1280px
+  2xl: 1536px
+
+*/
+
+/* Fonts */
+@theme static {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Colors */
+@theme static {
+  --color-primary: #8677FC;
+  --color-primary-hover: #503bf6;
+  --color-primary-light: #EFEDFF;
+  --color-primary-light-2: #B3ABF1;
+
+  --color-main: #fff;
+  --color-secondary: #FBFBFB;
+  --color-third: #F6F6F6;
+
+  --color-text-main: #212121;
+}
+
+/* Font Size */
+@theme static {
+  --text-body-xl: 18px;
+  --text-body-xl--font-weight: 500;
+  --text-body-xl--line-height: 160%;
+
+  --text-heading-xl: 48px;
+  --text-heading-xl--font-weight: 600;
+  --text-heading-xl--line-height: 160%;
+}
+
+@utility btn-global {
+  @apply flex items-center justify-center py-2.5 px-4 rounded-2xl bg-primary text-body-xl hover:bg-primary-hover text-main;
+}
