@@ -8,18 +8,17 @@ from unittest.mock import AsyncMock, patch
 
 load_dotenv(Path(__file__).parent / ".env.test", override=True)
 
-from app.config import get_settings
+from app.config import settings
 from app.database import Base, get_db
 from app.main import app
 
-get_settings.cache_clear()
+settings.cache_clear()
 
 from app.models.user import User # noqa: F401
 from app.models.event import Event # noqa: F401
 from app.models.registration import EventRegistration # noqa: F401
 from app.redis_client import get_redis
 
-settings = get_settings()
 TEST_DATABASE_URL = settings.sqlalchemy_database_url
 
 
