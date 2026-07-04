@@ -18,7 +18,7 @@ ENV NUXT_PUBLIC_API_BASE=$NUXT_PUBLIC_API_BASE
 RUN bun run build
 
 # --- Production ---
-  FROM oven/bun:1 AS production
+FROM oven/bun:1 AS production
 WORKDIR /app
 
 ENV NODE_ENV=production
