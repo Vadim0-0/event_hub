@@ -12,7 +12,6 @@ from app.config import settings
 from app.database import Base, get_db
 from app.main import app
 
-settings.cache_clear()
 
 from app.models.user import User # noqa: F401
 from app.models.event import Event # noqa: F401
