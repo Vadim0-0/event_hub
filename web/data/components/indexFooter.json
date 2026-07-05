@@ -1,0 +1,40 @@
+[
+  {
+    "email": {
+      "link": "#",
+      "text": "kurenevvadim13@gmail.com"
+    },
+    "social": [
+      {
+        "icon": "ic:baseline-telegram",
+        "text": "Telegram",
+        "link": "#"
+      },
+      {
+        "icon": "mdi:instagram",
+        "text": "Instagram",
+        "link": "#"
+      },
+      {
+        "icon": "ic:baseline-facebook",
+        "text": "Facebook",
+        "link": "#"
+      },
+      {
+        "icon": "mdi:github",
+        "text": "GitHub",
+        "link": "#"
+      }
+    ],
+    "text": {
+      "ru": [
+        "© {{ currentYear }} Kurenev Vadim. All rights reserved.",
+        "Made with ❤️ for event lovers"
+      ],
+      "en": [
+        "© {{ currentYear }} Kurenev Vadim. All rights reserved.",
+        "Made with ❤️ for event lovers"
+      ]
+    }
+  }
+]

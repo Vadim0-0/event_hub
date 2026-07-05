@@ -1,0 +1,279 @@
+[
+  {
+    "title": {
+      "ru": "Главная",
+      "en": "Main"
+    },
+    "sections": {
+      "hero": {
+        "title": {
+          "ru": [
+            "Организуйте. Участвуйте. Вдохновляйтесь."
+          ],
+          "en": [
+            "Organize. Participate. Be inspired."
+          ]
+        },
+        "text": {
+          "ru": [
+            "Создавайте свои события, находите единомышленников и управляйте участниками в пару кликов."
+          ],
+          "en": [
+            "Create your own events, find like-minded people, and manage participants with just a couple of clicks."
+          ]
+        },
+        "button": {
+          "to": "#",
+          "text": {
+            "ru": "Создать событие",
+            "en": "Create an event"
+          }
+        }
+      },
+      "howWork": {
+        "items": [
+          {
+            "icon": "ion:create",
+            "title": {
+              "ru": [
+                "Создайте событие"
+              ],
+              "en": [
+                "Create an event"
+              ]
+            },
+            "text": {
+              "ru": [
+                "Укажите название, дату, место и описание. Назначьте максимум участников."
+              ],
+              "en": [
+                "Enter the name, date, location, and description. Set the maximum number of participants."
+              ]
+            }
+          },
+          {
+            "icon": "material-symbols:join-left-rounded",
+            "title": {
+              "ru": [
+                "Запишитесь на событие"
+              ],
+              "en": [
+                "Sign up for the event"
+              ]
+            },
+            "text": {
+              "ru": [
+                "Выберите понравившееся событие и присоединитесь к нему."
+              ],
+              "en": [
+                "Choose an event you like and join it."
+              ]
+            }
+          },
+          {
+            "icon": "boxicons:future",
+            "title": {
+              "ru": [
+                "Узнавайте, какие события проходят"
+              ],
+              "en": [
+                "Find out what events are happening"
+              ]
+            },
+            "text": {
+              "ru": [
+                "Можете смотреть, какие события будут проходить скоро."
+              ],
+              "en": [
+                "You can see what events are coming up soon."
+              ]
+            }
+          },
+          {
+            "icon": "bitcoin-icons:share-filled",
+            "title": {
+              "ru": [
+                "Поделитесь ссылкой"
+              ],
+              "en": [
+                "Share the link"
+              ]
+            },
+            "text": {
+              "ru": [
+                "Отправьте ссылку друзьям или опубликуйте в соцсетях."
+              ],
+              "en": [
+                "Send the link to your friends or share it on social media."
+              ]
+            }
+          },
+          {
+            "icon": "lsicon:management-filled",
+            "title": {
+              "ru": [
+                "Управляйте списком"
+              ],
+              "en": [
+                "Manage the list"
+              ]
+            },
+            "text": {
+              "ru": [
+                "Отслеживайте, кто записался, и связывайтесь с участниками."
+              ],
+              "en": [
+                "Keep track of who has signed up and get in touch with the participants."
+              ]
+            }
+          }
+        ]
+      },
+      "forWork": {
+        "items": [
+          {
+            "icon": "lucide:rocket",
+            "title": {
+              "ru": [
+                "Для организаторов"
+              ],
+              "en": [
+                "For Organizers"
+              ]
+            },
+            "text": {
+              "ru": [
+                "Больше не нужно собирать ответы в мессенджерах. Все заявки в одном месте."
+              ],
+              "en": [
+                "No more collecting responses in messaging apps. All requests are in one place."
+              ]
+            }
+          },
+          {
+            "icon": "fontisto:person",
+            "title": {
+              "ru": [
+                "Для участников"
+              ],
+              "en": [
+                "For participants"
+              ]
+            },
+            "text": {
+              "ru": [
+                "Легко находить интересные ивенты и записываться в один клик."
+              ],
+              "en": [
+                "It's easy to find interesting events and sign up with just one click."
+              ]
+            }
+          },
+          {
+            "icon": "ic:outline-task",
+            "title": {
+              "ru": [
+                "Для всех"
+              ],
+              "en": [
+                "For everyone"
+              ]
+            },
+            "text": {
+              "ru": [
+                "Прозрачное количество мест. Вы всегда знаете, пойдет событие или нет."
+              ],
+              "en": [
+                "Transparent seating capacity. You always know whether an event will go ahead or not."
+              ]
+            }
+          }
+        ],
+        "bards": [40, 65, 30, 50, 80, 30, 55, 72, 48, 90]
+      },
+      "advantages": {
+        "items": [
+          {
+            "icon": "tabler:mail-fast",
+            "title": {
+              "ru": [
+                "Мгновенная запись:"
+              ],
+              "en": [
+                "Instant recording:"
+              ]
+            },
+            "text": {
+              "ru": [
+                "Без звонков и длинных форм."
+              ],
+              "en": [
+                "No phone calls or long forms."
+              ]
+            }
+          },
+          {
+            "icon": "carbon:reminder",
+            "title": {
+              "ru": [
+                "Автоматические напоминания:"
+              ],
+              "en": [
+                "Automatic reminders:"
+              ]
+            },
+            "text": {
+              "ru": [
+                "(если планируете) Участники не забудут прийти."
+              ],
+              "en": [
+                "(if you're planning to) The participants won't forget to come."
+              ]
+            }
+          },
+          {
+            "icon": "material-symbols:cancel-outline-rounded",
+            "title": {
+              "ru": [
+                "Отмена записи:"
+              ],
+              "en": [
+                "Cancel the reservation:"
+              ]
+            },
+            "text": {
+              "ru": [
+                "Если планы изменились, можно отписаться за пару секунд."
+              ],
+              "en": [
+                "If your plans have changed, you can unsubscribe in just a couple of seconds."
+              ]
+            }
+          },
+          {
+            "icon": "solar:calendar-bold",
+            "title": {
+              "ru": [
+                "Мой календарь:"
+              ],
+              "en": [
+                "My calendar:"
+              ]
+            },
+            "text": {
+              "ru": [
+                "Все события, на которые вы записаны, собраны в личном кабинете."
+              ],
+              "en": [
+                "All the events you're signed up for are listed in your account."
+              ]
+            }
+          },
+          {
+            "image": "images/pages/index/advantages/schedule-img.jpg"
+          }
+        ]
+      }
+    }
+  }
+]
