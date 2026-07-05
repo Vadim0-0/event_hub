@@ -1,4 +1,4 @@
-@import "tailwindcss" important;
+@import "tailwindcss";
 
 /*
 
@@ -33,13 +33,24 @@
 @theme static {
   --text-body-xl: 18px;
   --text-body-xl--font-weight: 500;
-  --text-body-xl--line-height: 160%;
+  --text-body-xl--line-height: 120%;
+
+  --text-body-sm: 16px;
 
   --text-heading-xl: 48px;
   --text-heading-xl--font-weight: 600;
-  --text-heading-xl--line-height: 160%;
+  --text-heading-xl--line-height: 120%;
+  
+  --text-heading-lg: 36px;
+  --text-heading-lg--line-height: 120%;
+
+  --text-heading-sm: 34px;
+}
+
+@utility inline-size {
+  container-type: inline-size;
 }
 
 @utility btn-global {
-  @apply flex items-center justify-center py-2.5 px-4 rounded-2xl bg-primary text-body-xl hover:bg-primary-hover text-main;
+  @apply flex items-center justify-center py-2.5 px-4 rounded-2xl bg-primary text-body-xl hover:bg-primary-hover text-main max-sm:text-body-sm;
 }
