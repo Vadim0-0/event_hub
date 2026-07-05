@@ -1,6 +1,18 @@
+import i18nOptions from './i18n.options'
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: false },
+
+  app: {
+    head: {
+      title: 'Event Hub',
+      titleTemplate: '%s | Event Hub',
+      htmlAttrs: {
+        lang: 'en',
+      },
+    },
+  },
 
   runtimeConfig: {
     public: {
@@ -13,6 +25,12 @@ export default defineNuxtConfig({
     '~/assets/styles/base/reset.css',
     '~/assets/styles/base/tailwind.css',
     '~/assets/styles/main.scss',
+  ],
+
+  components: [
+    {
+      path: '~/components'
+    }
   ],
 
   modules: [
@@ -30,7 +48,5 @@ export default defineNuxtConfig({
     'lenis/nuxt',
   ],
 
-  i18n: {
-    defaultLocale: 'en',
-  },
+  i18n: i18nOptions,
 })
