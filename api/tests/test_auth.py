@@ -54,7 +54,7 @@ async def test_register_user_duplicate_email(client: AsyncClient, user_data_fact
     REGISTER_URL,
     json=user1_data
   )
-  assert response.status_code == 400
+  assert response.status_code == 409
   assert "detail" in response.json()
 
 
