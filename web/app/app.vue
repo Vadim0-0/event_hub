@@ -3,4 +3,6 @@
   <NuxtLayout>
     <NuxtPage />
   </NuxtLayout>
+
+  <LayoutNotifications />
 </template>
