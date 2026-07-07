@@ -19,9 +19,17 @@ async def register(
   db: AsyncSession = Depends(get_db),
 ):
   try:
-    user =  await auth_service.register_user(data, db)
+    user = await auth_service.register_user(data, db)
   except auth_service.EmailAlreadyRegisteredError as e:
-    raise HTTPException(status_code=400, detail=str(e))
+    raise HTTPException(
+      status_code=409,
+      detail={"message": str(e), "field": "email"},
+    )
+  except auth_service.UsernameAlreadyRegisteredError as e:
+    raise HTTPException(
+      status_code=409,
+      detail={"message": str(e), "field": "username"},
+    )
 
   await enqueue_job("send_welcome_email", user.id, user.email)
   return user

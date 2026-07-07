@@ -13,16 +13,22 @@ class EmailAlreadyRegisteredError(Exception):
   """Email is already taken"""
   pass
 
+class UsernameAlreadyRegisteredError(Exception):
+  pass
+
 class InvalidCredentialsError(Exception):
   """Wrong email or password"""
   pass
 
 # User registration, password hashing, saving to the DB
 async def register_user(data: UserRegister, db: AsyncSession) -> User:
-  result = await db.execute(select(User).where(User.email == data.email))
+  email_taken = await db.scalar(select(User.id).where(User.email == data.email))
+  if email_taken:
+    raise EmailAlreadyRegisteredError("This email is already registered")
 
-  if result.scalar_one_or_none():
-    raise EmailAlreadyRegisteredError(f"Email ({data.email}) already registered")
+  username_taken = await db.scalar(select(User.id).where(User.username == data.username))
+  if username_taken:
+    raise UsernameAlreadyRegisteredError(f"Username ({data.username}) already registered")
 
   user = User(
     username = data.username,

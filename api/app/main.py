@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Depends, FastAPI
 
 from .config import Settings, get_settings
@@ -18,6 +19,16 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Authentication", lifespan=lifespan)
+
+# Настройка CORS (Cross-Origin Resource Sharing)
+app.add_middleware(
+  CORSMiddleware,
+  allow_origins = get_settings().cors_origins,
+  allow_credentials = True,
+  allow_methods = ["*"],
+  allow_headers = {"*"},
+)
+
 app.include_router(auth.router)
 app.include_router(events.router)
 app.include_router(notifications.router)
