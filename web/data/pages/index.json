@@ -23,7 +23,7 @@
           ]
         },
         "button": {
-          "to": "#",
+          "to": "/auth",
           "text": {
             "ru": "Создать событие",
             "en": "Create an event"
