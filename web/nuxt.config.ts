@@ -30,7 +30,10 @@ export default defineNuxtConfig({
   components: [
     {
       path: '~/components'
-    }
+    },
+    {
+      path: '~/components/ui'
+    },
   ],
 
   modules: [
@@ -47,6 +50,13 @@ export default defineNuxtConfig({
     // '@nuxtjs/eslint-module',
     'lenis/nuxt',
   ],
+  ui: {
+    input: {
+      defaultVariants: {
+        variant: 'none',
+      },
+    },
+  },
 
   i18n: i18nOptions,
 })

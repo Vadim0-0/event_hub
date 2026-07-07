@@ -14,7 +14,7 @@
     "@iconify/json": "^2.2.492",
     "@nuxt/image": "2.0.0",
     "@nuxt/test-utils": "4.0.3",
-    "@nuxt/ui": "4.9.0",
+    "@nuxt/ui": "^4.9.0",
     "@nuxtjs/eslint-module": "4.1.0",
     "@nuxtjs/i18n": "10.4.0",
     "@nuxtjs/ionic": "1.0.2",

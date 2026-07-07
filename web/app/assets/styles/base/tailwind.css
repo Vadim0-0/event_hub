@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "@nuxt/ui";
 
 /*
 
@@ -27,6 +28,9 @@
   --color-third: #F6F6F6;
 
   --color-text-main: #212121;
+
+  --color-error: #fa0000;
+  --color-success: #26c975;
 }
 
 /* Font Size */
@@ -52,5 +56,5 @@
 }
 
 @utility btn-global {
-  @apply flex items-center justify-center py-2.5 px-4 rounded-2xl bg-primary text-body-xl hover:bg-primary-hover text-main max-sm:text-body-sm;
+  @apply flex items-center justify-center py-2.5 px-4 rounded-md bg-primary text-body-xl hover:bg-primary-hover text-main max-sm:text-body-sm;
 }
