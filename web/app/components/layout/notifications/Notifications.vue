@@ -43,7 +43,7 @@
   </TransitionGroup>
 </template>
 
-<style>
+<style scoped>
 
   .notification-enter-active,
   .notification-leave-active {
