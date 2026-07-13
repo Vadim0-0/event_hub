@@ -236,6 +236,21 @@ async def get_participants(
   return [ParticipantOut.model_validate(item) for item in data]
 
 
+@router.get("/joined/me", response_model=list[EventOut], summary="Get events user joined")
+async def get_joined_events(
+  db: AsyncSession = Depends(get_db),
+  current_user: User = Depends(get_current_user),
+  skip: int = 0,
+  limit: int = 100,
+):
+  return await events_service.get_user_joined_events(
+    db,
+    user_id=current_user.id,
+    skip=skip,
+    limit=limit,
+  )
+
+
 @router.patch("/{event_id}", response_model=EventOut, summary="Update event")
 async def update_event(
   event_id: int,

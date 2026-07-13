@@ -2,6 +2,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.event import Event
+from ..models.registration import EventRegistration
 from ..schemas.event import EventCreate, EventUpdate
 
 
@@ -78,6 +79,23 @@ async def get_event_by_id(
   if event is None:
     raise EventNotFoundError(f"Event (id:{event_id}) not found")
   return event
+
+
+async def get_user_joined_events(
+  db: AsyncSession,
+  user_id: int,
+  skip: int,
+  limit: int,
+):
+  result = await db.execute(
+    select(Event)
+    .join(EventRegistration, EventRegistration.event_id == Event.id)
+    .where(EventRegistration.user_id == user_id)
+    .order_by(Event.starts_at)
+    .offset(skip)
+    .limit(limit)
+  )
+  return result.scalars().all()
 
 
 async def update_event(
