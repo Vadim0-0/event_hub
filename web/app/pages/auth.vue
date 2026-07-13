@@ -1,6 +1,7 @@
 <script setup lang="ts">
   definePageMeta({
     layout: 'auth',
+    guestOnly: true,
   })
 
   const mode = ref<'login' | 'register'>('login')

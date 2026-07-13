@@ -35,8 +35,8 @@ export const useAuthStore = defineStore('auth', () => {
         body: payload,
       })
       token.value = data.access_token
+      await navigateTo('/main')
       await fetchMe()
-      navigateTo('/main')
     } finally {
       isLoading.value = false
     }
@@ -46,8 +46,10 @@ export const useAuthStore = defineStore('auth', () => {
     if (!token.value) return
     try {
       user.value = await api<User>('/auth/me')
-    } catch (e) {
-      logout()
+    } catch (e: any) {
+      if (e?.response?.status === 401) {
+        logout()
+      }
     }
   };
 

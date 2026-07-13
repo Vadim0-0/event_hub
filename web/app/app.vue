@@ -1,5 +1,11 @@
 <script setup lang="ts">
-  const auth = useAuthStore()
+  const auth = useAuthStore();
+
+  onMounted(() => {
+    if (auth.isAuthenticated) {
+      auth.fetchMe()
+    }
+  });
 </script>
 
 <template>
