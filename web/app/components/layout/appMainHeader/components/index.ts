@@ -1,0 +1,1 @@
+export { default as HeaderProfileHover } from './headerProfileHover/HeaderProfileHover.vue';
