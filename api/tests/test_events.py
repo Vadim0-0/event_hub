@@ -3,7 +3,7 @@ import pytest
 from datetime import datetime, timedelta, timezone
 
 EVENTS_URL = "/events/"
-GET_USER_EVENTS_URL = "/events/my"
+GET_USER_EVENTS_URL = "/events/me"
 
 @pytest.fixture
 def user_data_factory():
