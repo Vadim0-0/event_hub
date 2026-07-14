@@ -25,3 +25,8 @@ class EventOut(BaseModel):
   created_at: datetime
 
   model_config = ConfigDict(from_attributes=True)
+
+
+class UserEventStatsOut(BaseModel):
+  created_count: int
+  joined_count: int

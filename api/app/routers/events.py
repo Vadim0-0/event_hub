@@ -8,7 +8,7 @@ from ..dependencies import get_current_user
 from ..models.user import User
 from ..models.event import Event
 from ..models.registration import EventRegistration
-from ..schemas.event import EventCreate, EventUpdate, EventOut
+from ..schemas.event import EventCreate, EventUpdate, EventOut, UserEventStatsOut
 from ..schemas.registration import RegistrationOut, ParticipantOut
 from ..services import events as events_service
 from ..services import registrations as registration_service
@@ -74,7 +74,7 @@ async def list_events(
   return data 
 
 
-@router.get("/my", response_model=list[EventOut], summary="Get user events")
+@router.get("/me", response_model=list[EventOut], summary="Get user events")
 async def get_user_events(
   db: AsyncSession = Depends(get_db),
   current_user: User = Depends(get_current_user),
@@ -248,6 +248,17 @@ async def get_joined_events(
     user_id=current_user.id,
     skip=skip,
     limit=limit,
+  )
+
+
+@router.get("/me/stats", response_model=UserEventStatsOut, summary="Get event user stats")
+async def get_event_stats(
+  db: AsyncSession = Depends(get_db),
+  current_user: User = Depends(get_current_user),
+):
+  return await events_service.get_user_event_stats(
+    db,
+    user_id=current_user.id,
   )
 
 

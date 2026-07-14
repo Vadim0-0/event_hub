@@ -98,6 +98,30 @@ async def get_user_joined_events(
   return result.scalars().all()
 
 
+async def get_user_event_stats(
+  db: AsyncSession,
+  user_id: int,
+) -> dict[str, int]:
+  created_result = await db.execute(
+    select(func.count())
+    .select_from(Event)
+    .where(Event.creator_id == user_id)
+  )
+  created_count = created_result.scalar_one()
+
+  joined_result = await db.execute(
+    select(func.count())
+    .select_from(EventRegistration)
+    .where(EventRegistration.user_id == user_id)
+  )
+  joined_count = joined_result.scalar_one()
+
+  return {
+    "created_count": created_count,
+    "joined_count": joined_count,
+  }
+
+
 async def update_event(
   event_data: EventUpdate, 
   db: AsyncSession, 
