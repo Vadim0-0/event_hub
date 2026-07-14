@@ -1,19 +1,52 @@
 import { defineStore } from 'pinia';
 
-interface Event {
-  id: number,
-  title: string,
+interface UserEventStats {
+  created_count: number;
+  joined_count: number;
 };
 
+let fetchPromise: Promise<void> | null = null;
+
 export const useEventsStore = defineStore('events', () => {
+  
   const api = useApi();
 
-  const createdEvents = ref<Event[]>([]);
-  const joinedEvents = ref<Event[]>([]);
+  const createdCount = ref(0);
+  const joinedCount = ref(0);
   const isLoading = ref(false);
 
-  const createdCount = computed(() => createdEvents.value.length);
-  const joinedCount = computed(() => joinedEvents.value.length);
+  async function fetchStats() {
+    if (fetchPromise) return fetchPromise;
 
+    fetchPromise = (async () => {
+      isLoading.value = true;
   
+      try {
+        const stats = await api<UserEventStats>('/events/me/stats');
+        createdCount.value = stats.created_count;
+        joinedCount.value = stats.joined_count;
+      } finally {
+        isLoading.value = false;
+      };
+    })();
+
+    try {
+      await fetchPromise;
+    } finally {
+      fetchPromise = null;
+    }
+  };
+
+  function reset() {
+    createdCount.value = 0;
+    joinedCount.value = 0;
+  }
+
+  return {
+    createdCount,
+    joinedCount,
+    isLoading,
+    fetchStats,
+    reset
+  };
 });

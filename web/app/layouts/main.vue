@@ -1,4 +1,5 @@
 <script setup lang="ts">
+  // Margin Left based on the header width
   const headerRef = ref<{ el: HTMLElement | null } | null>(null);
   const marginLeftStyle = ref({ marginLeft: '0px' });
   let resizeObserver: ResizeObserver | null = null;
@@ -23,6 +24,22 @@
     if (resizeObserver) {
       resizeObserver.disconnect();
     };
+  });
+
+  // Loading Data
+  const eventsStore = useEventsStore();
+  const notifications = useNotificationsStore();
+
+  onMounted(async () => {
+    try {
+      await eventsStore.fetchStats()
+    } catch (e) {
+      const parsed = parseApiError(e)
+      notifications.error(
+        'Ошибка',
+        parsed.formError || 'Не удалось загрузить события',
+      )
+    }
   });
 
 </script>

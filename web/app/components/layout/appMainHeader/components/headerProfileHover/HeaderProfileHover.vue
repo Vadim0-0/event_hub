@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { p } from 'vue-router/dist/router-CWoNjPRp.mjs';
-
+  const eventsStore = useEventsStore();
+  const auth = useAuthStore();
 
   const profileBtns = [
     { 
@@ -13,7 +13,7 @@ import { p } from 'vue-router/dist/router-CWoNjPRp.mjs';
       text: 'Log Out', 
       icon: 'material-symbols:logout-rounded'
     },
-  ]
+  ];
 
 
 </script>
@@ -45,21 +45,21 @@ import { p } from 'vue-router/dist/router-CWoNjPRp.mjs';
       </svg>
     </div>
     <div
-      class="flex flex-col gap-1 mb-5
+      class="flex flex-col gap-1 mb-5 w-full
         text-lg text-text-main
       "
     >
       <p>
-        Vadim
+        {{ auth.user?.username ?? 'Your Name' }}
       </p>
       <p>
-        vadim@gmail.com
+        {{ auth.user?.email ?? 'Your Email'}}
       </p>
       <p>
-        Events Created: <span> 5 </span>
+        Events Created: <span> {{ eventsStore.createdCount }} </span>
       </p>
       <p>
-        You are a member: <span> 2 </span>
+        You are a member: <span> {{ eventsStore.joinedCount }} </span>
       </p>
     </div>
     <div

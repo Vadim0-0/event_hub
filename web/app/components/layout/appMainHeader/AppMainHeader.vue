@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { HeaderProfileHover } from './components';
+  import { HeaderProfileHover } from './components';
 
-
+  const eventsStore = useEventsStore();
   const headerEl = ref<HTMLElement | null>(null);
   defineExpose({ el: headerEl });
 
@@ -9,14 +9,18 @@ import { HeaderProfileHover } from './components';
     { 
       id: 'eventsCreated', 
       text: 'Events Created', 
-      icon: 'ic:round-create'
+      icon: 'ic:round-create',
+      count: eventsStore.createdCount,
     },
     { 
       id: 'membership', 
       text: 'You are a member', 
-      icon: 'ic:round-checklist'
+      icon: 'ic:round-checklist',
+      count: eventsStore.joinedCount,
     },
-  ]
+  ];
+
+
 
 
 </script>
@@ -82,7 +86,7 @@ import { HeaderProfileHover } from './components';
         >
           <Icon :name="item.icon" class="size-5 text-text-main" />
           <p class="text-lg text-text-main font-medium">
-            5
+            {{ item.count }}
           </p>
         </div>
       </div>
