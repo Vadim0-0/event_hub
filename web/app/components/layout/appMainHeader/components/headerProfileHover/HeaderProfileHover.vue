@@ -1,19 +1,21 @@
 <script setup lang="ts">
+  import type { HeaderProfileHoverProps } from '~/types/mainHeader';
+  
+  defineProps<HeaderProfileHoverProps>();
+
   const eventsStore = useEventsStore();
   const auth = useAuthStore();
 
-  const profileBtns = [
-    { 
-      id: 'settings', 
-      text: 'Settings', 
-      icon: 'ic:round-settings'
-    },
-    { 
-      id: 'logOut', 
-      text: 'Log Out', 
-      icon: 'material-symbols:logout-rounded'
-    },
-  ];
+  function handleProfileBtnClick(btnId: string) {
+    if (btnId === 'logOut') {
+      auth.logout();
+      eventsStore.reset();
+      return;
+    }
+    if (btnId === 'settings') {
+      // navigateTo('/settings')
+    }
+  };
 
 
 </script>
@@ -49,17 +51,10 @@
         text-lg text-text-main
       "
     >
-      <p>
-        {{ auth.user?.username ?? 'Your Name' }}
-      </p>
-      <p>
-        {{ auth.user?.email ?? 'Your Email'}}
-      </p>
-      <p>
-        Events Created: <span> {{ eventsStore.createdCount }} </span>
-      </p>
-      <p>
-        You are a member: <span> {{ eventsStore.joinedCount }} </span>
+      <p>{{ auth.user?.username ?? defaults.username }}</p>
+      <p>{{ auth.user?.email ?? defaults.email }}</p>
+      <p v-for="item in statistics" :key="item.id">
+        {{ item.text }}: <span>{{ item.count }}</span>
       </p>
     </div>
     <div
@@ -68,6 +63,8 @@
       <button
         v-for="btn in profileBtns"
         :key="btn.id"
+        type="button"
+        @click="handleProfileBtnClick(btn.id)"
         class="
           flex items-center gap-2 px-3 py-2 w-full
           bg-secondary border-1 border-solid border-fifth
@@ -110,8 +107,6 @@
       &:nth-child(2) {
         background-color: #FECACA;
         border-color: #f87171;
-
-        & 
 
         &:hover {
 

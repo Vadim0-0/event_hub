@@ -1,26 +1,66 @@
 <script setup lang="ts">
-  import { HeaderProfileHover } from './components';
+  import { HeaderNavigation, HeaderProfileHover } from './components';
+  import mainHeaderRaw from '~~/data/components/mainHeader.json';
+  import { mapMainHeader } from '~/mappers/mainHeader';
+  import type { MainHeaderRaw, StatisticCountKey } from '~/types/mainHeader';
 
+  // Data
   const eventsStore = useEventsStore();
+  const { locale } = useI18n();
+
+  const headerData = (mainHeaderRaw as MainHeaderRaw[])[0]!;
+
+  const content = computed(() =>
+    mapMainHeader(headerData, locale.value),
+  );
+
+  const profileBtns = computed(() => content.value.profileBtns);
+  const profileDefaults = computed(() => content.value.profileDefaults);
+  const navigation = computed(() => content.value.navigation);
+
+  function getCount(key: StatisticCountKey) {
+    return key === 'createdCount'
+      ? eventsStore.createdCount
+      : eventsStore.joinedCount
+  };
+
+  const statistics = computed(() =>
+    content.value.statistics.map((item) => ({
+      ...item,
+      count: getCount(item.countKey),
+    })),
+  );
+
+  // Open hoverProfile
   const headerEl = ref<HTMLElement | null>(null);
   defineExpose({ el: headerEl });
 
-  const statistics = [
-    { 
-      id: 'eventsCreated', 
-      text: 'Events Created', 
-      icon: 'ic:round-create',
-      count: eventsStore.createdCount,
-    },
-    { 
-      id: 'membership', 
-      text: 'You are a member', 
-      icon: 'ic:round-checklist',
-      count: eventsStore.joinedCount,
-    },
-  ];
+  const isProfileOpen = ref(false);
+  const profilePopupRef = ref<HTMLElement | null>(null);
+  const profileButtonRef = ref<HTMLElement | null>(null);
 
+  function openProfile() {
+    isProfileOpen.value = true;
+  };
 
+  function closeProfile() {
+    isProfileOpen.value = false;
+  };
+
+  onClickOutside(profilePopupRef, closeProfile, {
+    ignore: [profileButtonRef],
+  });
+
+  // Resize Header
+  const isCollapsed = ref(false)
+
+  function toggleHeader() {
+    isCollapsed.value = !isCollapsed.value
+
+    if (isCollapsed.value) {
+      closeProfile()
+    }
+  }
 
 
 </script>
@@ -31,19 +71,22 @@
     class="
       fixed top-0 left-0 
       flex flex-col
-      w-[300px] h-full z-10 py-2.5 px-4
+      h-full z-10 py-2.5
+      transition-all transition-300 ease-in-out
       bg-main border-r-2 border-solid border-third shadow-sm
     "
+    :class="isCollapsed ? 'w-[72px] px-2' : 'w-[300px] px-4'"
   >
     <div 
       class="
-        flex items-center justify-center 
-        p-3 
+        flex items-center justify-center overflow-hidden
+        mb-5
         border-2 border-solid rounded-xl border-third bg-fourth 
         
         transition-all easy-in-out duration-300
         hover:shadow-inner
       "
+      :class="isCollapsed ? 'p-2' : 'p-3'"
     >
       <NuxtLink 
         class="
@@ -54,6 +97,7 @@
         <Icon 
           name="mdi:events"
           class="
+            flex-shrink-0
             size-8 
             text-primary
             transition-all easy-in-out duration-300
@@ -61,7 +105,9 @@
           "
         />
         <p 
+          v-show="!isCollapsed"
           class="
+            whitespace-nowrap
             text-2xl font-bold 
             text-primary
             transition-all easy-in-out duration-300
@@ -73,16 +119,26 @@
       </NuxtLink>
     </div>
 
+    <div class="flex-1 overflow-y-auto">
+      <HeaderNavigation 
+        :navigation="navigation"
+        :collapsed="isCollapsed"
+      />
+    </div>
+
     <div class="mt-auto">
-      <div class="grid grid-cols-2 gap-2.5 mb-2.5">
+      <div 
+        :class="isCollapsed ? 'flex flex-col gap-2 mb-2' : 'grid grid-cols-2 gap-2.5 mb-2.5'"
+      >
         <div 
           v-for="item in statistics"
           :key="item.id"
           class="
-            flex justify-center items-center gap-2.5 p-1
+            flex justify-center items-center p-1
             rounded-xl
             bg-primary-light border-1 border-slid border-primary
           "
+          :class="isCollapsed ? 'flex-col gap-1' : 'gap-2.5'"
         >
           <Icon :name="item.icon" class="size-5 text-text-main" />
           <p class="text-lg text-text-main font-medium">
@@ -91,17 +147,21 @@
         </div>
       </div>
       <button 
+        ref="profileButtonRef"
+        @mouseenter="openProfile"
         class="
-          flex items-center gap-2 py-1.5 px-4
+          flex items-center 
           w-full rounded-xl
           bg-third border-1 border-solid border-fifth
         "
+        :class="isCollapsed ? 'justify-center gap-0 py-1.5 px-1' : 'py-1.5 px-4 gap-2'"
       >
         <div 
           class="
-            flex items-center justify-center p-2.5 rounded-[50%]
+            flex items-center justify-center overflow-hidden rounded-[50%] flex-shrink-0
             bg-main border-r-2 border-solid border-third
           "
+          :class="isCollapsed ? 'p-1' : 'p-2.5'"
         >
           <svg 
             class="size-8 fill-text-main"
@@ -115,19 +175,58 @@
           </svg>
         </div>
         <div>
-          <p class="text-body-xl font-bold text-text-main break-all">
+          <p 
+            v-show="!isCollapsed"
+            class="text-body-xl font-bold text-text-main break-all whitespace-nowrap">
             Vadim
           </p>
         </div>
       </button>
     </div>
 
-    <div class="absolute left-full bottom-1">
-      <HeaderProfileHover />
-    </div>
+    <Transition name="profile-hover">
+      <div 
+        v-if="isProfileOpen"
+        ref="profilePopupRef"
+        @mouseleave="closeProfile"
+        class="absolute left-[calc(100%+2px)] bottom-0 z-9"
+      >
+        <HeaderProfileHover 
+          :statistics="statistics"
+          :profile-btns="profileBtns"
+          :defaults="profileDefaults"
+        />
+      </div>
+    </Transition>
+
+    <button
+      type="button"
+      class="
+        absolute top-2/4 transform -translate-y-2/4
+        flex items-center justify-center py-2 rounded-r-sm
+        bg-third
+      "
+      :class="isCollapsed ? 'right-[-27px] rotate-0' : 'right-0 rotate-180'"
+      @click="toggleHeader"
+    >
+      <Icon
+        name="weui:arrow-outlined"
+        class="size-6 text-text-main"
+      />
+    </button>
   </header>
 </template>
 
 <style scoped lang="scss">
+
+  .profile-hover-enter-active,
+  .profile-hover-leave-active {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  .profile-hover-enter-from,
+  .profile-hover-leave-to {
+    opacity: 0;
+    transform: translateY(8px);
+  }
 
 </style>

@@ -1,0 +1,93 @@
+[
+  {
+    "statistics": [
+      {
+        "id": "eventsCreated",
+        "text": {
+          "ru": "Созданные события",
+          "en": "Events Created"
+        },
+        "icon": "ic:round-create",
+        "countKey": "createdCount"
+      },
+      {
+        "id": "membership",
+        "text": {
+          "ru": "Вы являетесь участником",
+          "en": "You are a member"
+        },
+        "icon": "ic:round-checklist",
+        "countKey": "joinedCount"
+      }
+    ],
+    "profileBtns": [
+      {
+        "id": "settings",
+        "text": {
+          "ru": "Настройки",
+          "en": "Settings"
+        },
+        "icon": "ic:round-settings"
+      },
+      {
+        "id": "logOut",
+        "text": {
+          "ru": "Ваход",
+          "en": "Log Out"
+        },
+        "icon": "material-symbols:logout-rounded"
+      }
+    ],
+    "profileDefaults": {
+      "username": { "ru": "Ваше имя", "en": "Your Name" },
+      "email": { "ru": "Ваш email", "en": "Your Email" }
+    },
+    "navigation": [
+      {
+        "id": "allEvents",
+        "to": "/events/allEventsPage",
+        "text": {
+          "en": "All Events",
+          "ru": "Все события"
+        },
+        "icon": "mdi:events"
+      },
+      {
+        "id": "myEvents",
+        "to": "/events/myEventsPage",
+        "text": {
+          "en": "My Events",
+          "ru": "Мои События"
+        },
+        "icon": "ic:round-create"
+      },
+      {
+        "id": "membership",
+        "to": "/events/membershipPage",
+        "text": {
+          "en": "You are a member",
+          "ru": "Вы являетесь участником"
+        },
+        "icon": "ic:round-checklist"
+      },
+      {
+        "id": "users",
+        "to": "/usersPage",
+        "text": {
+          "en": "Users",
+          "ru": "Пользователи"
+        },
+        "icon": "mdi:users"
+      },
+      {
+        "id": "historyEvents",
+        "to": "/events/historyEventsPage",
+        "text": {
+          "en": "History",
+          "ru": "История"
+        },
+        "icon": "material-symbols:history-rounded"
+      }
+    ]
+  }
+]
