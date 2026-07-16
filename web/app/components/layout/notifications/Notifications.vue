@@ -21,7 +21,7 @@
       :key="item.id"
       class="
         relative flex overflow-hidden
-        p-4 pb-6 max-w-[500px] 
+        p-4 pb-6 w-full max-w-[500px] 
         rounded-xl shadow-lg bg-third
         after:content-[''] after:absolute after:bottom-0 after:left-0 after:h-1 after:w-full
       "
