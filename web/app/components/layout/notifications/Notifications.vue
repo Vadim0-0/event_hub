@@ -14,7 +14,7 @@
   <TransitionGroup
     tag="ul"
     name="notification"
-    class="absolute top-2.5 right-2.5 z-20 flex flex-col gap-2.5"
+    class="absolute top-2.5 right-2.5 z-60 flex flex-col gap-2.5"
   >
     <li 
       v-for="item in notifications.items"
