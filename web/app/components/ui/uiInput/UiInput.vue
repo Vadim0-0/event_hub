@@ -12,6 +12,7 @@ interface Props {
   id?: string
   class?: string
   name?: string
+  inputClass?: string
   /** Текст ошибки; пустая строка — без ошибки */
   errorMessage?: string
 }
@@ -47,6 +48,7 @@ const hasError = computed(() => Boolean(props.errorMessage?.trim()))
       :type="props.type"
       :disabled="props.disabled"
       :placeholder="props.placeholder"
+      :class="props.inputClass"
       v-model="modelValue"
       v-bind="$attrs"
     />
@@ -78,7 +80,7 @@ const hasError = computed(() => Boolean(props.errorMessage?.trim()))
       &:focus {
         outline: none;
         border-color: var(--color-primary-hover);
-        background-color: var(--color-third);
+        
       }
     }
 
