@@ -20,8 +20,9 @@
         overflow-hidden
         py-2.5 px-2
         rounded-sm
+        hover:bg-primary-light
       "
-      active-class="active bg-primary"
+      active-class="active !bg-primary"
       :class="collapsed ? 'justify-center' : ''"
     >
       <Icon

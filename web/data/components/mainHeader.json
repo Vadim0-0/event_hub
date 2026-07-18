@@ -11,10 +11,10 @@
         "countKey": "createdCount"
       },
       {
-        "id": "membership",
+        "id": "joinedEvents",
         "text": {
-          "ru": "Вы являетесь участником",
-          "en": "You are a member"
+          "ru": "Записан на события",
+          "en": "Joined events"
         },
         "icon": "ic:round-checklist",
         "countKey": "joinedCount"
@@ -62,11 +62,11 @@
         "icon": "ic:round-create"
       },
       {
-        "id": "membership",
-        "to": "/events/membershipPage",
+        "id": "joinedEvents",
+        "to": "/events/joinedEventsPage",
         "text": {
-          "en": "You are a member",
-          "ru": "Вы являетесь участником"
+          "en": "Joined Events",
+          "ru": "Записан на события"
         },
         "icon": "ic:round-checklist"
       },

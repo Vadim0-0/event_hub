@@ -51,6 +51,8 @@
     ignore: [profileButtonRef],
   });
 
+  //Opening a hint
+
   // Resize Header
   const isCollapsed = ref(false)
 
@@ -134,6 +136,8 @@
           v-for="item in statistics"
           :key="item.id"
           class="
+            group
+            relative
             flex justify-center items-center p-1
             rounded-xl
             bg-primary-light border-1 border-slid border-primary
@@ -144,6 +148,22 @@
           <p class="text-lg text-text-main font-medium">
             {{ item.count }}
           </p>
+
+          <span
+            class="
+              absolute bottom-[125%] left-2/4 transform -translate-x-2/4 scale-80 translate-y-2
+              py-1 px-2
+              bg-third rounded-sm
+              text-center text-text-main text-sm whitespace-nowrap
+              opacity-0 invisible pointer-events-none
+              transition-all transition-300 ease-in-out
+              group-hover:opacity-100 group-hover:visible group-hover:scale-100 group-hover:translate-y-0
+              after:content-[''] after:absolute after:top-full after:left-2/4 after:transform after:-translate-x-2/4 after:w-0 after:h-0 after:border-6 after:border-b-0 after:border-third after:border-l-transparent after:border-r-transparent after:border-b-transparent
+            "
+            v-show="!isCollapsed"
+          >
+            {{ item.text }}
+          </span>
         </div>
       </div>
       <button 
@@ -202,11 +222,11 @@
     <button
       type="button"
       class="
-        absolute top-2/4 transform -translate-y-2/4
+        absolute top-2/4 transform -translate-y-2/4 rotate-180
         flex items-center justify-center py-2 rounded-r-sm
         bg-third
       "
-      :class="isCollapsed ? 'right-[-27px] rotate-0' : 'right-0 rotate-180'"
+      :class="isCollapsed ? 'right-[-27px] scale-x-[-1]' : 'right-0 '"
       @click="toggleHeader"
     >
       <Icon
