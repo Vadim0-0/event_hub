@@ -1,13 +1,15 @@
+from uuid import UUID
 from .notifications import send_email
 
 from ...database import AsyncSessionLocal
 from ...models.event import Event
 from ...models.user import User
 from ...models.notification import NotificationType
+from ...redis_client import get_redis
 
 
 async def send_registration_confirmed_notification(
-  ctx, event_id: int, participant_email: str
+  ctx, event_id: UUID, participant_email: str
 ):
   """ Notify participant that registration was confirmed """
   
@@ -27,12 +29,13 @@ async def send_registration_confirmed_notification(
     notification_type=NotificationType.REGISTRATION_CONFIRMED,
     task_name="send_registration_confirmed_notification",
     event_id=event_id,
+    redis=get_redis(),
   )
   return {"event_id": event_id, "status": "sent"}
 
 
 async def send_new_participant_notification(
-  ctx, event_id: int, participant_email: str
+  ctx, event_id: UUID, participant_email: str
 ):
   """ Notify event creator about a new participant """
   
@@ -56,12 +59,13 @@ async def send_new_participant_notification(
     notification_type=NotificationType.NEW_PARTICIPANT,
     task_name="send_new_participant_notification",
     event_id=event_id,
+    redis=get_redis(),
   )
   return {"event_id": event_id, "status": "sent"}
 
 
 async def send_leave_confirmed_notification(
-  ctx, event_id: int, participant_email: str
+  ctx, event_id: UUID, participant_email: str
 ):
   """ Notify participant that they left the event """
   
@@ -80,12 +84,13 @@ async def send_leave_confirmed_notification(
     notification_type=NotificationType.LEAVE_CONFIRMED,
     task_name="send_leave_confirmed_notification",
     event_id=event_id,
+    redis=get_redis(),
   )
   return {"event_id": event_id, "status": "sent"}
 
 
 async def send_participant_left_notification(
-  ctx, event_id: int, participant_email: str
+  ctx, event_id: UUID, participant_email: str
 ):
   """ Notify event creator that a participant left """
 
@@ -109,5 +114,6 @@ async def send_participant_left_notification(
     notification_type=NotificationType.PARTICIPANT_LEFT,
     task_name="send_participant_left_notification",
     event_id=event_id,
+    redis=get_redis(),
   )
   return {"event_id": event_id, "status": "sent"}

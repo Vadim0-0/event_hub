@@ -1,3 +1,4 @@
+from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,7 +20,7 @@ async def save_notification(
   body: str,
   status: NotificationStatus = NotificationStatus.SENT,
   task_name: str | None = None,
-  event_id: int | None = None,
+  event_id: UUID | None = None,
   user_id: int | None = None,
 ) -> Notification:
 

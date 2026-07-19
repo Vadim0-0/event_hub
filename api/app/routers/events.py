@@ -1,3 +1,4 @@
+from uuid import UUID
 from sqlalchemy import select
 from fastapi import APIRouter, Depends, HTTPException
 from redis.asyncio import Redis
@@ -44,7 +45,7 @@ async def create_event(
     current_user.email,
   )
 
-  return new_event
+  return await events_service.build_event_out(db, new_event)
 
 
 @router.get("/", response_model=list[EventOut], summary="Get events")
@@ -63,8 +64,11 @@ async def list_events(
     return [EventOut.model_validate(item) for item in cached]
 
   events = await events_service.list_events(db, skip=skip, limit=limit)
-  
-  data = [EventOut.model_validate(e).model_dump(mode="json") for e in events]
+
+  data = [
+    event_out.model_dump(mode="json")
+    for event_out in await events_service.build_events_out(db, events)
+  ]
   await cache_set(
     redis, 
     cache_key,
@@ -99,14 +103,17 @@ async def get_user_events(
     limit=limit
   )
 
-  data = [EventOut.model_validate(e).model_dump(mode="json") for e in events]
+  data = [
+    event_out.model_dump(mode="json")
+    for event_out in await events_service.build_events_out(db, events)
+  ]
   await cache_set(redis, cache_key, data, settings.cache_ttl_seconds)
   return [EventOut.model_validate(item) for item in data]
 
 
 @router.get("/{event_id}", response_model=EventOut, summary="Get event by ID")
 async def get_event(
-  event_id: int,
+  event_id: UUID,
   db: AsyncSession = Depends(get_db),
   redis: Redis = Depends(get_redis),
 ):
@@ -121,11 +128,10 @@ async def get_event(
     return EventOut.model_validate(cached)
 
   try:
-    event = await events_service.get_event_by_id(db, event_id)
+    event_out = await events_service.get_event_by_id(db, event_id)
   except events_service.EventNotFoundError as e:
     raise HTTPException(status_code=404, detail=str(e))
 
-  event_out = EventOut.model_validate(event)
   await cache_set(redis, cache_key, event_out.model_dump(mode="json"), settings.cache_ttl_seconds)
 
   return event_out
@@ -133,7 +139,7 @@ async def get_event(
 
 @router.post("/{event_id}/join", response_model=RegistrationOut, status_code=201, summary='Registration for the event')
 async def join_event(
-  event_id: int,
+  event_id: UUID,
   db: AsyncSession = Depends(get_db),
   current_user: User = Depends(get_current_user),
   redis: Redis = Depends(get_redis),
@@ -162,6 +168,7 @@ async def join_event(
   await enqueue_job("send_registration_confirmed_notification", event_id, current_user.email)
   await enqueue_job("send_new_participant_notification", event_id, current_user.email)
 
+  await event_cache.invalidate_event_detail(redis, event_id)
   await event_cache.invalidate_event_participants(redis, event_id)
   
   return registration
@@ -169,7 +176,7 @@ async def join_event(
 
 @router.delete("/{event_id}/leave", status_code=204, summary='Leave the event')
 async def leave_event(
-  event_id: int,
+  event_id: UUID,
   db: AsyncSession = Depends(get_db),
   current_user: User = Depends(get_current_user),
   redis: Redis = Depends(get_redis),
@@ -191,12 +198,13 @@ async def leave_event(
   except registration_service.EventAlreadyStartedError as e:
     raise HTTPException(status_code=409, detail=str(e))
 
+  await event_cache.invalidate_event_detail(redis, event_id)
   await event_cache.invalidate_event_participants(redis, event_id)
 
 
 @router.get("/{event_id}/participants", response_model=list[ParticipantOut], summary="Get a list of event participants")
 async def get_participants(
-  event_id: int,
+  event_id: UUID,
   db: AsyncSession = Depends(get_db),
   skip: int = 0,
   limit: int = 100,
@@ -243,12 +251,13 @@ async def get_joined_events(
   skip: int = 0,
   limit: int = 100,
 ):
-  return await events_service.get_user_joined_events(
+  events = await events_service.get_user_joined_events(
     db,
     user_id=current_user.id,
     skip=skip,
     limit=limit,
   )
+  return await events_service.build_events_out(db, events)
 
 
 @router.get("/me/stats", response_model=UserEventStatsOut, summary="Get event user stats")
@@ -264,7 +273,7 @@ async def get_event_stats(
 
 @router.patch("/{event_id}", response_model=EventOut, summary="Update event")
 async def update_event(
-  event_id: int,
+  event_id: UUID,
   event_data: EventUpdate,
   db: AsyncSession = Depends(get_db),
   current_user: User = Depends(get_current_user),
@@ -293,12 +302,12 @@ async def update_event(
 
   await event_cache.invalidate_event_lists(redis, current_user.id)
 
-  return updated_event
+  return await events_service.build_event_out(db, updated_event)
 
 
 @router.delete("/{event_id}", status_code=204, summary="Delete event")
 async def delete_event(
-  event_id: int,
+  event_id: UUID,
   db: AsyncSession = Depends(get_db),
   current_user: User = Depends(get_current_user),
   redis: Redis = Depends(get_redis),

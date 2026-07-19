@@ -1,4 +1,5 @@
 import logging
+from uuid import UUID
 from redis.asyncio import Redis
 from sqlalchemy import select
 
@@ -21,7 +22,7 @@ async def send_email(
   redis: Redis,
   notification_type: NotificationType | str,
   task_name: str | None = None,
-  event_id: int | None = None,
+  event_id: UUID | None = None,
   user_id: int | None = None,
   status: NotificationStatus = NotificationStatus.SENT,
 ) -> None:

@@ -1,9 +1,10 @@
+from uuid import UUID
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.event import Event
 from ..models.registration import EventRegistration
-from ..schemas.event import EventCreate, EventUpdate
+from ..schemas.event import EventCreate, EventOut, EventUpdate
 
 
 class EventNotFoundError(Exception):
@@ -14,6 +15,30 @@ class EventNotFoundError(Exception):
 class PermissionDeniedError(Exception):
   """Permission Denied Error"""
   pass
+
+
+async def build_event_out(db: AsyncSession, event: Event) -> EventOut:
+  count_result = await db.execute(
+    select(func.count())
+    .select_from(EventRegistration)
+    .where(EventRegistration.event_id == event.id)
+  )
+  participants_count = count_result.scalar_one()
+
+  return EventOut(
+    id=event.id,
+    creator_id=event.creator_id,
+    title=event.title,
+    description=event.description,
+    starts_at=event.starts_at,
+    max_participants=event.max_participants,
+    participants_count=participants_count,
+    created_at=event.created_at,
+  )
+
+
+async def build_events_out(db: AsyncSession, events: list[Event]) -> list[EventOut]:
+  return [await build_event_out(db, event) for event in events]
 
 
 # Creating an event
@@ -73,12 +98,13 @@ async def get_user_events(
 
 async def get_event_by_id(
   db: AsyncSession, 
-  event_id: int
-) -> Event:
+  event_id: UUID
+) -> EventOut:
   event = await db.get(Event, event_id)
   if event is None:
     raise EventNotFoundError(f"Event (id:{event_id}) not found")
-  return event
+
+  return await build_event_out(db, event)
 
 
 async def get_user_joined_events(
@@ -125,7 +151,7 @@ async def get_user_event_stats(
 async def update_event(
   event_data: EventUpdate, 
   db: AsyncSession, 
-  event_id: int, 
+  event_id: UUID, 
   user_id: int
 ):
   result = await db.execute(
@@ -153,7 +179,7 @@ async def update_event(
 
 async def delete_event(
   db: AsyncSession, 
-  event_id: int, 
+  event_id: UUID, 
   user_id: int
 ):
   result = await db.execute(

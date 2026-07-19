@@ -1,9 +1,12 @@
 from httpx import AsyncClient
+from uuid import UUID
 import pytest
 from datetime import datetime, timedelta, timezone
 
 EVENTS_URL = "/events/"
 GET_USER_EVENTS_URL = "/events/me"
+
+NONEXISTENT_EVENT_ID = "00000000-0000-0000-0000-000000000001"
 
 @pytest.fixture
 def user_data_factory():
@@ -405,7 +408,7 @@ async def test_join_nonexistent_event(client: AsyncClient, user_data_factory):
   )
 
   response = await client.post(
-    "/events/9999/join",
+    f"/events/{NONEXISTENT_EVENT_ID}/join",
     headers=user_headers,
   )
   assert response.status_code == 404
@@ -413,7 +416,11 @@ async def test_join_nonexistent_event(client: AsyncClient, user_data_factory):
 
 # Leave Event
 @pytest.mark.asyncio
-async def test_leave_event(client: AsyncClient, user_data_factory, event_data_factory):
+async def test_leave_event(
+  client: AsyncClient, 
+  user_data_factory, 
+  event_data_factory
+):
   """ Test leave event """
   creator_data = user_data_factory()
   await register_user(client, creator_data)
@@ -455,7 +462,11 @@ async def test_leave_event(client: AsyncClient, user_data_factory, event_data_fa
 
 
 @pytest.mark.asyncio
-async def test_leave_event_twice(client: AsyncClient, user_data_factory, event_data_factory):
+async def test_leave_event_twice(
+  client: AsyncClient, 
+  user_data_factory, 
+  event_data_factory
+):
   """ Test leave event twice """
   creator_data = user_data_factory()
   await register_user(client, creator_data)
@@ -514,7 +525,7 @@ async def test_leave_event_nonexistent(client: AsyncClient, user_data_factory, e
   )
 
   response = await client.delete(
-    f"/events/9999/leave",
+    f"/events/{NONEXISTENT_EVENT_ID}/leave",
     headers=user_headers,
   )
   assert response.status_code == 404
@@ -667,7 +678,7 @@ async def test_get_participants(client: AsyncClient, user_data_factory, event_da
 async def test_get_participants_nonexistent_event(client: AsyncClient):
   """ Test getting a list of participants for a non-existent event """
 
-  response = await client.get("/events/999999999/participants")
+  response = await client.get(f"/events/{NONEXISTENT_EVENT_ID}/participants")
   assert response.status_code == 404
 
 
@@ -722,7 +733,7 @@ async def test_update_nonexistent_event(client: AsyncClient, user_data_factory, 
   )
 
   update_event = await client.patch(
-    "/events/9999",
+    f"/events/{NONEXISTENT_EVENT_ID}",
     json = {
       "title": "New Title"
     },

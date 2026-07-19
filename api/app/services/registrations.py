@@ -1,3 +1,4 @@
+from uuid import UUID
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, timezone
@@ -41,7 +42,7 @@ class NotRegisteredError(Exception):
 async def join_event(
   db: AsyncSession,
   *,
-  event_id: int, 
+  event_id: UUID, 
   user_id: int,
 ):
   # check if an event exists
@@ -100,7 +101,7 @@ async def join_event(
 async def leave_event(
   db: AsyncSession,
   *,
-  event_id: int, 
+  event_id: UUID, 
   user_id: int,
 ):
   # check if an event exists
@@ -136,7 +137,7 @@ async def leave_event(
 async def get_event_participants(
   db: AsyncSession,
   *,
-  event_id: int,
+  event_id: UUID,
   skip: int,
   limit: int,
 ):

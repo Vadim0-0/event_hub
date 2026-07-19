@@ -1,3 +1,4 @@
+from uuid import UUID
 from sqlalchemy import select
 
 from ...database import AsyncSessionLocal
@@ -6,9 +7,10 @@ from .notifications import send_email
 from ...models.registration import EventRegistration
 from ...models.user import User
 from ...models.notification import NotificationType
+from ...redis_client import get_redis
 
 async def send_event_created_notification(
-  ctx, event_id: int, user_email: str
+  ctx, event_id: UUID, user_email: str
 ):
   """ Confirmation of creation """
   async with AsyncSessionLocal() as db:
@@ -27,12 +29,13 @@ async def send_event_created_notification(
     notification_type=NotificationType.EVENT_CREATED,
     task_name="send_event_created_notification",
     event_id=event_id,
+    redis=get_redis(),
   )
   return {"event_id": event_id, "status": "sent"}
 
 
 async def send_event_updated_notification(
-  ctx, event_id: int
+  ctx, event_id: UUID
 ):
   """ Change event """
   async with AsyncSessionLocal() as db:
@@ -57,12 +60,13 @@ async def send_event_updated_notification(
       notification_type=NotificationType.EVENT_UPDATED,
       task_name="send_event_updated_notification",
       event_id=event_id,
+      redis=get_redis(),
     )
   return {"event_id": event_id, "sent_to": len(participant_emails)}
 
 
 async def send_event_deleted_notification(
-  ctx, event_id: int, event_title: str, participant_emails: list[str]
+  ctx, event_id: UUID, event_title: str, participant_emails: list[str]
 ):
   for email in participant_emails:
     await send_email(
@@ -72,5 +76,6 @@ async def send_event_deleted_notification(
       notification_type=NotificationType.EVENT_DELETED,
       task_name="send_event_deleted_notification",
       event_id=event_id,
+      redis=get_redis(),
     )
   return {"event_id": event_id, "sent_to": len(participant_emails)}

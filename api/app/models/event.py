@@ -1,12 +1,19 @@
 from datetime import datetime
+import uuid
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import String, Text, DateTime, ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from ..database import Base
 
 class Event(Base):
   __tablename__ = "events"
 
-  id: Mapped[int] = mapped_column(primary_key=True)
+  id: Mapped[uuid.UUID] = mapped_column(
+    UUID(as_uuid=True),
+    primary_key=True,
+    default=uuid.uuid7,
+  )
   creator_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
   title: Mapped[str] = mapped_column(String(200))
   description: Mapped[str | None] = mapped_column(Text, nullable=True)
