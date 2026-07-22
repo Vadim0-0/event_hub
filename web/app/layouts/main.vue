@@ -42,6 +42,9 @@
     }
   });
 
+  // Visible EventInfo 
+  const selectedEventStore = useSelectedEventStore();
+
 </script>
 
 <template>
@@ -52,8 +55,25 @@
   >
     <slot />
   </main>
+  <Transition name="slide">
+    <LayoutEventInfo
+      v-if="selectedEventStore.isOpen"
+      :event="selectedEventStore.selectedEvent!"
+      @close="selectedEventStore.close()"
+    />
+  </Transition>
 </template>
 
-<style>
+<style scoped lang="scss">
+
+  .slide-enter-active,
+  .slide-leave-active {
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+  }
+  .slide-enter-from,
+  .slide-leave-to {
+    opacity: 1;
+    transform: translateX(100%);
+  }
 
 </style>
