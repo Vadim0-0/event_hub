@@ -1,12 +1,3 @@
-const PRIVATE_ROUTES = [
-  '/main',
-  // '/profile'
-];
-
-const GUEST_ONLY_ROUTES = [
-  '/auth'
-];
-
 const LOCALE_PREFIXES = ['ru'];
 
 function normalizePath(path: string) {
