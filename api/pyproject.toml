@@ -30,7 +30,7 @@ dependencies = [
   "bcrypt==4.0.0",
 
   # HTTP & forms
-  "python-multipart==0.0.31",
+  "python-multipart==0.0.32",
 
   # Cache & background jobs
   "redis==5.3.1",
