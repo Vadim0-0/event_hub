@@ -85,7 +85,7 @@ select = ["E4", "E7", "E9", "F"]
 "app/models/*.py" = ["F821"]
 
 # Allow f-strings without placeholders in tests
-"tests/*.py" = ["F541"]
+"tests/*.py" = ["F541", "F401"]
 
 # load_dotenv must run before app imports
 "tests/conftest.py" = ["E402"]
