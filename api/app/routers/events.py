@@ -3,13 +3,14 @@ from sqlalchemy import select
 from fastapi import APIRouter, Depends, HTTPException
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Literal
 
 from ..database import get_db
 from ..dependencies import get_current_user
 from ..models.user import User
 from ..models.event import Event
 from ..models.registration import EventRegistration
-from ..schemas.event import EventCreate, EventUpdate, EventOut, UserEventStatsOut
+from ..schemas.event import EventCreate, EventDetailOut, EventUpdate, EventOut, EventsCountOut, UserEventStatsOut
 from ..schemas.registration import RegistrationOut, ParticipantOut
 from ..services import events as events_service
 from ..services import registrations as registration_service
@@ -19,6 +20,8 @@ from ..config import settings
 from ..services import event_cache
 
 from ..worker.enqueue import enqueue_job
+
+SortOrder = Literal["asc", "desc"]
 
 router = APIRouter(prefix="/events", tags=["events"])
 
@@ -53,17 +56,25 @@ async def list_events(
   db: AsyncSession = Depends(get_db),
   skip: int = 0,
   limit: int = 100,
+  search: str | None = None,
+  sort: SortOrder = "asc",
   redis: Redis = Depends(get_redis),
 ):
   """ Get list of upcoming events """
 
-  cache_key = f"events:list:skip={skip}:limit={limit}"
+  cache_key = f"events:list:skip={skip}:limit={limit}:search={search or ''}:sort={sort}"
 
   cached = await cache_get(redis, cache_key)
   if cached is not None:
     return [EventOut.model_validate(item) for item in cached]
 
-  events = await events_service.list_events(db, skip=skip, limit=limit)
+  events = await events_service.list_events(
+    db,
+    skip=skip,
+    limit=limit,
+    search=search,
+    sort=sort,
+  )
 
   data = [
     event_out.model_dump(mode="json")
@@ -76,6 +87,15 @@ async def list_events(
     settings.cache_ttl_seconds
   )
   return data 
+
+
+@router.get("/count", response_model=EventsCountOut, summary="Get upcoming events count")
+async def get_events_count(
+  db: AsyncSession = Depends(get_db),
+  search: str | None = None,
+):
+  total = await events_service.count_events(db, search=search)
+  return {"total": total}
 
 
 @router.get("/me", response_model=list[EventOut], summary="Get user events")
@@ -111,11 +131,12 @@ async def get_user_events(
   return [EventOut.model_validate(item) for item in data]
 
 
-@router.get("/{event_id}", response_model=EventOut, summary="Get event by ID")
+@router.get("/{event_id}", response_model=EventDetailOut, summary="Get event by ID")
 async def get_event(
   event_id: UUID,
   db: AsyncSession = Depends(get_db),
   redis: Redis = Depends(get_redis),
+  current_user: User | None = Depends(get_current_user),
 ):
   """
     Get event by ID
@@ -132,9 +153,27 @@ async def get_event(
   except events_service.EventNotFoundError as e:
     raise HTTPException(status_code=404, detail=str(e))
 
-  await cache_set(redis, cache_key, event_out.model_dump(mode="json"), settings.cache_ttl_seconds)
+  await cache_set(
+    redis, 
+    cache_key, 
+    event_out.model_dump(mode="json"), 
+    settings.cache_ttl_seconds
+  )
+  
+  is_participant = None
+  is_creator = None
 
-  return event_out
+  if current_user:
+    is_participant = await events_service.is_user_participant(
+      db, event_id, current_user.id
+    )
+    is_creator = event_out.creator.id == current_user.id
+
+  return EventDetailOut(
+    **event_out.model_dump(),
+    is_participant=is_participant,
+    is_creator=is_creator,
+  )
 
 
 @router.post("/{event_id}/join", response_model=RegistrationOut, status_code=201, summary='Registration for the event')

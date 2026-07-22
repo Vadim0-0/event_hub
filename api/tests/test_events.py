@@ -94,7 +94,8 @@ async def test_creating_event(client: AsyncClient, user_data_factory, event_data
 
   assert "id" in created_event
   assert created_event["title"] == event_data["title"]
-  assert created_event["creator_id"] == 1
+  assert created_event["creator"]["id"] == 1
+  assert "username" in created_event["creator"]
 
 
 @pytest.mark.asyncio

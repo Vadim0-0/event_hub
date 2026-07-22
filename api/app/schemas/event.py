@@ -16,9 +16,14 @@ class EventUpdate(BaseModel):
   max_participants: int | None = Field(default=None, ge=1)
 
 
+class CreatorOut(BaseModel):
+  id: int
+  username: str
+
+
 class EventOut(BaseModel):
   id: UUID
-  creator_id: int
+  creator: CreatorOut
   title: str
   description: str | None
   starts_at: datetime
@@ -27,6 +32,15 @@ class EventOut(BaseModel):
   created_at: datetime
 
   model_config = ConfigDict(from_attributes=True)
+
+
+class EventsCountOut(BaseModel):
+  total: int
+
+
+class EventDetailOut(EventOut):
+  is_participant: bool | None = None
+  is_creator: bool | None = None
 
 
 class UserEventStatsOut(BaseModel):

@@ -1,10 +1,11 @@
 from uuid import UUID
-from sqlalchemy import func, select
+from sqlalchemy import func, select, or_
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.event import Event
 from ..models.registration import EventRegistration
-from ..schemas.event import EventCreate, EventOut, EventUpdate
+from ..schemas.event import CreatorOut, EventCreate, EventOut, EventUpdate
 
 
 class EventNotFoundError(Exception):
@@ -17,7 +18,10 @@ class PermissionDeniedError(Exception):
   pass
 
 
-async def build_event_out(db: AsyncSession, event: Event) -> EventOut:
+async def build_event_out(
+  db: AsyncSession, 
+  event: Event
+) -> EventOut:
   count_result = await db.execute(
     select(func.count())
     .select_from(EventRegistration)
@@ -27,7 +31,10 @@ async def build_event_out(db: AsyncSession, event: Event) -> EventOut:
 
   return EventOut(
     id=event.id,
-    creator_id=event.creator_id,
+    creator=CreatorOut(
+      id=event.creator.id,
+      username=event.creator.username,
+    ),
     title=event.title,
     description=event.description,
     starts_at=event.starts_at,
@@ -58,26 +65,65 @@ async def create_event(
 
   db.add(event)
   await db.commit()
-  await db.refresh(event)
-
-  return event
+  result = await db.execute(
+    select(Event)
+    .options(selectinload(Event.creator))
+    .where(Event.id == event.id)
+  )
+  return result.scalar_one()
 
 
 async def list_events(
   db: AsyncSession, 
   skip: int, 
-  limit: int
+  limit: int,
+  search: str | None = None,
+  sort: str = "asc",
 ):
 
-  result = await db.execute(
+  query = (
     select(Event)
+    .options(selectinload(Event.creator))
     .where(Event.starts_at > func.now())
-    .order_by(Event.starts_at)
-    .offset(skip)
-    .limit(limit)
   )
 
+  if search:
+    pattern = f"%{search.strip()}%"
+    query = query.where(
+      or_(
+        Event.title.ilike(pattern),
+        Event.description.ilike(pattern),
+      )
+    )
+
+  order = Event.starts_at.asc() if sort == "asc" else Event.starts_at.desc()
+  query = query.order_by(order).offset(skip).limit(limit)
+
+  result = await db.execute(query)
   return result.scalars().all()
+
+
+async def count_events(
+  db: AsyncSession,
+  search: str | None = None,
+) -> int:
+  query = (
+    select(func.count())
+    .select_from(Event)
+    .where(Event.starts_at > func.now())
+  )
+
+  if search:
+    pattern = f"%{search.strip()}%"
+    query = query.where(
+      or_(
+        Event.title.ilike(pattern),
+        Event.description.ilike(pattern),
+      )
+    )
+    
+  result = await db.execute(query)
+  return result.scalar_one()
 
 
 async def get_user_events(
@@ -88,6 +134,7 @@ async def get_user_events(
 ):
   result = await db.execute(
     select(Event)
+    .options(selectinload(Event.creator))
     .where(Event.creator_id == user_id)
     .offset(skip)
     .limit(limit)
@@ -100,11 +147,25 @@ async def get_event_by_id(
   db: AsyncSession, 
   event_id: UUID
 ) -> EventOut:
-  event = await db.get(Event, event_id)
+  event = await db.get(Event, event_id, options=[selectinload(Event.creator)])
   if event is None:
     raise EventNotFoundError(f"Event (id:{event_id}) not found")
 
   return await build_event_out(db, event)
+
+
+async def is_user_participant(
+  db: AsyncSession,
+  event_id: UUID,
+  user_id: int,
+) -> bool:
+  result = await db.execute(
+    select(EventRegistration.id).where(
+      EventRegistration.event_id == event_id,
+      EventRegistration.user_id == user_id,
+    )
+  )
+  return result.scalar_one_or_none() is not None
 
 
 async def get_user_joined_events(
@@ -116,6 +177,7 @@ async def get_user_joined_events(
   result = await db.execute(
     select(Event)
     .join(EventRegistration, EventRegistration.event_id == Event.id)
+    .options(selectinload(Event.creator))
     .where(EventRegistration.user_id == user_id)
     .order_by(Event.starts_at)
     .offset(skip)
@@ -172,7 +234,7 @@ async def update_event(
     setattr(event, field, value)
 
   await db.commit()
-  await db.refresh(event)
+  await db.refresh(event, attribute_names=["creator"])
   
   return event
 
