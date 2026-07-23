@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { HTMLAttributes } from 'vue'
+
 // Reusable UI control with default props and attrs forwarding.
 type ButtonType = 'button' | 'submit' | 'reset'
 
@@ -7,7 +9,7 @@ interface Props {
   disabled?: boolean
   label?: string
   id?: string
-  class?: string
+  class?: HTMLAttributes['class']
   styleType?: string
 }
 
