@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-  import type { Event } from '~/types/event';
+  import type { Event, EventDetail } from '~/types/event';
 
   const props = defineProps<{
     event: Event
@@ -8,6 +8,7 @@
 
   const emit = defineEmits<{
     close: []
+    updated: [event: EventDetail]
   }>();
 
   const dayjs = useDayjs();
@@ -26,16 +27,63 @@
 
   // Update Data
   const api = useApi();
+  const isActionPending = ref(false);
   
-  const eventDetails = ref<Event | null>(null);
+  const eventDetails = ref<EventDetail | null>(null);
+  const currentEvent = computed(() => eventDetails.value ?? props.event);
+
+  async function loadEventDetails(id: string) {
+    eventDetails.value = await api<EventDetail>(`/events/${id}`)
+  };
 
   watch(
-    () => props.event.id,
-    async (id) => {
-      eventDetails.value = await api<Event>(`/events/${id}`)
-    },
+    () => props.event,
+    (event) => loadEventDetails(event.id),
     { immediate: true },
-  )
+  );
+
+  const isCreator = computed(() => eventDetails.value?.is_creator === true);
+  const isParticipant = computed(() => eventDetails.value?.is_participant === true);
+
+  const isFull = computed(() => {
+    const max = currentEvent.value.max_participants;
+    if (max == null) return false;
+    return currentEvent.value.participants_count >= max;
+  });
+
+  const isStarted = computed(() =>
+    dayjs(currentEvent.value.starts_at).isBefore(dayjs())
+  );
+
+  const isActionDisabled = computed(() =>
+    isActionPending.value ||
+    isCreator.value ||
+    (!isParticipant.value && (isFull.value || isStarted.value))
+  );
+
+  const showChangeEventButton = computed(() => isCreator.value);
+
+  async function handleToggleParticipation() {
+    if (isActionDisabled.value) return;
+
+    isActionPending.value = true;
+    try {
+      if (isParticipant.value) {
+        await api(`/events/${props.event.id}/leave`, { method: 'DELETE' })
+      } else {
+        await api(`/events/${props.event.id}/join`, { method: 'POST' })
+      }
+
+      await loadEventDetails(props.event.id)
+
+      if (eventDetails.value) {
+        emit('updated', eventDetails.value)
+      }
+    } catch (e) {
+    } finally {
+      isActionPending.value = false
+    };
+  };
 
 </script>
 
@@ -80,10 +128,10 @@
           <h3
             class="text-3xl font-semibold text-text-main"
           >
-            {{ event.title }}
+            {{ currentEvent.title }}
           </h3>
           <p class="text-xl font-normal text-text-secondary min-h-[200px]">
-            {{ event.description }}
+            {{ currentEvent.description }}
           </p>
         </div>
         <div 
@@ -93,7 +141,7 @@
           "
         >
           <p>
-            Creator: <span>{{ event.creator.username }}</span>
+            Creator: <span>{{ currentEvent.creator.username }}</span>
           </p>
           <p>
             Start: <span>{{ formattedStart }}</span>
@@ -105,7 +153,7 @@
             Max participants: <span>{{ maxParticipantsLabel }}</span>
           </p>
           <p>
-            Already participants: <span>{{ event.participants_count }}</span>
+            Already participants: <span>{{ currentEvent.participants_count }}</span>
           </p>
         </div>
       </div>
@@ -117,15 +165,28 @@
         </UiButton>
         
         <UiButton
-          class="!bg-primary !text-main !border-primary hover:!bg-primary-hover"
+          :class="[
+            isParticipant
+              ? '!bg-error/30 !text-error !border-error hover:!bg-error/50'
+              : '!bg-primary !text-main !border-primary hover:!bg-primary-hover',
+            { 'opacity-70 pointer-events-none': isActionDisabled },
+          ]"
+          :disabled="isActionDisabled"
+          @click="handleToggleParticipation"
         >
-          Sign up
+          <template v-if="isParticipant">
+            Leave
+          </template>
+          <template v-else>
+            Sign up
+          </template>
         </UiButton>
 
         <UiButton
-          class="col-span-2 !bg-error/10 !border-error !text-error hover:!bg-error/30"
+          class="col-span-2"
+          v-if="showChangeEventButton"
         >
-          Покинуть событие
+          Change Event
         </UiButton>
       </div>
     </div>

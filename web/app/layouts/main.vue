@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { EventDetail } from '~/types/event';
+
   // Margin Left based on the header width
   const headerRef = ref<{ el: HTMLElement | null } | null>(null);
   const marginLeftStyle = ref({ marginLeft: '0px' });
@@ -45,6 +47,13 @@
   // Visible EventInfo 
   const selectedEventStore = useSelectedEventStore();
 
+  function onEventUpdated(event: EventDetail) {
+    selectedEventStore.updateSelectedEvent({
+      participants_count: event.participants_count,
+    })
+    useEventsListRefreshStore().request()
+  };
+
 </script>
 
 <template>
@@ -60,6 +69,7 @@
       v-if="selectedEventStore.isOpen"
       :event="selectedEventStore.selectedEvent!"
       @close="selectedEventStore.close()"
+      @updated="onEventUpdated"
     />
   </Transition>
 </template>

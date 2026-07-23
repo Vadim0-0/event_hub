@@ -18,11 +18,18 @@ export const useSelectedEventStore = defineStore('selectedEvent', () => {
     return selectedEvent.value?.id === eventId
   };
 
+  function updateSelectedEvent(data: Partial<Event>) {
+    if (selectedEvent.value) {
+      selectedEvent.value = { ...selectedEvent.value, ...data }
+    };
+  };
+
   return { 
     selectedEvent,
     isOpen,
     open,
     close,
-    isSelected
+    isSelected,
+    updateSelectedEvent,
   };
 });

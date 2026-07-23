@@ -11,6 +11,7 @@ export function useEventsList(
 ) {
   const api = useApi();
   const skip = computed(() => (page.value - 1) * PAGE_SIZE);
+  const refreshStore = useEventsListRefreshStore();
 
   const queryParams = computed(() => {
     const params = new URLSearchParams({
@@ -50,6 +51,10 @@ export function useEventsList(
 
   const total = computed(() => countData.value?.total ?? 0);
   const totalPages = computed(() => Math.max(1, Math.ceil(total.value / PAGE_SIZE)));
+
+  watch(() => refreshStore.tick, () => {
+    if (enabled.value) refresh()
+  });
 
   return {
     events,
