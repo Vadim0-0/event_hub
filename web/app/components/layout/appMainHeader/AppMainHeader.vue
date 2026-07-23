@@ -7,6 +7,7 @@
   // Data
   const eventsStore = useEventsStore();
   const { locale } = useI18n();
+  const auth = useAuthStore();
 
   const headerData = (mainHeaderRaw as MainHeaderRaw[])[0]!;
 
@@ -198,7 +199,7 @@
           <p 
             v-show="!isCollapsed"
             class="text-body-xl font-bold text-text-main break-all whitespace-nowrap">
-            Vadim
+            {{ auth.user?.username ?? 'Guest' }}
           </p>
         </div>
       </button>
