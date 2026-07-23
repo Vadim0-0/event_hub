@@ -2,7 +2,10 @@
 
   import type { Event } from '~/types/event';
 
-  const props = defineProps<{ event: Event }>();
+  const props = defineProps<{ 
+    event: Event 
+    index?: number
+  }>();
   const dayjs = useDayjs();
   const selectedEventStore = useSelectedEventStore();
 
@@ -79,7 +82,10 @@
       will-change-transform
     "
     :class="{'!scale-[1.08]': isOpen}"
-    :style="{ transform: transformStyle }"
+    :style="{ 
+      transform: transformStyle,
+      '--delay': `${(props.index ?? 0) * 100}ms`
+    }"
     @mousemove="onMouseMove"
     @mouseleave="onMouseLeave"
   >

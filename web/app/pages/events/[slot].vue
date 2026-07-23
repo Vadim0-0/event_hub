@@ -1,4 +1,7 @@
 <script setup lang="ts">
+  import allEventsRaw from '~~/data/pages/events/allEvents.json';
+  import type { AllEventsPageRaw } from '~/types/allEventsPage';
+
   // --- Meta ---
   definePageMeta({
     layout: 'main',
@@ -9,6 +12,7 @@
   const route = useRoute();
   const slot = computed(() => route.params.slot as string);
   const isAllEventsPage = computed(() => slot.value === 'allEventsPage');
+  const isMyEventsPage = computed(() => slot.value === 'myEventsPage');
 
   // --- Page Config ---
   const pageConfig = computed(() => {
@@ -20,6 +24,21 @@
       default:
         return { title: 'Events', showSearch: false, showSort: false }
     }
+  });
+
+  // --- Page Content ---
+  const { locale } = useI18n();
+  const allEventsPageData = (allEventsRaw as AllEventsPageRaw[])[0]!;
+
+  const pageContent = computed(() => {
+    if (slot.value === 'allEventsPage') {
+      return mapAllEventsPage(allEventsPageData, locale.value)
+    }
+    return null
+  });
+
+  useHead({
+    title: computed(() => pageContent.value?.title ?? pageConfig.value.title),
   });
 
   // --- Filter & pagination
@@ -78,7 +97,7 @@
             text-4xl font-semibold text-text-main 
           "
         >
-        {{ pageConfig.title }}
+          {{ pageContent?.title ?? pageConfig.title }}
         </h1>
       </div>
       <div
@@ -112,8 +131,8 @@
             text-text-main text-body-xl
           "
         >
-          <p v-if="isAllEventsPage">
-            Events: <span>{{ total }}</span>
+          <p v-if="isAllEventsPage || isMyEventsPage">
+            {{ pageContent?.infoText }} <span>{{ total }}</span>
           </p>
         </div>
 
@@ -123,7 +142,7 @@
               :name="sortIcon"
               class="size-5 text-text-main"
             />
-            Sorting
+            {{ pageContent?.sortingButtonText }}
           </UiButton>
         </div>
       </div>
@@ -132,29 +151,33 @@
           v-if="isErrorLoad" 
           class="p-3 bg-error/10 rounded-sm">
           <p class="text-body-xl text-error">
-            Loading error
+            {{ pageContent?.loadingErrorText ?? 'Loading error' }}
           </p>
         </div>
         <div 
           v-if="isEmpty" 
           class="p-3 bg-primary-light rounded-sm">
           <p class="text-body-xl text-text-main">
-            Empty
+            {{ pageContent?.emptyText ?? 'Empty' }}
           </p>
         </div>
         <template v-else-if="isAllEventsPage && hasEvents">
-          <ul
+          <TransitionGroup
+            tag="ul"
+            name="event-card"
+            appear
             class="
               absolute top-0 left-0 w-full
               grid grid-cols-6 gap-4
             "
           >
             <EventCard 
-              v-for="event in events"
+              v-for="(event, index) in events"
               :key="event.id"
               :event="event"
+              :index="index"
             />
-          </ul>
+          </TransitionGroup>
         </template>
       </div>
       <div>
@@ -170,5 +193,31 @@
 </template>
 
 <style scoped lang="scss">
+  // Visible
+  .event-card-enter-active {
+    transition:
+      opacity 0.4s ease,
+      transform 0.4s ease;
+    transition-delay: var(--delay, 0ms);
+  }
+  .event-card-enter-from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+  }
+
+  // Sorting Change
+  .event-card-move {
+    transition: transform 0.4s ease;
+  }
+
+  // Delete Card
+  .event-card-leave-active {
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    position: absolute; 
+  }
+  .event-card-leave-to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
 
 </style>
