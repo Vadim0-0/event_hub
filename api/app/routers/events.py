@@ -146,20 +146,21 @@ async def get_event(
 
   cached = await cache_get(redis, cache_key)
   if cached is not None:
-    return EventOut.model_validate(cached)
+    event_out = EventOut.model_validate(cached)
+  else:
+    event_out = await events_service.get_event_by_id(db, event_id)
+    await cache_set(
+      redis, 
+      cache_key, 
+      event_out.model_dump(mode="json"), 
+      settings.cache_ttl_seconds
+    )
 
   try:
     event_out = await events_service.get_event_by_id(db, event_id)
   except events_service.EventNotFoundError as e:
     raise HTTPException(status_code=404, detail=str(e))
 
-  await cache_set(
-    redis, 
-    cache_key, 
-    event_out.model_dump(mode="json"), 
-    settings.cache_ttl_seconds
-  )
-  
   is_participant = None
   is_creator = None
 
@@ -209,6 +210,7 @@ async def join_event(
 
   await event_cache.invalidate_event_detail(redis, event_id)
   await event_cache.invalidate_event_participants(redis, event_id)
+  await event_cache.invalidate_event_lists(redis, current_user.id)
   
   return registration
 
@@ -239,6 +241,7 @@ async def leave_event(
 
   await event_cache.invalidate_event_detail(redis, event_id)
   await event_cache.invalidate_event_participants(redis, event_id)
+  await event_cache.invalidate_event_lists(redis, current_user.id)
 
 
 @router.get("/{event_id}/participants", response_model=list[ParticipantOut], summary="Get a list of event participants")
