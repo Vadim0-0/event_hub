@@ -20,7 +20,7 @@
       case 'allEventsPage':
         return { title: 'All Events', showSearch: true, showSort: true }
       case 'myEventsPage':
-        return { title: 'My Events', showSearch: false, showSort: true }
+        return { title: 'My Events', showSearch: true, showSort: true }
       default:
         return { title: 'Events', showSearch: false, showSort: false }
     }
@@ -52,27 +52,55 @@
 
   // --- Data ---
   const { events, total, totalPages, pending, error } = useEventsList(
-    page, 
+    page,
     isAllEventsPage,
     debouncedSearch,
     sort,
   );
 
-  // --- UI state ---
-  const isErrorLoad = computed(() => !!error.value);
+  const {
+    events: myEvents,
+    total: myTotal,
+    totalPages: myTotalPages,
+    pending: myPending,
+    error: myError,
+  } = useMyEventsList(page, isMyEventsPage, debouncedSearch, sort);
+
+
+  const activeEvents = computed(() =>
+    isAllEventsPage.value ? events.value : myEvents.value,
+  );
+
+  const activeTotal = computed(() =>
+    isAllEventsPage.value ? total.value : myTotal.value,
+  );
+
+  const activeTotalPages = computed(() =>
+    isAllEventsPage.value ? totalPages.value : myTotalPages.value,
+  );
+
+  const activePending = computed(() =>
+    isAllEventsPage.value ? pending.value : myPending.value,
+  );
+
+  const activeError = computed(() =>
+    isAllEventsPage.value ? error.value : myError.value,
+  );
+
+  const isErrorLoad = computed(() => !!activeError.value);
 
   const isEmpty = computed(() =>
-    isAllEventsPage.value &&
-    !pending.value &&
-    !error.value &&
-    (events.value?.length ?? 0) === 0,
+    (isAllEventsPage.value || isMyEventsPage.value) &&
+    !activePending.value &&
+    !activeError.value &&
+    (activeEvents.value?.length ?? 0) === 0,
   );
 
   const hasEvents = computed(() =>
-    isAllEventsPage.value &&
-    !pending.value &&
-    !error.value &&
-    (events.value?.length ?? 0) > 0,
+    (isAllEventsPage.value || isMyEventsPage.value) &&
+    !activePending.value &&
+    !activeError.value &&
+    (activeEvents.value?.length ?? 0) > 0,
   );
 
   const sortIcon = computed(() => {
@@ -132,7 +160,7 @@
           "
         >
           <p v-if="isAllEventsPage || isMyEventsPage">
-            {{ pageContent?.infoText }} <span>{{ total }}</span>
+            {{ pageContent?.infoText ?? 'Events:' }} <span>{{ activeTotal }}</span>
           </p>
         </div>
 
@@ -142,7 +170,7 @@
               :name="sortIcon"
               class="size-5 text-text-main"
             />
-            {{ pageContent?.sortingButtonText }}
+            {{ pageContent?.sortingButtonText  ?? 'Sorting'}}
           </UiButton>
         </div>
       </div>
@@ -161,7 +189,7 @@
             {{ pageContent?.emptyText ?? 'Empty' }}
           </p>
         </div>
-        <template v-else-if="isAllEventsPage && hasEvents">
+        <template v-else-if="hasEvents">
           <TransitionGroup
             tag="ul"
             name="event-card"
@@ -172,7 +200,7 @@
             "
           >
             <EventCard 
-              v-for="(event, index) in events"
+              v-for="(event, index) in activeEvents"
               :key="event.id"
               :event="event"
               :index="index"
@@ -182,9 +210,9 @@
       </div>
       <div>
         <LayoutPagination 
-          v-if="totalPages > 1"
+          v-if="activeTotalPages > 1"
           v-model:page="page"
-          :total-pages="totalPages"
+          :total-pages="activeTotalPages"
         />
       </div>
     </div>
