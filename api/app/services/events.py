@@ -130,18 +130,55 @@ async def get_user_events(
   db: AsyncSession,
   user_id: int, 
   skip: int, 
-  limit: int
+  limit: int,
+  search: str | None = None,
+  sort: str = "asc",
 ):
-  result = await db.execute(
+  query = (
     select(Event)
     .options(selectinload(Event.creator))
     .where(Event.creator_id == user_id)
-    .offset(skip)
-    .limit(limit)
   )
 
+  if search:
+    pattern = f"%{search.strip()}%"
+    query = query.where(
+      or_(
+        Event.title.ilike(pattern),
+        Event.description.ilike(pattern),
+      )
+    )
+
+  order = Event.starts_at.asc() if sort == "asc" else Event.starts_at.desc()
+  query = query.order_by(order).offset(skip).limit(limit)
+  
+  result = await db.execute(query)
   return result.scalars().all()
 
+
+async def count_user_events(
+  db: AsyncSession,
+  user_id: int,
+  search: str | None = None,
+) -> int:
+  query = (
+    select(func.count())
+    .select_from(Event)
+    .where(Event.creator_id == user_id)
+  )
+
+  if search:
+    pattern = f"%{search.strip()}%"
+    query = query.where(
+      or_(
+        Event.title.ilike(pattern),
+        Event.description.ilike(pattern),
+      )
+    )
+
+  result = await db.execute(query)
+  return result.scalar_one()
+  
 
 async def get_event_by_id(
   db: AsyncSession, 
