@@ -126,6 +126,7 @@
         border: 1px solid var(--color-third);
         box-shadow: none;
         background-color: var(--color-third);
+        border-radius: 5px;
   
         color: var(--color-text-main);
         font-size: var(--text-body-xl);

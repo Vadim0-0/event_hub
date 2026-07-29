@@ -60,7 +60,7 @@
   const ringStyle = computed(() => ({
     background: `conic-gradient(
       var(--color-main) ${fillPercent.value * 3.6}deg,
-      var(--color-third) 0deg
+      var(--color-fifth) 0deg
     )`,
   }));
 

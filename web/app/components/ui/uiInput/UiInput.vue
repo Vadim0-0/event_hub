@@ -178,6 +178,7 @@
         border: none;
         box-shadow: none;
         background-color: var(--color-third);
+        border-radius: 5px;
         transition: all 0.3s ease-in-out;
   
         color: var(--color-text-main);
