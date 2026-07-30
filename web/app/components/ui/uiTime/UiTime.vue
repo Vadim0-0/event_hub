@@ -165,6 +165,15 @@
     handVisible.value = false;
   }
 
+  // Smooth open/close without grid 0fr→1fr end-snap
+  const {
+    onBeforeEnter: onSelectorBeforeEnter,
+    onEnter: onSelectorEnter,
+    onAfterEnter: onSelectorAfterEnter,
+    onBeforeLeave: onSelectorBeforeLeave,
+    onLeave: onSelectorLeave,
+  } = useHeightTransition({ duration: 300, marginTop: 10 });
+
   function cancelSelector() {
     selectedHour.value = snapshotHour.value;
     selectedMinute.value = snapshotMinute.value;
@@ -358,150 +367,163 @@
       {{ props.label }}
     </span>
 
-    <div ref="fieldRef" class="ui-time__field">
-      <button
-        type="button"
-        class="ui-time__field-open"
-        :disabled="props.disabled"
-        @click.stop="openSelector"
-      >
-        <Icon name="ic:outline-watch-later" mode="svg" />
-      </button>
-      <input
-        :id="props.id"
-        type="text"
-        :value="inputText"
-        :placeholder="props.placeholder"
-        :disabled="props.disabled"
-        readonly
-      >
-
-      <div class="time-selector"  v-if="isOpen">
-        <div class="time-selector__top">
-          <p>
-            SELECT TIME
-          </p>
-        </div>
-
-        <div class="time-selector__fields">
-          <div class="time-selector__fields-inputs">
-            <input
-              type="text"
-              inputmode="numeric"
-              maxlength="2"
-              :value="hourText"
-              @focus="onHourFocus"
-              @input="onHourInput"
-              @blur="onHourBlur"
-              @keydown="onTimeKeydown"
-            >
-            <span>:</span>
-            <input
-              type="text"
-              inputmode="numeric"
-              maxlength="2"
-              :value="minuteText"
-              @focus="onMinuteFocus"
-              @input="onMinuteInput"
-              @blur="onMinuteBlur"
-              @keydown="onTimeKeydown"
-            >
-          </div>
-          <div class="time-selector__fields-signs">
-            <label :for="amId" class="time-selector__fields-signs__label">
-              <input type="radio" :id="amId" :name="radiosName" value="AM" v-model="period">
-              <span class="time-selector__fields-signs__label-custom">
-                AM
-              </span>
-            </label>
-            <label :for="pmId" class="time-selector__fields-signs__label">
-              <input type="radio" :id="pmId" :name="radiosName" value="PM" v-model="period">
-              <span class="time-selector__fields-signs__label-custom">
-                PM
-              </span>
-            </label>
-          </div>
-        </div>
-
-        <div
-          ref="dialsRef"
-          class="time-selector__dials"
-          :class="{ 'is-locked': dialLocked }"
-          @mousedown.prevent
-          @mouseleave="onDialsMouseLeave"
+    <div ref="fieldRef" class="ui-time__body">
+      <div class="ui-time__body-field">
+        <button
+          type="button"
+          class="ui-time__body-field__open"
+          :disabled="props.disabled"
+          @click.stop="openSelector"
         >
-
-          <Transition name="clock-face-anim" mode="out-in">
-            <div
-              v-if="dialMode === 'hours'"
-              key="hours"
-              class="clock-face"
-            >
-              <div
-                class="clock-face__hand hour-hand"
-                :class="{ 'is-visible': handVisible }"
-                :style="{ '--angle': `${hourAngle(handHour)}deg` }"
-              />
-  
-              <div class="clock-face__pivot" />
-  
-              <button
-                v-for="hour in hours"
-                :key="hour"
-                type="button"
-                class="clock-face__number"
-                :style="{ '--angle': `${hourAngle(hour)}deg` }"
-                @mouseenter="onHourEnter(hour)"
-                @click="selectHour(hour)"
-              >
-              {{ hour }}
-              </button>
-            </div>
-  
-            <div
-              v-else
-              key="minutes"
-              class="clock-face"
-            >
-              <div
-                class="clock-face__hand minute-hand"
-                :class="{ 'is-visible': handVisible }"
-                :style="{ '--angle': `${minuteAngle(handMinute)}deg` }"
-              />
-  
-              <div class="clock-face__pivot" />
-  
-              <button
-                v-for="minute in allMinutes"
-                :key="minute"
-                type="button"
-                class="clock-face__number"
-                :class="{
-                  'is-label': minute % 5 === 0,
-                  'is-tick': minute % 5 !== 0,
-                }"
-                :style="{ '--angle': `${minuteAngle(minute)}deg` }"
-                @mouseenter="onMinuteEnter(minute)"
-                @click="selectMinute(minute)"
-              >
-                <span v-if="minute % 5 === 0">
-                  {{ formatMinute(minute) }}
-                </span>
-              </button>
-            </div>
-          </Transition>
-          
-        </div>
-
-        <div class="time-selector__bottom">
-          <button type="button" @click="cancelSelector">
-            CANCEL
-          </button>
-          <button type="button" @click="confirmSelector">
-            OK
-          </button>
-        </div>
+          <Icon name="ic:outline-watch-later" mode="svg" />
+        </button>
+        <input
+          :id="props.id"
+          type="text"
+          :value="inputText"
+          :placeholder="props.placeholder"
+          :disabled="props.disabled"
+          readonly
+        >
       </div>
+
+      <Transition
+        :css="false"
+        @before-enter="onSelectorBeforeEnter"
+        @enter="onSelectorEnter"
+        @after-enter="onSelectorAfterEnter"
+        @before-leave="onSelectorBeforeLeave"
+        @leave="onSelectorLeave"
+      >
+        <div v-if="isOpen" class="ui-time__body-wrap">
+          <div class="time-selector">
+            <div class="time-selector__top">
+              <p>
+                SELECT TIME
+              </p>
+            </div>
+      
+            <div class="time-selector__fields">
+              <div class="time-selector__fields-inputs">
+                <input
+                  type="text"
+                  inputmode="numeric"
+                  maxlength="2"
+                  :value="hourText"
+                  @focus="onHourFocus"
+                  @input="onHourInput"
+                  @blur="onHourBlur"
+                  @keydown="onTimeKeydown"
+                >
+                <span>:</span>
+                <input
+                  type="text"
+                  inputmode="numeric"
+                  maxlength="2"
+                  :value="minuteText"
+                  @focus="onMinuteFocus"
+                  @input="onMinuteInput"
+                  @blur="onMinuteBlur"
+                  @keydown="onTimeKeydown"
+                >
+              </div>
+              <div class="time-selector__fields-signs">
+                <label :for="amId" class="time-selector__fields-signs__label">
+                  <input type="radio" :id="amId" :name="radiosName" value="AM" v-model="period">
+                  <span class="time-selector__fields-signs__label-custom">
+                    AM
+                  </span>
+                </label>
+                <label :for="pmId" class="time-selector__fields-signs__label">
+                  <input type="radio" :id="pmId" :name="radiosName" value="PM" v-model="period">
+                  <span class="time-selector__fields-signs__label-custom">
+                    PM
+                  </span>
+                </label>
+              </div>
+            </div>
+      
+            <div
+              ref="dialsRef"
+              class="time-selector__dials"
+              :class="{ 'is-locked': dialLocked }"
+              @mousedown.prevent
+              @mouseleave="onDialsMouseLeave"
+            >
+      
+              <Transition name="clock-face-anim" mode="out-in">
+                <div
+                  v-if="dialMode === 'hours'"
+                  key="hours"
+                  class="clock-face"
+                >
+                  <div
+                    class="clock-face__hand hour-hand"
+                    :class="{ 'is-visible': handVisible }"
+                    :style="{ '--angle': `${hourAngle(handHour)}deg` }"
+                  />
+      
+                  <div class="clock-face__pivot" />
+      
+                  <button
+                    v-for="hour in hours"
+                    :key="hour"
+                    type="button"
+                    class="clock-face__number"
+                    :style="{ '--angle': `${hourAngle(hour)}deg` }"
+                    @mouseenter="onHourEnter(hour)"
+                    @click="selectHour(hour)"
+                  >
+                  {{ hour }}
+                  </button>
+                </div>
+      
+                <div
+                  v-else
+                  key="minutes"
+                  class="clock-face"
+                >
+                  <div
+                    class="clock-face__hand minute-hand"
+                    :class="{ 'is-visible': handVisible }"
+                    :style="{ '--angle': `${minuteAngle(handMinute)}deg` }"
+                  />
+      
+                  <div class="clock-face__pivot" />
+      
+                  <button
+                    v-for="minute in allMinutes"
+                    :key="minute"
+                    type="button"
+                    class="clock-face__number"
+                    :class="{
+                      'is-label': minute % 5 === 0,
+                      'is-tick': minute % 5 !== 0,
+                    }"
+                    :style="{ '--angle': `${minuteAngle(minute)}deg` }"
+                    @mouseenter="onMinuteEnter(minute)"
+                    @click="selectMinute(minute)"
+                  >
+                    <span v-if="minute % 5 === 0">
+                      {{ formatMinute(minute) }}
+                    </span>
+                  </button>
+                </div>
+              </Transition>
+              
+            </div>
+      
+            <div class="time-selector__bottom">
+              <button type="button" @click="cancelSelector">
+                CANCEL
+              </button>
+              <button type="button" @click="confirmSelector">
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
     </div>
 
     <div v-if="props.errorMessage" class="ui-time__error">
@@ -526,366 +548,373 @@
       font-weight: 500;
     }
 
-    &__field {
-      position: relative;
+    &__body {
       width: 100%;
 
-      &-open {
-        position: absolute;
-        top: 50%;
-        right: 8px;
-        transform: translateY(-50%);
+      &-field {
+        position: relative;
+        width: 100%;
+        z-index: 2;
 
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
+        &__open {
+          position: absolute;
+          top: 50%;
+          right: 8px;
+          transform: translateY(-50%);
 
-        transition: opacity 0.3s ease-in-out;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
 
-        & svg {
-          width: 20px;
-          height: 20px;
-          color: var(--color-primary-light-2);
-          transition: color 0.3s ease-in-out;
+          transition: opacity 0.3s ease-in-out;
+
+          & svg {
+            width: 20px;
+            height: 20px;
+            color: var(--color-primary-light-2);
+            transition: color 0.3s ease-in-out;
+          }
+
+          &:hover {
+            
+            & svg {
+              color: var(--color-primary);
+            }
+          }
+        }
+
+        & > input {
+          padding: 16px 12px;
+          width: 100%;
+          outline: none;
+          border: none;
+          box-shadow: none;
+          background-color: var(--color-third);
+          border-radius: 5px;
+          transition: all 0.3s ease-in-out;
+    
+          color: var(--color-text-main);
+          font-size: var(--text-body-xl);
+    
+          &::-webkit-outer-spin-button,
+          &::-webkit-inner-spin-button {
+            -moz-appearance: textfield;
+            appearance: textfield;
+            -webkit-appearance: none;
+            margin: 0;
+          }
+    
+          &:focus {
+            outline: none;
+            border-color: var(--color-primary-hover);
+          }
+    
+          &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
         }
 
         &:hover {
-          
-          & svg {
-            color: var(--color-primary);
+          & .ui-input__field-control {
+            opacity: 1;
           }
         }
       }
 
-      & > input {
-        padding: 16px 12px;
-        width: 100%;
-        outline: none;
-        border: none;
-        box-shadow: none;
-        background-color: var(--color-third);
-        border-radius: 5px;
-        transition: all 0.3s ease-in-out;
-  
-        color: var(--color-text-main);
-        font-size: var(--text-body-xl);
-  
-        &::-webkit-outer-spin-button,
-        &::-webkit-inner-spin-button {
-          -moz-appearance: textfield;
-          appearance: textfield;
-          -webkit-appearance: none;
-          margin: 0;
-        }
-  
-        &:focus {
-          outline: none;
-          border-color: var(--color-primary-hover);
-        }
-  
-        &:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-      }
+      &-wrap {
+        position: relative;
+        z-index: 1;
+        margin-top: 10px;
+        overflow: hidden;
 
-      &:hover {
-        & .ui-input__field-control {
-          opacity: 1;
-        }
-      }
-
-      & .time-selector {
-        position: absolute;
-        top: calc(100% + 5px);
-        left: 0;
-
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        width: 100%;
-
-        padding: 10px;
-
-        background-color: var(--color-third);
-        border-radius: 5px;
-
-        &__top {
-
-          font-size: 14px;
-          font-weight: 400;
-          color: var(--color-text-main);
-        }
-
-        &__fields {
+        & .time-selector {
           display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 10px;
-
-          &-inputs {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-
-            & input {
-              padding: 0;
-              width: 70px;
-              height: 70px;
-              background-color: var(--color-main);
-
-              text-align: center;
-              font-size: 32px;
-              font-weight: 600;
-              color: var(--color-text-main);
-              
-              outline: none;
-              border: none;
-              box-shadow: none;
-              border-radius: 5px;
-
-              &:nth-child(1) {
-                background-color: var(--color-primary-light-2);
-                color: var(--color-main);
-              }
-
-              &::-webkit-outer-spin-button,
-              &::-webkit-inner-spin-button {
-                -moz-appearance: textfield;
-                appearance: textfield;
-                -webkit-appearance: none;
-                margin: 0;
-              }
-            }
-
-            & span {
-              font-size: 32px;
-              font-weight: 800;
-              color: var(--color-text-main);
-            }
+          flex-direction: column;
+          gap: 20px;
+          width: 100%;
+    
+          padding: 10px;
+    
+          background-color: var(--color-third);
+          border-radius: 5px;
+    
+          &__top {
+    
+            font-size: 14px;
+            font-weight: 400;
+            color: var(--color-text-main);
           }
-
-          &-signs {
+    
+          &__fields {
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-
-            overflow: hidden;
-            border-radius: 4px;
-
-            border: 1px solid var(--color-fifth);
-            background-color: var(--color-main);
-
-            &__label {
-              position: relative;
-              overflow: hidden;
-
+            gap: 10px;
+    
+            &-inputs {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 5px;
+    
+              & input {
+                padding: 0;
+                width: 70px;
+                height: 70px;
+                background-color: var(--color-main);
+    
+                text-align: center;
+                font-size: 32px;
+                font-weight: 600;
+                color: var(--color-text-main);
+                
+                outline: none;
+                border: none;
+                box-shadow: none;
+                border-radius: 5px;
+    
+                &:nth-child(1) {
+                  background-color: var(--color-primary-light-2);
+                  color: var(--color-main);
+                }
+    
+                &::-webkit-outer-spin-button,
+                &::-webkit-inner-spin-button {
+                  -moz-appearance: textfield;
+                  appearance: textfield;
+                  -webkit-appearance: none;
+                  margin: 0;
+                }
+              }
+    
+              & span {
+                font-size: 32px;
+                font-weight: 800;
+                color: var(--color-text-main);
+              }
+            }
+    
+            &-signs {
               display: flex;
               flex-direction: column;
               align-items: center;
               justify-content: center;
-
-              cursor: pointer;
-
-              & input {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                opacity: 0;
-                visibility: hidden;
-
-                &:checked + .time-selector__fields-signs__label-custom {
-                  background-color: var(--color-primary-light-2);
-                  color: var(--color-main);
-                }
-              }
-
-              &-custom {
+    
+              overflow: hidden;
+              border-radius: 4px;
+    
+              border: 1px solid var(--color-fifth);
+              background-color: var(--color-main);
+    
+              &__label {
+                position: relative;
+                overflow: hidden;
+    
                 display: flex;
+                flex-direction: column;
                 align-items: center;
                 justify-content: center;
-
-                width: 40px;
-                height: 32px;
-
-                background-color: var(--color-main);
-
-                text-align: center;
-                font-size: 16px;
-                font-weight: 500;
-                color: var(--color-text-main);
-
-                transition: all 0.3s ease-in-out;
-              }
-            }
-          }
-        }
-
-        &__dials {
-          position: relative;
-          margin: 0 auto;
-
-          width: 220px;
-          height: 220px;
-          border-radius: 100%;
-          background-color: var(--color-main);
-
-          &.is-locked {
-            opacity: 0.6;
-
-            .clock-face {
-              pointer-events: none;
-            }
-          }
-
-          & .clock-face {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--color-main);
-            border-radius: inherit;
-            transform-origin: center center;
-
-            &__number {
-              --radius: 90px;
-
-              position: absolute;
-              top: 50%;
-              left: 50%;
-
-              display: flex;
-              align-items: center;
-              justify-content: center;
-
-              width: 30px;
-              height: 30px;
-              padding: 2px;
-              margin: -15px 0 0 -15px;
-
-              border-radius: 50%;
-
-              transform:
-                rotate(var(--angle))
-                translateY(calc(var(--radius) * -1))
-                rotate(calc(var(--angle) * -1));
-
-              font-size: 16px;
-              font-weight: 400;
-              color: var(--color-text-main);
-
-              &:hover {
-                background-color: var(--color-primary-light-2);
-              }
-
-              &.active {
-                background-color: var(--color-primary);
-                color: var(--color-main);
-              }
-
-              &.is-tick {
-                width: 24px;
-                height: 24px;
-                background: transparent;
-
-                &:hover {
-                  background: transparent;
+    
+                cursor: pointer;
+    
+                & input {
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  width: 100%;
+                  height: 100%;
+                  opacity: 0;
+                  visibility: hidden;
+    
+                  &:checked + .time-selector__fields-signs__label-custom {
+                    background-color: var(--color-primary-light-2);
+                    color: var(--color-main);
+                  }
+                }
+    
+                &-custom {
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+    
+                  width: 40px;
+                  height: 32px;
+    
+                  background-color: var(--color-main);
+    
+                  text-align: center;
+                  font-size: 16px;
+                  font-weight: 500;
+                  color: var(--color-text-main);
+    
+                  transition: all 0.3s ease-in-out;
                 }
               }
             }
-
-            &__pivot {
-              position: absolute;
-              top: 50%;
-              left: 50%;
-              transform: translate(-50%, -50%);
-
-              z-index: 2;
-
-              width: 10px;
-              height: 10px;
-
-              border-radius: 50%;
-              background-color: var(--color-primary);
+          }
+    
+          &__dials {
+            position: relative;
+            margin: 0 auto;
+    
+            width: 220px;
+            height: 220px;
+            border-radius: 100%;
+            background-color: var(--color-main);
+    
+            &.is-locked {
+              opacity: 0.6;
+    
+              .clock-face {
+                pointer-events: none;
+              }
             }
-
-            &__hand {
-              --minute-hand-length: 75px;
-              --hour-hand-length: 55px;
-
+    
+            & .clock-face {
               position: absolute;
+              inset: 0;
               width: 100%;
               height: 100%;
-
-              pointer-events: none;
-              opacity: 0;
-              transition: opacity 0.3s ease;
-
-              &.hour-hand {
-                
-                &::before {
-                  height: var(--hour-hand-length);
-                  margin-top: calc(var(--hour-hand-length) * -1);
-                }
-              }
-
-              &.minute-hand {
-                
-                &::before {
-                  height: var(--minute-hand-length);
-                  margin-top: calc(var(--minute-hand-length) * -1);
-                }
-              }
-
-              &.is-visible {
-                opacity: 1;
-              }
-
-              &::before {
-                content: '';
+              background-color: var(--color-main);
+              border-radius: inherit;
+              transform-origin: center center;
+    
+              &__number {
+                --radius: 90px;
+    
                 position: absolute;
                 top: 50%;
                 left: 50%;
-                
-                width: 3.5px;
-                height: var(--hand-length);
-
-                margin-left: -1px;
-                margin-top: calc(var(--hand-length) * -1);
-
-                background-color: var(--color-primary);
-                border-radius: 3px;
-
-                transform: rotate(var(--angle));
-                transform-origin: bottom center;
+    
+                display: flex;
+                align-items: center;
+                justify-content: center;
+    
+                width: 30px;
+                height: 30px;
+                padding: 2px;
+                margin: -15px 0 0 -15px;
+    
+                border-radius: 50%;
+    
+                transform:
+                  rotate(var(--angle))
+                  translateY(calc(var(--radius) * -1))
+                  rotate(calc(var(--angle) * -1));
+    
+                font-size: 16px;
+                font-weight: 400;
+                color: var(--color-text-main);
+    
+                &:hover {
+                  background-color: var(--color-primary-light-2);
+                }
+    
+                &.active {
+                  background-color: var(--color-primary);
+                  color: var(--color-main);
+                }
+    
+                &.is-tick {
+                  width: 24px;
+                  height: 24px;
+                  background: transparent;
+    
+                  &:hover {
+                    background: transparent;
+                  }
+                }
               }
+    
+              &__pivot {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+    
+                z-index: 2;
+    
+                width: 10px;
+                height: 10px;
+    
+                border-radius: 50%;
+                background-color: var(--color-primary);
+              }
+    
+              &__hand {
+                --minute-hand-length: 75px;
+                --hour-hand-length: 55px;
+    
+                position: absolute;
+                width: 100%;
+                height: 100%;
+    
+                pointer-events: none;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+    
+                &.hour-hand {
+                  
+                  &::before {
+                    height: var(--hour-hand-length);
+                    margin-top: calc(var(--hour-hand-length) * -1);
+                  }
+                }
+    
+                &.minute-hand {
+                  
+                  &::before {
+                    height: var(--minute-hand-length);
+                    margin-top: calc(var(--minute-hand-length) * -1);
+                  }
+                }
+    
+                &.is-visible {
+                  opacity: 1;
+                }
+    
+                &::before {
+                  content: '';
+                  position: absolute;
+                  top: 50%;
+                  left: 50%;
+                  
+                  width: 3.5px;
+                  height: var(--hand-length);
+    
+                  margin-left: -1px;
+                  margin-top: calc(var(--hand-length) * -1);
+    
+                  background-color: var(--color-primary);
+                  border-radius: 3px;
+    
+                  transform: rotate(var(--angle));
+                  transform-origin: bottom center;
+                }
+              }
+    
             }
-
+    
           }
-
-        }
-
-        &__bottom {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 10px;
-          padding: 0 10px;
-
-          & button {
-            font-size: 16px;
-            font-weight: 500;
-            color: var(--color-text-main);
+    
+          &__bottom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 0 10px;
+    
+            & button {
+              font-size: 16px;
+              font-weight: 500;
+              color: var(--color-text-main);
+            }
           }
         }
       }
     }
-
 
     &__error {
       margin-top: 10px;
