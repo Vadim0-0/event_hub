@@ -171,6 +171,14 @@
 
   onClickOutside(fieldRef, closeCalendar);
 
+  const {
+    onBeforeEnter: onSelectorBeforeEnter,
+    onEnter: onSelectorEnter,
+    onAfterEnter: onSelectorAfterEnter,
+    onBeforeLeave: onSelectorBeforeLeave,
+    onLeave: onSelectorLeave,
+  } = useHeightTransition({ duration: 300, marginTop: 5 });
+
   const monthLabel = computed(() => viewDate.value.format('MMMM YYYY'));
 
   function prevMonth() {
@@ -254,83 +262,92 @@
       Название
     </span>
 
-    <div ref="fieldRef" class="ui-date__field">
-      <button
-        type="button"
-        class="ui-date__field-open"
-        :disabled="props.disabled"
-        @click.stop="openCalendar"
-      >
-        <Icon name="fe:calendar" mode="svg" />
-      </button>
-      <input
-        :id="props.id"
-        type="text"
-        inputmode="numeric"
-        maxlength="10"
-        :placeholder="props.placeholder || 'DD.MM.YYYY'"
-        :disabled="props.disabled"
-        :value="inputText"
-        :class="{ 'is-invalid': inputState === 'invalid' }"
-        @input="onInput"
-        @keydown="onKeydown"
-        @blur="onInputBlur"
-        @keydown.enter="onInputBlur"
-      >
-
-      <Transition>
-        <div 
-          v-show="isOpen"
-          class="date-selector"
+    <div ref="fieldRef" class="ui-date__body">
+      <div class="ui-date__body-field">
+        <button
+          type="button"
+          class="ui-date__body-field__open"
+          :disabled="props.disabled"
+          @click.stop="openCalendar"
         >
-          <div class="date-selector__top">
-            <button type="button" class="date-selector__top-btn prev-btn" @click="prevMonth">
-              <Icon name="eva:arrow-up-fill" mode="svg" />
-            </button>
-            <div class="date-selector__top-name">
-              <p>{{ monthLabel }}</p>
+          <Icon name="fe:calendar" mode="svg" />
+        </button>
+        <input
+          :id="props.id"
+          type="text"
+          inputmode="numeric"
+          maxlength="10"
+          :placeholder="props.placeholder || 'DD.MM.YYYY'"
+          :disabled="props.disabled"
+          :value="inputText"
+          :class="{ 'is-invalid': inputState === 'invalid' }"
+          @input="onInput"
+          @keydown="onKeydown"
+          @blur="onInputBlur"
+          @keydown.enter="onInputBlur"
+        >
+      </div>
+  
+      <Transition
+        :css="false"
+        @before-enter="onSelectorBeforeEnter"
+        @enter="onSelectorEnter"
+        @after-enter="onSelectorAfterEnter"
+        @before-leave="onSelectorBeforeLeave"
+        @leave="onSelectorLeave"
+      >
+        <div v-if="isOpen" class="ui-date__body-wrap">
+          <div class="date-selector">
+            <div class="date-selector__top">
+              <button type="button" class="date-selector__top-btn prev-btn" @click="prevMonth">
+                <Icon name="eva:arrow-up-fill" mode="svg" />
+              </button>
+              <div class="date-selector__top-name">
+                <p>{{ monthLabel }}</p>
+              </div>
+              <button type="button" class="date-selector__top-btn next-btn" @click="nextMonth">
+                <Icon name="eva:arrow-up-fill" mode="svg" />
+              </button>
+            </div>  
+            <div class="date-selector__calendar">
+  
+              <div class="date-selector__calendar-weekdays">
+                <span v-for="day in weekDays" :key="day">{{ day }}</span>
+              </div>
+  
+              <div class="date-selector__calendar-grid">
+                <button
+                  v-for="day in calendarDays"
+                  :key="day.format('YYYY-MM-DD')"
+                  type="button"
+                  class="date-selector__day"
+                  :class="{
+                    'is-other-month': !day.isSame(viewDate, 'month'),
+                    'is-selected': modelValue === day.format('YYYY-MM-DD'),
+                    'is-today': day.isSame(dayjs(), 'day'),
+                    'is-disabled': isDisabledDay(day),
+                  }"
+                  :disabled="isDisabledDay(day)"
+                  @click="selectDate(day)"
+                >
+                  {{ day.date() }}
+                </button>
+              </div>
+    
             </div>
-            <button type="button" class="date-selector__top-btn next-btn" @click="nextMonth">
-              <Icon name="eva:arrow-up-fill" mode="svg" />
-            </button>
-          </div>  
-          <div class="date-selector__calendar">
-
-            <div class="date-selector__calendar-weekdays">
-              <span v-for="day in weekDays" :key="day">{{ day }}</span>
-            </div>
-
-            <div class="date-selector__calendar-grid">
-              <button
-                v-for="day in calendarDays"
-                :key="day.format('YYYY-MM-DD')"
-                type="button"
-                class="date-selector__day"
-                :class="{
-                  'is-other-month': !day.isSame(viewDate, 'month'),
-                  'is-selected': modelValue === day.format('YYYY-MM-DD'),
-                  'is-today': day.isSame(dayjs(), 'day'),
-                  'is-disabled': isDisabledDay(day),
-                }"
-                :disabled="isDisabledDay(day)"
-                @click="selectDate(day)"
-              >
-                {{ day.date() }}
+            <div class="date-selector__bottom">
+              <button type="button" @click="clearDate">
+                Clear
+              </button>
+              <button type="button" @click="setToday">
+                Today
               </button>
             </div>
-  
-          </div>
-          <div class="date-selector__bottom">
-            <button type="button" @click="clearDate">
-              Clear
-            </button>
-            <button type="button" @click="setToday">
-              Today
-            </button>
           </div>
         </div>
       </Transition>
     </div>
+
 
     <div class="ui-date__error" v-if="inputState === 'invalid'">
       <p>
@@ -359,178 +376,185 @@
       font-weight: 500;
     }
 
-    &__field {
-      position: relative;
-      width: 100%;
+    &__body {
 
-      &-open {
-        position: absolute;
-        top: 50%;
-        right: 5px;
-        transform: translateY(-50%);
-
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-
-        transition: opacity 0.3s ease-in-out;
-
-        & svg {
-          width: 20px;
-          height: 20px;
-          color: var(--color-primary-light-2);
-          transition: color 0.3s ease-in-out;
-        }
-
-        &:hover {
-          
-          & svg {
-            color: var(--color-primary);
-          }
-        }
-      }
-
-      & input {
-        padding: 16px 12px;
+      &-field {
+        position: relative;
+        z-index: 2;
         width: 100%;
-        outline: none;
-        border: none;
-        box-shadow: none;
-        background-color: var(--color-third);
-        border-radius: 5px;
-        transition: all 0.3s ease-in-out;
   
-        color: var(--color-text-main);
-        font-size: var(--text-body-xl);
+        &__open {
+          position: absolute;
+          top: 50%;
+          right: 5px;
+          transform: translateY(-50%);
   
-        &::-webkit-outer-spin-button,
-        &::-webkit-inner-spin-button {
-          -moz-appearance: textfield;
-          appearance: textfield;
-          -webkit-appearance: none;
-          margin: 0;
-        }
-  
-        &:focus {
-          outline: none;
-          border-color: var(--color-primary-hover);
-        }
-  
-        &:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-      }
-
-      &:hover {
-        & .ui-input__field-control {
-          opacity: 1;
-        }
-      }
-
-      & .date-selector {
-        position: absolute;
-        top: calc(100% + 5px);
-        left: 0;
-        z-index: 5;
-
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        width: 100%;
-
-        padding: 10px;
-
-        background-color: var(--color-third);
-        border-radius: 5px;
-
-        &__top {
           display: flex;
+          flex-direction: column;
           align-items: center;
-          justify-content: space-between;
-          gap: 5px;
-
-          &-btn {
-
-            & svg {
-              color: var(--color-text-main);
-            }
-
-            &.prev-btn {
-              transform: rotate(-90deg);
-            }
-
-            &.next-btn {
-              transform: rotate(90deg);
-            }
+          justify-content: center;
+  
+          transition: opacity 0.3s ease-in-out;
+  
+          & svg {
+            width: 20px;
+            height: 20px;
+            color: var(--color-primary-light-2);
+            transition: color 0.3s ease-in-out;
           }
-
-          &-name {
-            font-size: 16px;
-            font-weight: 500;
-            color: var(--color-text-main);
+  
+          &:hover {
+            
+            & svg {
+              color: var(--color-primary);
+            }
           }
         }
+  
+        & input {
+          padding: 16px 12px;
+          width: 100%;
+          outline: none;
+          border: none;
+          box-shadow: none;
+          background-color: var(--color-third);
+          border-radius: 5px;
+          transition: all 0.3s ease-in-out;
+    
+          color: var(--color-text-main);
+          font-size: var(--text-body-xl);
+    
+          &::-webkit-outer-spin-button,
+          &::-webkit-inner-spin-button {
+            -moz-appearance: textfield;
+            appearance: textfield;
+            -webkit-appearance: none;
+            margin: 0;
+          }
+    
+          &:focus {
+            outline: none;
+            border-color: var(--color-primary-hover);
+          }
+    
+          &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
+        }
+  
+        &:hover {
+          & .ui-input__field-control {
+            opacity: 1;
+          }
+        }
+      }
 
-        &__calendar {
+      &-wrap {
+        position: relative;
+        z-index: 1;
+        margin-top: 5px;
+        overflow: hidden;
+
+        & .date-selector {
+          z-index: 5;
+  
           display: flex;
           flex-direction: column;
           gap: 20px;
-
-          &-weekdays {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-
-            & span {
-              text-align: center;
+          width: 100%;
+  
+          padding: 10px;
+  
+          background-color: var(--color-third);
+          border-radius: 5px;
+  
+          &__top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 5px;
+  
+            &-btn {
+  
+              & svg {
+                color: var(--color-text-main);
+              }
+  
+              &.prev-btn {
+                transform: rotate(-90deg);
+              }
+  
+              &.next-btn {
+                transform: rotate(90deg);
+              }
+            }
+  
+            &-name {
               font-size: 16px;
+              font-weight: 500;
               color: var(--color-text-main);
             }
           }
-
-          &-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 2px 5px;
-
+  
+          &__calendar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+  
+            &-weekdays {
+              display: grid;
+              grid-template-columns: repeat(7, 1fr);
+  
+              & span {
+                text-align: center;
+                font-size: 16px;
+                color: var(--color-text-main);
+              }
+            }
+  
+            &-grid {
+              display: grid;
+              grid-template-columns: repeat(7, 1fr);
+              gap: 2px 5px;
+  
+              & button {
+                padding: 2px;
+  
+                border-radius: 5px;
+                text-align: center;
+                font-size: 16px;
+                color: var(--color-text-main);
+  
+                &:hover {
+                  background-color: var(--color-primary-light-2);
+                }
+  
+                &.is-selected {
+                  background-color: var(--color-primary);
+  
+                  color: var(--color-main);
+                }
+              }
+            }
+          }
+  
+          &__bottom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 0 10px;
+  
             & button {
-              padding: 2px;
-
-              border-radius: 5px;
-              text-align: center;
               font-size: 16px;
+              font-weight: 500;
               color: var(--color-text-main);
-
-              &:hover {
-                background-color: var(--color-primary-light-2);
-              }
-
-              &.is-selected {
-                background-color: var(--color-primary);
-
-                color: var(--color-main);
-              }
             }
-          }
-        }
-
-        &__bottom {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 10px;
-          padding: 0 10px;
-
-          & button {
-            font-size: 16px;
-            font-weight: 500;
-            color: var(--color-text-main);
           }
         }
       }
     }
-
 
     &__error {
       margin-top: 10px;
