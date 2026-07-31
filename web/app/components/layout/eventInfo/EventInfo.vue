@@ -172,12 +172,7 @@
         </UiButton>
         
         <UiButton
-          :class="[
-            isParticipant
-              ? '!bg-error/30 !text-error !border-error hover:!bg-error/50'
-              : '!bg-primary !text-main !border-primary hover:!bg-primary-hover',
-            { 'opacity-70 pointer-events-none': isActionDisabled },
-          ]"
+          :style-type="isParticipant ? 'delete' : 'primary'"
           :disabled="isActionDisabled"
           @click="handleToggleParticipation"
         >
