@@ -306,14 +306,48 @@ async def get_joined_events(
   current_user: User = Depends(get_current_user),
   skip: int = 0,
   limit: int = 100,
+  search: str | None = None,
+  sort: SortOrder = "asc",
+  redis: Redis = Depends(get_redis),
 ):
+  cache_key = (
+    f"events:joined:user={current_user.id}:"
+    f"skip={skip}:limit={limit}:search={search or ''}:sort={sort}"
+  )
+
+  cached = await cache_get(redis, cache_key)
+  if cached is not None:
+    return [EventOut.model_validate(item) for item in cached]
+
   events = await events_service.get_user_joined_events(
     db,
     user_id=current_user.id,
     skip=skip,
     limit=limit,
+    search=search,
+    sort=sort,
   )
-  return await events_service.build_events_out(db, events)
+
+  data = [
+    event_out.model_dump(mode="json")
+    for event_out in await events_service.build_events_out(db, events)
+  ]
+  await cache_set(redis, cache_key, data, settings.cache_ttl_seconds)
+  return [EventOut.model_validate(item) for item in data]
+
+
+@router.get("/joined/me/count", response_model=EventsCountOut)
+async def get_joined_events_count(
+  db: AsyncSession = Depends(get_db),
+  current_user: User = Depends(get_current_user),
+  search: str | None = None,
+):
+  total = await events_service.count_user_joined_events(
+    db,
+    current_user.id,
+    search,
+  )
+  return {"total": total}
 
 
 @router.get("/me/stats", response_model=UserEventStatsOut, summary="Get event user stats")

@@ -210,17 +210,55 @@ async def get_user_joined_events(
   user_id: int,
   skip: int,
   limit: int,
+  search: str | None = None,
+  sort: str = "asc",
 ):
-  result = await db.execute(
+  query = (
     select(Event)
     .join(EventRegistration, EventRegistration.event_id == Event.id)
     .options(selectinload(Event.creator))
     .where(EventRegistration.user_id == user_id)
-    .order_by(Event.starts_at)
-    .offset(skip)
-    .limit(limit)
   )
+
+  if search:
+    pattern = f"%{search.strip()}%"
+    query = query.where(
+      or_(
+        Event.title.ilike(pattern),
+        Event.description.ilike(pattern),
+      )
+    )
+
+  order = Event.starts_at.asc() if sort == "asc" else Event.starts_at.desc()
+  query = query.order_by(order).offset(skip).limit(limit)
+
+  result = await db.execute(query)
   return result.scalars().all()
+
+
+async def count_user_joined_events(
+  db: AsyncSession,
+  user_id: int,
+  search: str | None = None,
+) -> int:
+  query = (
+    select(func.count())
+    .select_from(Event)
+    .join(EventRegistration, EventRegistration.event_id == Event.id)
+    .where(EventRegistration.user_id == user_id)
+  )
+
+  if search:
+    pattern = f"%{search.strip()}%"
+    query = query.where(
+      or_(
+        Event.title.ilike(pattern),
+        Event.description.ilike(pattern),
+      )
+    )
+
+  result = await db.execute(query)
+  return result.scalar_one()
 
 
 async def get_user_event_stats(
