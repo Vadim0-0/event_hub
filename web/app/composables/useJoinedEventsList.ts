@@ -30,7 +30,7 @@ export function useJoinedEventsList(
       : 'joined-events-disabled',
     () => {
       if (!enabled.value) return Promise.resolve([] as Event[]);
-      return api<Event[]>(`/events/joined/me?${queryParams.value}`);
+      return api<Event[]>(`/users/me/joined-events?${queryParams.value}`);
     },
     { watch: [page, search, sort, enabled], server: false },
   );
@@ -47,7 +47,7 @@ export function useJoinedEventsList(
       if (trimmedSearch) params.set('search', trimmedSearch);
 
       const suffix = params.toString() ? `?${params.toString()}` : '';
-      return api<EventsCount>(`/events/joined/me/count${suffix}`);
+      return api<EventsCount>(`/users/me/joined-events/count${suffix}`);
     },
     { watch: [search, enabled], server: false },
   );

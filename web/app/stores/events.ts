@@ -22,7 +22,7 @@ export const useEventsStore = defineStore('events', () => {
       isLoading.value = true;
   
       try {
-        const stats = await api<UserEventStats>('/events/me/stats');
+        const stats = await api<UserEventStats>('/users/me/stats');
         createdCount.value = stats.created_count;
         joinedCount.value = stats.joined_count;
       } finally {

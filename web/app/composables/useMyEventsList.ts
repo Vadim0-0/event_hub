@@ -35,7 +35,7 @@ export function useMyEventsList(
       : 'my-events-disabled',
     () => {
       if (!enabled.value) return Promise.resolve([] as Event[])
-      return api<Event[]>(`/events/me?${queryParams.value}`)
+      return api<Event[]>(`/users/me/events?${queryParams.value}`)
     },
     { watch: [page, search, sort, enabled], server: false },
   );
@@ -55,7 +55,7 @@ export function useMyEventsList(
       if (trimmedSearch) params.set('search', trimmedSearch);
 
       const suffix = params.toString() ? `?${params.toString()}` : '';
-      return api<EventsCount>(`/events/me/count${suffix}`);
+      return api<EventsCount>(`/users/me/events/count${suffix}`);
     },
     { watch: [search, enabled], server: false },
   )
