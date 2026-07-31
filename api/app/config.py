@@ -52,7 +52,7 @@ class Settings(BaseSettings):
   postgres_port: int = 5432
   postgres_db: str = "postgres"
 
-  cors_origins: list[str] = ["http://localhost:3000"]
+  cors_origins: list[str] = ["http://localhost","http://localhost:3000"]
 
   @computed_field
   @property
