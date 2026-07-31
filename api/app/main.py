@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Depends, FastAPI
 
 from .config import Settings, get_settings
-from .routers import auth, events, notifications
+from .routers import auth, user, events, notifications
 
 from .redis_client import init_redis, close_redis
 from .worker.enqueue import init_arq_pool, close_arq_pool
@@ -30,6 +30,7 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
+app.include_router(user.router) 
 app.include_router(events.router)
 app.include_router(notifications.router)
 
