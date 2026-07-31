@@ -8,6 +8,9 @@ export default defineNuxtConfig({
     head: {
       title: 'Event Hub',
       titleTemplate: '%s | Event Hub',
+      link: [
+        { rel: 'icon', type: 'image/svg', href: '/favicon.svg' },
+      ],
       htmlAttrs: {
         lang: 'en',
       },
@@ -56,6 +59,11 @@ export default defineNuxtConfig({
         variant: 'none',
       },
     },
+  },
+
+  // Avoid clash with nginx `/api/` → FastAPI proxy
+  icon: {
+    localApiEndpoint: '/_nuxt_icon',
   },
 
   i18n: i18nOptions,
