@@ -13,17 +13,20 @@
   const slot = computed(() => route.params.slot as string);
   const isAllEventsPage = computed(() => slot.value === 'allEventsPage');
   const isMyEventsPage = computed(() => slot.value === 'myEventsPage');
+  const isJoinedEventsPage = computed(() => slot.value === 'joinedEventsPage');
 
   // --- Page Config ---
   const pageConfig = computed(() => {
     switch (slot.value) {
       case 'allEventsPage':
-        return { title: 'All Events', showSearch: true, showSort: true }
+        return { title: 'All Events', showSearch: true, showSort: true };
       case 'myEventsPage':
-        return { title: 'My Events', showSearch: true, showSort: true }
+        return { title: 'My Events', showSearch: true, showSort: true };
+      case 'joinedEventsPage':
+        return { title: 'Joined Events', showSearch: true, showSort: true };
       default:
-        return { title: 'Events', showSearch: false, showSort: false }
-    }
+        return { title: 'Events', showSearch: false, showSort: false };
+    };
   });
 
   // --- Page Content ---
@@ -66,14 +69,26 @@
     error: myError,
   } = useMyEventsList(page, isMyEventsPage, debouncedSearch, sort);
 
+  const {
+    events: joinedEvents,
+    total: joinedTotal,
+    totalPages: joinedTotalPages,
+    pending: joinedPending,
+    error: joinedError,
+  } = useJoinedEventsList(page, isJoinedEventsPage, debouncedSearch, sort);
 
-  const activeEvents = computed(() =>
-    isAllEventsPage.value ? events.value : myEvents.value,
-  );
 
-  const activeTotal = computed(() =>
-    isAllEventsPage.value ? total.value : myTotal.value,
-  );
+  const activeEvents = computed(() => {
+    if (isAllEventsPage.value) return events.value;
+    if (isMyEventsPage.value) return myEvents.value;
+    return joinedEvents.value;
+  });
+
+  const activeTotal = computed(() => {
+    if (isAllEventsPage.value) return total.value;
+    if (isMyEventsPage.value) return myTotal.value;
+    return joinedTotal.value;
+  });
 
   const activeTotalPages = computed(() =>
     isAllEventsPage.value ? totalPages.value : myTotalPages.value,
@@ -87,17 +102,21 @@
     isAllEventsPage.value ? error.value : myError.value,
   );
 
+  const isEventsListPage = computed(() =>
+    isAllEventsPage.value || isMyEventsPage.value || isJoinedEventsPage.value,
+  );
+
   const isErrorLoad = computed(() => !!activeError.value);
 
   const isEmpty = computed(() =>
-    (isAllEventsPage.value || isMyEventsPage.value) &&
+    isEventsListPage.value &&
     !activePending.value &&
     !activeError.value &&
     (activeEvents.value?.length ?? 0) === 0,
   );
 
   const hasEvents = computed(() =>
-    (isAllEventsPage.value || isMyEventsPage.value) &&
+    isEventsListPage.value &&
     !activePending.value &&
     !activeError.value &&
     (activeEvents.value?.length ?? 0) > 0,
@@ -168,7 +187,7 @@
             text-text-main text-body-xl
           "
         >
-          <p v-if="isAllEventsPage || isMyEventsPage">
+          <p v-if="isEventsListPage">
             {{ pageContent?.infoText ?? 'Events:' }} <span>{{ activeTotal }}</span>
           </p>
         </div>
@@ -220,7 +239,7 @@
         </template>
 
         <UiButton
-          v-if="isAllEventsPage || isMyEventsPage"
+          v-if="isAllEventsPage || isMyEventsPage || isJoinedEventsPage"
           @click="openCreateEvent"
           class="
             absolute z-3 bottom-0.5 right-0.5
