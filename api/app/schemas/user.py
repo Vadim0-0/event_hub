@@ -24,3 +24,20 @@ class UserOut(BaseModel):
   created_at: datetime
 
   model_config = ConfigDict(from_attributes=True)
+
+
+class UserListItemOut(BaseModel):
+  id: int
+  username: str
+  email: EmailStr
+  created_at: datetime
+  is_me: bool
+
+  
+class UsersCountOut(BaseModel):
+  total: int
+
+
+class UserEventStatsOut(BaseModel):
+  created_count: int
+  joined_count: int

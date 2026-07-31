@@ -41,8 +41,3 @@ class EventsCountOut(BaseModel):
 class EventDetailOut(EventOut):
   is_participant: bool | None = None
   is_creator: bool | None = None
-
-
-class UserEventStatsOut(BaseModel):
-  created_count: int
-  joined_count: int

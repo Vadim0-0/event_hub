@@ -1,4 +1,5 @@
 from uuid import UUID
+from collections.abc import Sequence
 from sqlalchemy import func, select, or_
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -44,7 +45,7 @@ async def build_event_out(
   )
 
 
-async def build_events_out(db: AsyncSession, events: list[Event]) -> list[EventOut]:
+async def build_events_out(db: AsyncSession, events: Sequence[Event]) -> list[EventOut]:
   return [await build_event_out(db, event) for event in events]
 
 
@@ -126,60 +127,6 @@ async def count_events(
   return result.scalar_one()
 
 
-async def get_user_events(
-  db: AsyncSession,
-  user_id: int, 
-  skip: int, 
-  limit: int,
-  search: str | None = None,
-  sort: str = "asc",
-):
-  query = (
-    select(Event)
-    .options(selectinload(Event.creator))
-    .where(Event.creator_id == user_id)
-  )
-
-  if search:
-    pattern = f"%{search.strip()}%"
-    query = query.where(
-      or_(
-        Event.title.ilike(pattern),
-        Event.description.ilike(pattern),
-      )
-    )
-
-  order = Event.starts_at.asc() if sort == "asc" else Event.starts_at.desc()
-  query = query.order_by(order).offset(skip).limit(limit)
-  
-  result = await db.execute(query)
-  return result.scalars().all()
-
-
-async def count_user_events(
-  db: AsyncSession,
-  user_id: int,
-  search: str | None = None,
-) -> int:
-  query = (
-    select(func.count())
-    .select_from(Event)
-    .where(Event.creator_id == user_id)
-  )
-
-  if search:
-    pattern = f"%{search.strip()}%"
-    query = query.where(
-      or_(
-        Event.title.ilike(pattern),
-        Event.description.ilike(pattern),
-      )
-    )
-
-  result = await db.execute(query)
-  return result.scalar_one()
-  
-
 async def get_event_by_id(
   db: AsyncSession, 
   event_id: UUID
@@ -203,86 +150,6 @@ async def is_user_participant(
     )
   )
   return result.scalar_one_or_none() is not None
-
-
-async def get_user_joined_events(
-  db: AsyncSession,
-  user_id: int,
-  skip: int,
-  limit: int,
-  search: str | None = None,
-  sort: str = "asc",
-):
-  query = (
-    select(Event)
-    .join(EventRegistration, EventRegistration.event_id == Event.id)
-    .options(selectinload(Event.creator))
-    .where(EventRegistration.user_id == user_id)
-  )
-
-  if search:
-    pattern = f"%{search.strip()}%"
-    query = query.where(
-      or_(
-        Event.title.ilike(pattern),
-        Event.description.ilike(pattern),
-      )
-    )
-
-  order = Event.starts_at.asc() if sort == "asc" else Event.starts_at.desc()
-  query = query.order_by(order).offset(skip).limit(limit)
-
-  result = await db.execute(query)
-  return result.scalars().all()
-
-
-async def count_user_joined_events(
-  db: AsyncSession,
-  user_id: int,
-  search: str | None = None,
-) -> int:
-  query = (
-    select(func.count())
-    .select_from(Event)
-    .join(EventRegistration, EventRegistration.event_id == Event.id)
-    .where(EventRegistration.user_id == user_id)
-  )
-
-  if search:
-    pattern = f"%{search.strip()}%"
-    query = query.where(
-      or_(
-        Event.title.ilike(pattern),
-        Event.description.ilike(pattern),
-      )
-    )
-
-  result = await db.execute(query)
-  return result.scalar_one()
-
-
-async def get_user_event_stats(
-  db: AsyncSession,
-  user_id: int,
-) -> dict[str, int]:
-  created_result = await db.execute(
-    select(func.count())
-    .select_from(Event)
-    .where(Event.creator_id == user_id)
-  )
-  created_count = created_result.scalar_one()
-
-  joined_result = await db.execute(
-    select(func.count())
-    .select_from(EventRegistration)
-    .where(EventRegistration.user_id == user_id)
-  )
-  joined_count = joined_result.scalar_one()
-
-  return {
-    "created_count": created_count,
-    "joined_count": joined_count,
-  }
 
 
 async def update_event(

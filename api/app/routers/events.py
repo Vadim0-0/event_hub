@@ -10,7 +10,7 @@ from ..dependencies import get_current_user
 from ..models.user import User
 from ..models.event import Event
 from ..models.registration import EventRegistration
-from ..schemas.event import EventCreate, EventDetailOut, EventUpdate, EventOut, EventsCountOut, UserEventStatsOut
+from ..schemas.event import EventCreate, EventDetailOut, EventUpdate, EventOut, EventsCountOut
 from ..schemas.registration import RegistrationOut, ParticipantOut
 from ..services import events as events_service
 from ..services import registrations as registration_service
@@ -98,53 +98,6 @@ async def get_events_count(
   return {"total": total}
 
 
-@router.get("/me", response_model=list[EventOut], summary="Get user events")
-async def get_user_events(
-  db: AsyncSession = Depends(get_db),
-  current_user: User = Depends(get_current_user),
-  skip: int = 0,
-  limit: int = 100,
-  search: str | None = None,
-  sort: SortOrder = "asc",
-  redis: Redis = Depends(get_redis),
-):
-  """
-    Get list of events created by the current user
-  """
-
-  cache_key = f"events:my:user={current_user.id}:skip={skip}:limit={limit}:search={search or ''}:sort={sort}"
-
-  cached = await cache_get(redis, cache_key)
-  if cached is not None:
-    return [EventOut.model_validate(item) for item in cached]
-
-  events = await events_service.get_user_events(
-    db,
-    user_id=current_user.id,
-    skip=skip,
-    limit=limit,
-    search=search,
-    sort=sort,
-  )
-
-  data = [
-    event_out.model_dump(mode="json")
-    for event_out in await events_service.build_events_out(db, events)
-  ]
-  await cache_set(redis, cache_key, data, settings.cache_ttl_seconds)
-  return [EventOut.model_validate(item) for item in data]
-
-
-@router.get("/me/count", response_model=EventsCountOut)
-async def get_user_events_count(
-  db: AsyncSession = Depends(get_db),
-  current_user: User = Depends(get_current_user),
-  search: str | None = None,
-):
-  total = await events_service.count_user_events(db, current_user.id, search)
-  return {"total": total}
-
-
 @router.get("/{event_id}", response_model=EventDetailOut, summary="Get event by ID")
 async def get_event(
   event_id: UUID,
@@ -162,18 +115,16 @@ async def get_event(
   if cached is not None:
     event_out = EventOut.model_validate(cached)
   else:
-    event_out = await events_service.get_event_by_id(db, event_id)
+    try:
+      event_out = await events_service.get_event_by_id(db, event_id)
+    except events_service.EventNotFoundError as e:
+      raise HTTPException(status_code=404, detail=str(e))
     await cache_set(
-      redis, 
-      cache_key, 
-      event_out.model_dump(mode="json"), 
+      redis,
+      cache_key,
+      event_out.model_dump(mode="json"),
       settings.cache_ttl_seconds
     )
-
-  try:
-    event_out = await events_service.get_event_by_id(db, event_id)
-  except events_service.EventNotFoundError as e:
-    raise HTTPException(status_code=404, detail=str(e))
 
   is_participant = None
   is_creator = None
@@ -298,67 +249,6 @@ async def get_participants(
   )
 
   return [ParticipantOut.model_validate(item) for item in data]
-
-
-@router.get("/joined/me", response_model=list[EventOut], summary="Get events user joined")
-async def get_joined_events(
-  db: AsyncSession = Depends(get_db),
-  current_user: User = Depends(get_current_user),
-  skip: int = 0,
-  limit: int = 100,
-  search: str | None = None,
-  sort: SortOrder = "asc",
-  redis: Redis = Depends(get_redis),
-):
-  cache_key = (
-    f"events:joined:user={current_user.id}:"
-    f"skip={skip}:limit={limit}:search={search or ''}:sort={sort}"
-  )
-
-  cached = await cache_get(redis, cache_key)
-  if cached is not None:
-    return [EventOut.model_validate(item) for item in cached]
-
-  events = await events_service.get_user_joined_events(
-    db,
-    user_id=current_user.id,
-    skip=skip,
-    limit=limit,
-    search=search,
-    sort=sort,
-  )
-
-  data = [
-    event_out.model_dump(mode="json")
-    for event_out in await events_service.build_events_out(db, events)
-  ]
-  await cache_set(redis, cache_key, data, settings.cache_ttl_seconds)
-  return [EventOut.model_validate(item) for item in data]
-
-
-@router.get("/joined/me/count", response_model=EventsCountOut)
-async def get_joined_events_count(
-  db: AsyncSession = Depends(get_db),
-  current_user: User = Depends(get_current_user),
-  search: str | None = None,
-):
-  total = await events_service.count_user_joined_events(
-    db,
-    current_user.id,
-    search,
-  )
-  return {"total": total}
-
-
-@router.get("/me/stats", response_model=UserEventStatsOut, summary="Get event user stats")
-async def get_event_stats(
-  db: AsyncSession = Depends(get_db),
-  current_user: User = Depends(get_current_user),
-):
-  return await events_service.get_user_event_stats(
-    db,
-    user_id=current_user.id,
-  )
 
 
 @router.patch("/{event_id}", response_model=EventOut, summary="Update event")

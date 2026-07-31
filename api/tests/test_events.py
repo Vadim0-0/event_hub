@@ -4,7 +4,7 @@ import pytest
 from datetime import datetime, timedelta, timezone
 
 EVENTS_URL = "/events/"
-GET_USER_EVENTS_URL = "/events/me"
+GET_USER_EVENTS_URL = "/users/me/events"
 
 NONEXISTENT_EVENT_ID = "00000000-0000-0000-0000-000000000001"
 
