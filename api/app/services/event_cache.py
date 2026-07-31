@@ -11,6 +11,8 @@ async def invalidate_event_lists(redis: Redis, user_id: int | None = None) -> No
   await cache_delete_pattern(redis, "events:list:*")
   if user_id is not None:
     await cache_delete_pattern(redis, f"events:my:user={user_id}:*")
+    await cache_delete_pattern(redis, f"events:joined:user={user_id}:*")
+    await cache_delete_pattern(redis, f"events:by-user={user_id}:*")
 
 
 async def invalidate_event_participants(redis: Redis, event_id: UUID) -> None:
