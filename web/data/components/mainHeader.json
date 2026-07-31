@@ -72,7 +72,7 @@
       },
       {
         "id": "users",
-        "to": "/usersPage",
+        "to": "/events/usersPage",
         "text": {
           "en": "Users",
           "ru": "Пользователи"
