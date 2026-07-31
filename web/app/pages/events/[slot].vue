@@ -109,6 +109,15 @@
     return 'fluent:arrow-sort-16-regular'
   });
 
+  // EventSetup
+  const eventSetupStore = useEventSetupStore();
+  const selectedEventStore = useSelectedEventStore();
+
+  function openCreateEvent() {
+    selectedEventStore.close();
+    eventSetupStore.openCreate();
+  };
+
 </script>
 
 <template>
@@ -165,10 +174,11 @@
         </div>
 
         <div>
-          <UiButton @click="toggleSort">
+          <UiButton @click="toggleSort" style-type="cancel">
             <Icon 
               :name="sortIcon"
               class="size-5 text-text-main"
+              mode="svg"
             />
             {{ pageContent?.sortingButtonText  ?? 'Sorting'}}
           </UiButton>
@@ -197,6 +207,7 @@
             class="
               absolute top-0 left-0 w-full
               grid grid-cols-6 gap-4
+              z-2
             "
           >
             <EventCard 
@@ -207,6 +218,17 @@
             />
           </TransitionGroup>
         </template>
+
+        <UiButton
+          v-if="isAllEventsPage || isMyEventsPage"
+          @click="openCreateEvent"
+          class="
+            absolute z-3 bottom-0.5 right-0.5
+            w-11 h-11
+          "
+        >
+          <Icon name="line-md:plus" mode="svg" class="w-full h-full"/>
+        </UiButton>
       </div>
       <div>
         <LayoutPagination 

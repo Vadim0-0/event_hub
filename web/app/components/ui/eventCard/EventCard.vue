@@ -7,14 +7,29 @@
     index?: number
   }>();
   const dayjs = useDayjs();
+
+  const route = useRoute();
   const selectedEventStore = useSelectedEventStore();
+  const eventSetupStore = useEventSetupStore();
+
+  const isMyEventsPage = computed(() => route.params.slot === 'myEventsPage');
+
+  function handleCardClick() {
+    if (isMyEventsPage.value) {
+      selectedEventStore.close()
+      eventSetupStore.openEdit(props.event)
+      return
+    };
+    eventSetupStore.close();
+    selectedEventStore.open(props.event);
+  };
 
   function openEventInfo() {
     selectedEventStore.open(props.event)
   };
 
-  const formattedCreatedAt = computed(() =>
-    dayjs(props.event.created_at).format('DD MMMM YYYY')
+  const formattedStartsAt = computed(() =>
+    dayjs(props.event.starts_at).format('DD MMMM YYYY')
   );
 
   const cardRef = ref<HTMLElement | null>(null);
@@ -91,7 +106,7 @@
   >
     <button
       type="button"
-      @click="openEventInfo"
+      @click="handleCardClick"
       class="absolute top-0 left-0 w-full h-full z-1"
     ></button>
     <div
@@ -116,7 +131,7 @@
           {{ event.creator.username }}
       </button>
       <p class="text-base text-main">
-        {{ formattedCreatedAt }}
+        {{ formattedStartsAt }}
       </p>
     </div>
     <div

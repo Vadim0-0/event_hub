@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { EventDetail } from '~/types/event';
+  import type { EventDetail, Event as AppEvent } from '~/types/event';
 
   // Margin Left based on the header width
   const headerRef = ref<{ el: HTMLElement | null } | null>(null);
@@ -46,12 +46,40 @@ import type { EventDetail } from '~/types/event';
 
   // Visible EventInfo 
   const selectedEventStore = useSelectedEventStore();
+  const eventSetupStore = useEventSetupStore();
+
+  function openEventSetupCreate() {
+    selectedEventStore.close();
+    eventSetupStore.openCreate();
+  };
+
+  function openEventSetupEdit(event: AppEvent) {
+    selectedEventStore.close();
+    eventSetupStore.openEdit(event);
+  };
+
+  function closeEventSetup() {
+    eventSetupStore.close();
+  };
+
+  function onEventSaved() {
+    eventSetupStore.close();
+    useEventsListRefreshStore().request();
+    eventsStore.fetchStats();
+  };
 
   function onEventUpdated(event: EventDetail) {
     selectedEventStore.updateSelectedEvent({
       participants_count: event.participants_count,
-    })
+    });
+    useEventsListRefreshStore().request();
+  };
+
+  function onEventDeleted() {
+    selectedEventStore.close()
+    eventSetupStore.close()
     useEventsListRefreshStore().request()
+    eventsStore.fetchStats()
   };
 
 </script>
@@ -70,6 +98,18 @@ import type { EventDetail } from '~/types/event';
       :event="selectedEventStore.selectedEvent!"
       @close="selectedEventStore.close()"
       @updated="onEventUpdated"
+      @edit="openEventSetupEdit"
+    />
+  </Transition>
+
+  <Transition name="slide">
+    <LayoutEventSetup
+      v-if="eventSetupStore.isOpen"
+      :mode="eventSetupStore.mode"
+      :event="eventSetupStore.event"
+      @close="closeEventSetup"
+      @saved="onEventSaved"
+      @deleted="onEventDeleted"
     />
   </Transition>
 </template>

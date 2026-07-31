@@ -9,6 +9,7 @@
   const emit = defineEmits<{
     close: []
     updated: [event: EventDetail]
+    edit: [event: Event]
   }>();
 
   const dayjs = useDayjs();
@@ -83,6 +84,10 @@
     } finally {
       isActionPending.value = false
     };
+  };
+
+  function handleChangeEvent() {
+    emit('edit', currentEvent.value);
   };
 
 </script>
@@ -160,7 +165,9 @@
       <div
         class="grid grid-cols-2 gap-2"
       >
-        <UiButton @click="emit('close')">
+        <UiButton 
+          style-type="cancel"
+          @click="emit('close')">
           Cancel
         </UiButton>
         
@@ -184,7 +191,9 @@
 
         <UiButton
           class="col-span-2"
+          style-type="cancel"
           v-if="showChangeEventButton"
+          @click="handleChangeEvent"
         >
           Change Event
         </UiButton>

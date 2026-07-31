@@ -7,7 +7,8 @@ export const useSelectedEventStore = defineStore('selectedEvent', () => {
   const isOpen = computed(() => selectedEvent.value !== null);
 
   function open(event: Event) {
-    selectedEvent.value = event
+    useEventSetupStore().close();
+    selectedEvent.value = event;
   };
 
   function close() {
