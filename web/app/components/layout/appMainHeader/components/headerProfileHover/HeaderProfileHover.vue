@@ -68,7 +68,7 @@
         class="
           flex items-center gap-2 px-3 py-2 w-full
           bg-secondary border-1 border-solid border-fifth
-          rounded-xl
+          rounded-md
         "
       >
         <Icon 

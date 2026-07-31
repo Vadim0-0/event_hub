@@ -140,7 +140,7 @@
             group
             relative
             flex justify-center items-center p-1
-            rounded-xl
+            rounded-md
             bg-primary-light border-1 border-slid border-primary
           "
           :class="isCollapsed ? 'flex-col gap-1' : 'gap-2.5'"
@@ -172,7 +172,7 @@
         @mouseenter="openProfile"
         class="
           flex items-center 
-          w-full rounded-xl
+          w-full rounded-md
           bg-third border-1 border-solid border-fifth
         "
         :class="isCollapsed ? 'justify-center gap-0 py-1.5 px-1' : 'py-1.5 px-4 gap-2'"

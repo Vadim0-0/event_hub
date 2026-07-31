@@ -31,24 +31,33 @@
         type="email"
         placeholder="Login"
         :error-message="fieldErrors.email" 
+        input-class="!bg-secondary"
       />
       <UiInput 
         v-model="password"
         type="password"
         placeholder="Password"
         :error-message="fieldErrors.password"
+        input-class="!bg-secondary"
       />
     </div>
     <div class="grid grid-cols-2 gap-4 mb-2">
-      <button 
-        type="submit"
-        :disabled="auth.isLoading"
-        class="btn-global py-3">
-        Login
-      </button>
-      <NuxtLink to="/" class="btn-global py-3">
+      <NuxtLink to="/" 
+        class="
+          btn-global py-3 
+          
+          bg-fourth text-text-main border-1 border-solid border-fifth
+          hover:bg-third
+        "
+      >
         Cancel
       </NuxtLink>
+      <UiButton
+        type="submit"
+        :disabled="auth.isLoading"
+      >
+        Login
+      </UiButton>
     </div>
     <div class="flex justify-center w-full">
       <button 
