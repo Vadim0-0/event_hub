@@ -1,26 +1,26 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from 'vue'
+  import type { HTMLAttributes } from 'vue';
 
-// Reusable UI control with default props and attrs forwarding.
-type ButtonType = 'button' | 'submit' | 'reset'
+  type ButtonType = 'button' | 'submit' | 'reset';
+  type ButtonStyle = 'primary' | 'delete' | 'cancel';
 
-interface Props {
-  type?: ButtonType
-  disabled?: boolean
-  label?: string
-  id?: string
-  class?: HTMLAttributes['class']
-  styleType?: string
-}
+  interface Props {
+    type?: ButtonType
+    disabled?: boolean
+    label?: string
+    id?: string
+    class?: HTMLAttributes['class']
+    styleType?: ButtonStyle
+  }
 
-const props = withDefaults(defineProps<Props>(), {
-  type: 'button',
-  disabled: false,
-  label: '',
-  id: undefined,
-  class: '',
-  styleType: 'primary',
-})
+  const props = withDefaults(defineProps<Props>(), {
+    type: 'button',
+    disabled: false,
+    label: '',
+    id: undefined,
+    class: '',
+    styleType: 'primary',
+  })
 </script>
 
 <template>
@@ -54,6 +54,40 @@ const props = withDefaults(defineProps<Props>(), {
 
     &:hover {
       background-color: var(--color-primary-light);
+    }
+
+    &--primary {
+      background-color: var(--color-primary);
+      color: var(--color-main);
+
+      &:hover {
+        background-color: var(--color-primary-hover);
+        color: var(--color-main);
+
+        & svg {
+          color: var(--color-main);
+        }
+      }
+    }
+
+    &--delete {
+      border-color: var(--color-error);
+      background-color: #ffcccc;
+      color: var(--color-error);
+
+      &:hover {
+        background-color: #ffa2a2;
+        color: var(--color-error);
+
+        & svg {
+          color: var(--color-error);
+        }
+      }
+    }
+
+    &:disabled {
+      opacity: 0.7;
+      pointer-events: none;
     }
   }
 </style>
