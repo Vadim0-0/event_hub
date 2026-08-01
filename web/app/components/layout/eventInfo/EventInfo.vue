@@ -1,7 +1,10 @@
 <script setup lang="ts">
 
   import type { Event, EventDetail } from '~/types/event';
+  import { ParticipantsUsers } from './components';
 
+
+  // --- Props & Emits ---
   const props = defineProps<{
     event: Event
   }>();
@@ -12,29 +15,23 @@
     edit: [event: Event]
   }>();
 
+
+  // --- Composables ---
   const dayjs = useDayjs();
-
-  const formattedStart = computed(() =>
-    dayjs(props.event.starts_at).format('DD MMMM YYYY, HH:mm')
-  );
-
-  const formattedCreatedAt = computed(() =>
-    dayjs(props.event.created_at).format('DD MMMM YYYY')
-  );
-
-  const maxParticipantsLabel = computed(() =>
-    props.event.max_participants ?? '∞'
-  );
-
-  // Update Data
   const api = useApi();
+
+
+  // --- State ---
   const isActionPending = ref(false);
-  
+  const participantsUsersVisible = ref(false);
   const eventDetails = ref<EventDetail | null>(null);
+
+
+  // --- Event data ---
   const currentEvent = computed(() => eventDetails.value ?? props.event);
 
   async function loadEventDetails(id: string) {
-    eventDetails.value = await api<EventDetail>(`/events/${id}`)
+    eventDetails.value = await api<EventDetail>(`/events/${id}`);
   };
 
   watch(
@@ -43,6 +40,26 @@
     { immediate: true },
   );
 
+  watch(() => props.event.id, () => {
+    participantsUsersVisible.value = false;
+  });
+
+
+  // --- Formatted fields ---
+  const formattedStart = computed(() =>
+    dayjs(currentEvent.value.starts_at).format('DD MMMM YYYY, HH:mm'),
+  );
+
+  const formattedCreatedAt = computed(() =>
+    dayjs(currentEvent.value.created_at).format('DD MMMM YYYY'),
+  );
+
+  const maxParticipantsLabel = computed(() =>
+    currentEvent.value.max_participants ?? '∞',
+  );
+
+
+  // --- User role & event status ---
   const isCreator = computed(() => eventDetails.value?.is_creator === true);
   const isParticipant = computed(() => eventDetails.value?.is_participant === true);
 
@@ -53,36 +70,49 @@
   });
 
   const isStarted = computed(() =>
-    dayjs(currentEvent.value.starts_at).isBefore(dayjs())
+    dayjs(currentEvent.value.starts_at).isBefore(dayjs()),
   );
 
+
+  // --- UI flags ---
   const isActionDisabled = computed(() =>
     isActionPending.value ||
     isCreator.value ||
-    (!isParticipant.value && (isFull.value || isStarted.value))
+    (!isParticipant.value && (isFull.value || isStarted.value)),
   );
 
   const showChangeEventButton = computed(() => isCreator.value);
 
+
+  // --- Participants panel ---
+  function openParticipantsUsers() {
+    participantsUsersVisible.value = true;
+  };
+
+  function closeParticipantsUsers() {
+    participantsUsersVisible.value = false;
+  };
+
+
+  // --- Handlers ---
   async function handleToggleParticipation() {
     if (isActionDisabled.value) return;
 
     isActionPending.value = true;
     try {
       if (isParticipant.value) {
-        await api(`/events/${props.event.id}/leave`, { method: 'DELETE' })
+        await api(`/events/${props.event.id}/leave`, { method: 'DELETE' });
       } else {
-        await api(`/events/${props.event.id}/join`, { method: 'POST' })
+        await api(`/events/${props.event.id}/join`, { method: 'POST' });
       }
-
-      await loadEventDetails(props.event.id)
-
+      await loadEventDetails(props.event.id);
       if (eventDetails.value) {
-        emit('updated', eventDetails.value)
+        emit('updated', eventDetails.value);
       }
-    } catch (e) {
+    } catch {
+      // optional: toast / notification
     } finally {
-      isActionPending.value = false
+      isActionPending.value = false;
     };
   };
 
@@ -157,11 +187,23 @@
           <p>
             Max participants: <span>{{ maxParticipantsLabel }}</span>
           </p>
-          <p>
+          <p v-if="!isCreator">
             Already participants: <span>{{ currentEvent.participants_count }}</span>
           </p>
+
+          <UiButton v-else class=" !justify-between" @click="openParticipantsUsers">
+            <p>
+              Already participants: <span>{{ currentEvent.participants_count }}</span>
+            </p>
+            <Icon
+              name="weui:arrow-outlined"
+              class="size-6 text-main"
+            />
+          </UiButton>
         </div>
       </div>
+
+
       <div
         class="grid grid-cols-2 gap-2"
       >
@@ -193,10 +235,33 @@
           Change Event
         </UiButton>
       </div>
+
+      <Transition name="slide">
+        <div
+          v-if="participantsUsersVisible"
+          class="absolute top-0 right-0 w-full h-full z-2"
+        >
+          <ParticipantsUsers 
+            :event-id="currentEvent.id"
+            @close="closeParticipantsUsers"
+            :total-count="currentEvent.participants_count"
+          />
+        </div>
+      </Transition>
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
+
+  .slide-enter-active,
+  .slide-leave-active {
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+  }
+  .slide-enter-from,
+  .slide-leave-to {
+    opacity: 1;
+    transform: translateX(100%);
+  }
 
 </style>

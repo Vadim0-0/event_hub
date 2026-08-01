@@ -1,0 +1,1 @@
+export { default as ParticipantsUsers } from './participantsUsers/ParticipantsUsers.vue';
