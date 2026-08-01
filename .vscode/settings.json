@@ -1,9 +1,14 @@
 {
+  "python.defaultInterpreterPath": "${workspaceFolder}/api/.venv/bin/python",
+  "cSpell.words": [
+    "selectinload"
+  ],
   "files.associations": {
     "pyproject.toml": "toml",
     "*.toml": "toml"
   },
   "[toml]": {
     "editor.defaultFormatter": "tamasfe.even-better-toml"
-  }
+  },
+  "makefile.configureOnOpen": true
 }
