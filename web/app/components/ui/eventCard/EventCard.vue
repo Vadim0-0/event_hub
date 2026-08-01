@@ -15,11 +15,6 @@
   const isMyEventsPage = computed(() => route.params.slot === 'myEventsPage');
 
   function handleCardClick() {
-    if (isMyEventsPage.value) {
-      selectedEventStore.close()
-      eventSetupStore.openEdit(props.event)
-      return
-    };
     eventSetupStore.close();
     selectedEventStore.open(props.event);
   };
