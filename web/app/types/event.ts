@@ -22,3 +22,14 @@ export interface EventDetail extends Event {
   is_participant: boolean | null
   is_creator: boolean | null
 };
+
+export interface Participant {
+  user: {
+    id: number
+    username: string
+    email: string
+    created_at: string
+  };
+  
+  registered_at: string
+};
