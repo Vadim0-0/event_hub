@@ -1,6 +1,8 @@
 <script setup lang="ts">
+
   import allEventsRaw from '~~/data/pages/events/allEvents.json';
   import type { AllEventsPageRaw } from '~/types/allEventsPage';
+
 
   // --- Meta ---
   definePageMeta({
@@ -8,14 +10,24 @@
     requiresAuth: true,
   });
 
+
   // --- Route / page type ---
   const route = useRoute();
   const slot = computed(() => route.params.slot as string);
+
   const isAllEventsPage = computed(() => slot.value === 'allEventsPage');
   const isMyEventsPage = computed(() => slot.value === 'myEventsPage');
   const isJoinedEventsPage = computed(() => slot.value === 'joinedEventsPage');
+  const isUsersPage = computed(() => slot.value === 'usersPage');
 
-  // --- Page Config ---
+  const isEventsListPage = computed(() =>
+    isAllEventsPage.value ||
+    isMyEventsPage.value ||
+    isJoinedEventsPage.value,
+  );
+
+
+  // --- Page config ---
   const pageConfig = computed(() => {
     switch (slot.value) {
       case 'allEventsPage':
@@ -24,42 +36,54 @@
         return { title: 'My Events', showSearch: true, showSort: true };
       case 'joinedEventsPage':
         return { title: 'Joined Events', showSearch: true, showSort: true };
+      case 'usersPage':
+        return { title: 'Users', showSearch: true, showSort: false };
       default:
         return { title: 'Events', showSearch: false, showSort: false };
-    };
+    }
   });
 
-  // --- Page Content ---
+
+  // --- Page content (i18n) ---
   const { locale } = useI18n();
   const allEventsPageData = (allEventsRaw as AllEventsPageRaw[])[0]!;
 
   const pageContent = computed(() => {
     if (slot.value === 'allEventsPage') {
-      return mapAllEventsPage(allEventsPageData, locale.value)
+      return mapAllEventsPage(allEventsPageData, locale.value);
     }
-    return null
+    return null;
   });
 
   useHead({
     title: computed(() => pageContent.value?.title ?? pageConfig.value.title),
   });
 
-  // --- Filter & pagination
-  const { 
-    search, 
-    sort, 
-    debouncedSearch, 
-    page, 
-    toggleSort 
+
+  // --- Filters & pagination ---
+  const {
+    search,
+    sort,
+    debouncedSearch,
+    page,
+    toggleSort,
   } = useEventsFilters();
 
-  // --- Data ---
-  const { events, total, totalPages, pending, error } = useEventsList(
-    page,
-    isAllEventsPage,
-    debouncedSearch,
-    sort,
-  );
+  const sortIcon = computed(() => {
+    if (sort.value === 'asc') return 'fluent:arrow-sort-up-16-regular';
+    if (sort.value === 'desc') return 'fluent:arrow-sort-down-16-regular';
+    return 'fluent:arrow-sort-16-regular';
+  });
+
+
+  // --- Events data ---
+  const {
+    events,
+    total,
+    totalPages,
+    pending,
+    error,
+  } = useEventsList(page, isAllEventsPage, debouncedSearch, sort);
 
   const {
     events: myEvents,
@@ -78,35 +102,57 @@
   } = useJoinedEventsList(page, isJoinedEventsPage, debouncedSearch, sort);
 
 
+  // --- Users data ---
+  const {
+    users,
+    total: usersTotal,
+    totalPages: usersTotalPages,
+    pending: usersPending,
+    error: usersError,
+  } = useUsersList(page, isUsersPage, debouncedSearch);
+
+
+  // --- Active events (all / my / joined) ---
   const activeEvents = computed(() => {
     if (isAllEventsPage.value) return events.value;
     if (isMyEventsPage.value) return myEvents.value;
-    return joinedEvents.value;
+    if (isJoinedEventsPage.value) return joinedEvents.value;
+    return [];
   });
 
   const activeTotal = computed(() => {
     if (isAllEventsPage.value) return total.value;
     if (isMyEventsPage.value) return myTotal.value;
-    return joinedTotal.value;
+    if (isJoinedEventsPage.value) return joinedTotal.value;
+    return 0;
   });
 
-  const activeTotalPages = computed(() =>
-    isAllEventsPage.value ? totalPages.value : myTotalPages.value,
-  );
+  const activeTotalPages = computed(() => {
+    if (isAllEventsPage.value) return totalPages.value;
+    if (isMyEventsPage.value) return myTotalPages.value;
+    if (isJoinedEventsPage.value) return joinedTotalPages.value;
+    return 1;
+  });
 
-  const activePending = computed(() =>
-    isAllEventsPage.value ? pending.value : myPending.value,
-  );
+  const activePending = computed(() => {
+    if (isAllEventsPage.value) return pending.value;
+    if (isMyEventsPage.value) return myPending.value;
+    if (isJoinedEventsPage.value) return joinedPending.value;
+    return false;
+  });
 
-  const activeError = computed(() =>
-    isAllEventsPage.value ? error.value : myError.value,
-  );
+  const activeError = computed(() => {
+    if (isAllEventsPage.value) return error.value;
+    if (isMyEventsPage.value) return myError.value;
+    if (isJoinedEventsPage.value) return joinedError.value;
+    return null;
+  });
 
-  const isEventsListPage = computed(() =>
-    isAllEventsPage.value || isMyEventsPage.value || isJoinedEventsPage.value,
-  );
 
-  const isErrorLoad = computed(() => !!activeError.value);
+  // --- Events UI flags ---
+  const isErrorLoad = computed(() =>
+    isEventsListPage.value && !!activeError.value,
+  );
 
   const isEmpty = computed(() =>
     isEventsListPage.value &&
@@ -122,13 +168,28 @@
     (activeEvents.value?.length ?? 0) > 0,
   );
 
-  const sortIcon = computed(() => {
-    if (sort.value === 'asc') return 'fluent:arrow-sort-up-16-regular';
-    if (sort.value === 'desc') return 'fluent:arrow-sort-down-16-regular';
-    return 'fluent:arrow-sort-16-regular'
-  });
 
-  // EventSetup
+  // --- Users UI flags ---
+  const usersIsError = computed(() =>
+    isUsersPage.value && !!usersError.value,
+  );
+
+  const usersIsEmpty = computed(() =>
+    isUsersPage.value &&
+    !usersPending.value &&
+    !usersError.value &&
+    (users.value?.length ?? 0) === 0,
+  );
+
+  const hasUsers = computed(() =>
+    isUsersPage.value &&
+    !usersPending.value &&
+    !usersError.value &&
+    (users.value?.length ?? 0) > 0,
+  );
+
+
+  // --- EventSetup ---
   const eventSetupStore = useEventSetupStore();
   const selectedEventStore = useSelectedEventStore();
 
@@ -190,9 +251,12 @@
           <p v-if="isEventsListPage">
             {{ pageContent?.infoText ?? 'Events:' }} <span>{{ activeTotal }}</span>
           </p>
+          <p v-else-if="isUsersPage">
+            Users: <span>{{ usersTotal }}</span>
+          </p>
         </div>
 
-        <div>
+        <div v-if="isEventsListPage">
           <UiButton @click="toggleSort" style-type="cancel">
             <Icon 
               :name="sortIcon"
@@ -205,19 +269,20 @@
       </div>
       <div class="relative flex-1">
         <div 
-          v-if="isErrorLoad" 
+          v-if="isErrorLoad"
           class="p-3 bg-error/10 rounded-sm">
           <p class="text-body-xl text-error">
             {{ pageContent?.loadingErrorText ?? 'Loading error' }}
           </p>
         </div>
         <div 
-          v-if="isEmpty" 
+          v-else-if="isEmpty"
           class="p-3 bg-primary-light rounded-sm">
           <p class="text-body-xl text-text-main">
             {{ pageContent?.emptyText ?? 'Empty' }}
           </p>
         </div>
+
         <template v-else-if="hasEvents">
           <TransitionGroup
             tag="ul"
@@ -238,6 +303,26 @@
           </TransitionGroup>
         </template>
 
+        <template v-else-if="hasUsers">
+          <TransitionGroup
+            tag="ul"
+            name="user-card"
+            appear
+            class="
+              absolute top-0 left-0 w-full
+              flex flex-col gap-2.5
+              z-2
+            "
+          >
+            <UserCard
+              v-for="(user, index) in users"
+              :key="user.id"
+              :user="user"
+              :index="index"
+            />
+          </TransitionGroup>
+        </template>
+
         <UiButton
           v-if="isAllEventsPage || isMyEventsPage || isJoinedEventsPage"
           @click="openCreateEvent"
@@ -250,8 +335,13 @@
         </UiButton>
       </div>
       <div>
-        <LayoutPagination 
-          v-if="activeTotalPages > 1"
+        <LayoutPagination
+          v-if="isUsersPage && usersTotalPages > 1"
+          v-model:page="page"
+          :total-pages="usersTotalPages"
+        />
+        <LayoutPagination
+          v-else-if="isEventsListPage && activeTotalPages > 1"
           v-model:page="page"
           :total-pages="activeTotalPages"
         />
@@ -262,7 +352,7 @@
 </template>
 
 <style scoped lang="scss">
-  // Visible
+  /* Enter */
   .event-card-enter-active {
     transition:
       opacity 0.4s ease,
@@ -274,19 +364,18 @@
     transform: translateY(20px) scale(0.9);
   }
 
-  // Sorting Change
+  /* Move (sort/reorder) */
   .event-card-move {
     transition: transform 0.4s ease;
   }
 
-  // Delete Card
+  /* Leave */
   .event-card-leave-active {
     transition: opacity 0.25s ease, transform 0.25s ease;
-    position: absolute; 
+    position: absolute;
   }
   .event-card-leave-to {
     opacity: 0;
     transform: scale(0.95);
   }
-
 </style>
