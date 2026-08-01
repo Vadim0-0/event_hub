@@ -20,7 +20,7 @@
     id: undefined,
     class: '',
     styleType: 'primary',
-  })
+  });
 </script>
 
 <template>
@@ -57,10 +57,12 @@
     }
 
     &--primary {
+      border-color: var(--color--primary);
       background-color: var(--color-primary);
       color: var(--color-main);
 
       &:hover {
+        border-color: var(--color-primary-hover);
         background-color: var(--color-primary-hover);
         color: var(--color-main);
 
