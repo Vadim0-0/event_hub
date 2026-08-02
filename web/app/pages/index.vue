@@ -148,7 +148,7 @@
     ref="howWork" 
     id="howWork" 
     class="
-      relative z-10 bg-third min-h-[400vh]  
+      relative z-10 bg-secondary min-h-[400vh]  
     "
   >
     <div 
