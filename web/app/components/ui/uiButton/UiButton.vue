@@ -57,7 +57,7 @@
     }
 
     &--primary {
-      border-color: var(--color--primary);
+      border-color: var(--color-primary);
       background-color: var(--color-primary);
       color: var(--color-main);
 
