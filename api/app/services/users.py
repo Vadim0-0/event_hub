@@ -44,6 +44,10 @@ def _apply_event_search(query, search: str | None):
   )
 
 
+def _verified_users_only(query):
+  return query.where(User.is_email_verified.is_(True))
+
+
 async def list_users(
   db: AsyncSession,
   skip: int,
@@ -52,6 +56,7 @@ async def list_users(
   exclude_user_id: int | None = None,
 ) -> list[User]:
   query = select(User).order_by(User.username.asc())
+  query = _verified_users_only(query)
   query = _apply_user_search(query, search)
 
   if exclude_user_id is not None:
@@ -69,6 +74,7 @@ async def count_users(
   exclude_user_id: int | None = None,
 ) -> int:
   query = select(func.count()).select_from(User)
+  query = _verified_users_only(query)
   query = _apply_user_search(query, search)
 
   if exclude_user_id is not None:
