@@ -1,5 +1,6 @@
 import logging
 from uuid import UUID
+
 from redis.asyncio import Redis
 from sqlalchemy import select
 
@@ -11,8 +12,10 @@ from ...models.notification import (
 )
 from ...services.notifications import save_notification
 from ...services.notification_cache import invalidate_user_notifications
+from ...services.mailer import deliver_email
 
 logger = logging.getLogger(__name__)
+
 
 async def send_email(
   to: str, 
@@ -26,7 +29,12 @@ async def send_email(
   user_id: int | None = None,
   status: NotificationStatus = NotificationStatus.SENT,
 ) -> None:
-  logger.info("EMAIL to=%s subject=%s body=%s", to, subject, body)
+  try:
+    await deliver_email(to, subject, body)
+    logger.info("EMAIL sent to=%s subject=%s", to, subject)
+  except Exception:
+    logger.exception("Failed to send email to=%s subject=%s", to, subject)
+    status = NotificationStatus.FAILED
 
   async with AsyncSessionLocal() as db:
     await save_notification(

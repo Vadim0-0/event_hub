@@ -8,7 +8,25 @@ services:
       - "8000:8000"
     volumes:
       - ./api:/app
+    environment:
+      SMTP_HOST: mailhog
+      SMTP_PORT: 1025
+      SMTP_FROM_EMAIL: noreply@eventhub.local
+      SMTP_USE_TLS: "false"
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    depends_on:
+      mailhog:
+        condition: service_started
+  
+  worker:
+    environment:
+      SMTP_HOST: mailhog
+      SMTP_PORT: 1025
+      SMTP_FROM_EMAIL: noreply@eventhub.local
+      SMTP_USE_TLS: "false"
+    depends_on:
+      mailhog:
+        condition: service_started
 
   web:
     build:
@@ -41,6 +59,13 @@ services:
     depends_on:
       db:
         condition: service_healthy
+  
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: event_hub_mailhog
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Web UI
 
 volumes:
   pgadmin_data:
