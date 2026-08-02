@@ -36,7 +36,7 @@ export const useAuthStore = defineStore('auth', () => {
       });
       token.value = data.access_token;
       user.value = data.user;
-      await navigateTo('/main');
+      await navigateTo('/events/allEventsPage');
     } finally {
       isLoading.value = false;
     }
@@ -57,7 +57,7 @@ export const useAuthStore = defineStore('auth', () => {
         body: payload,
       })
       token.value = data.access_token
-      await navigateTo('/main')
+      await navigateTo('/events/allEventsPage')
       await fetchMe()
     } finally {
       isLoading.value = false

@@ -24,6 +24,6 @@ export default defineNuxtRouteMiddleware((to) => {
   };
   
   if (to.meta.guestOnly && auth.isAuthenticated) {
-    return navigateTo('/main')
+    return navigateTo('/events/allEventsPage')
   };
 });
