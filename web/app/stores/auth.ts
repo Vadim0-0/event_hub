@@ -27,6 +27,28 @@ export const useAuthStore = defineStore('auth', () => {
     }
   };
 
+  async function verifyEmail(payload: { email: string; code: string }) {
+    isLoading.value = true;
+    try {
+      const data = await api<{ access_token: string; user: User }>('/auth/verify-email', {
+        method: 'POST',
+        body: payload,
+      });
+      token.value = data.access_token;
+      user.value = data.user;
+      await navigateTo('/main');
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
+  async function resendVerificationCode(email: string) {
+    await api('/auth/resend-verification-code', {
+      method: 'POST',
+      body: { email },
+    });
+  };
+
   async function login(payload: { email: string; password: string }) {
     isLoading.value = true
     try {
@@ -65,6 +87,8 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading,
     isAuthenticated,
     register,
+    verifyEmail,
+    resendVerificationCode,
     login,
     fetchMe,
     logout
