@@ -14,14 +14,14 @@
   <TransitionGroup
     tag="ul"
     name="notification"
-    class="absolute top-2.5 right-2.5 z-60 flex flex-col gap-2.5"
+    class="absolute top-2.5 right-2.5 z-60 flex flex-col gap-2.5 w-full max-w-125"
   >
     <li 
       v-for="item in notifications.items"
       :key="item.id"
       class="
         relative flex overflow-hidden
-        p-4 pb-6 w-full max-w-[500px] 
+        p-4 pb-6 w-full
         rounded-xl shadow-lg bg-third
         after:content-[''] after:absolute after:bottom-0 after:left-0 after:h-1 after:w-full
       "
