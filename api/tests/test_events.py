@@ -44,14 +44,16 @@ def event_data_factory():
 
 
 async def register_user(client: AsyncClient, user_data: dict) -> dict:
-  """ Register user """
-  response = await client.post(
-    "/auth/register",
-    json=user_data,
-  )
+  reg = await client.post("/auth/register", json=user_data)
+  assert reg.status_code == 201
+  
+  verify = await client.post("/auth/verify-email", json={
+    "email": user_data["email"],
+    "code": "123456",
+  })
 
-  assert response.status_code == 201
-  return response.json()
+  assert verify.status_code == 200
+  return verify.json()["user"]
 
 
 async def login_user(client, email: str, password: str) -> dict:

@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 from pathlib import Path
 import pytest_asyncio
+import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine  
 from fakeredis.aioredis import FakeRedis
@@ -19,6 +20,23 @@ from app.models.registration import EventRegistration # noqa: F401
 from app.redis_client import get_redis
 
 TEST_DATABASE_URL = settings.sqlalchemy_database_url
+
+
+@pytest.fixture(autouse=True)
+def fixed_verification_code():
+  with patch(
+    "app.services.email_verification.generate_verification_code",
+    return_value="123456",
+  ):
+    yield
+
+
+@pytest.fixture(autouse=True)
+def fast_resend_cooldown(monkeypatch):
+  monkeypatch.setattr(
+    "app.config.settings.email_verification_resend_cooldown_seconds",
+    2,
+  )
 
 
 @pytest_asyncio.fixture(scope="function")
@@ -52,15 +70,20 @@ async def db_session(db_engine):
 
 
 @pytest_asyncio.fixture(scope="function")
-async def client(db_session):
-  """ HTTP client with overridden database """
+async def redis():
   fake_redis = FakeRedis(decode_responses=True)
-  
+  yield fake_redis
+  await fake_redis.aclose()
+
+
+@pytest_asyncio.fixture(scope="function")
+async def client(db_session, redis):
+  """ HTTP client with overridden database """
   async def override_get_db():
     yield db_session
 
   app.dependency_overrides[get_db] = override_get_db
-  app.dependency_overrides[get_redis] = lambda: fake_redis
+  app.dependency_overrides[get_redis] = lambda: redis
 
   mock_enqueue = AsyncMock(return_value=None)
   with (
@@ -72,4 +95,3 @@ async def client(db_session):
       yield ac
   
   app.dependency_overrides.clear()
-  await fake_redis.aclose()
