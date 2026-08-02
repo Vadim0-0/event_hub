@@ -1,37 +1,40 @@
 <script setup lang="ts">
 
   const auth = useAuthStore()
-  const emit = defineEmits<{ 'switch-to-login': [] }>()
+  const emit = defineEmits<{
+    'switch-to-login': []
+    'switch-to-verify': [email: string]
+  }>();
 
-  const username = ref('')
-  const email = ref('')
-  const password = ref('')
+  const username = ref('');
+  const email = ref('');
+  const password = ref('');
 
-  const fieldErrors = ref({ username: '', email: '', password: '' })
-  const formError = ref('')
-  const isLoading = ref(false)
+  const fieldErrors = ref({ username: '', email: '', password: '' });
+  const formError = ref('');
+  const isLoading = ref(false);
 
-  const notifications = useNotificationsStore()
+  const notifications = useNotificationsStore();
 
   async function onSubmit() {
-    fieldErrors.value = { username: '', email: '', password: '' }
-    formError.value = ''
+    fieldErrors.value = { username: '', email: '', password: '' };
+    formError.value = '';
 
-    if (username.value.length < 3) fieldErrors.value.username = 'At least 3 characters'
-    if (!email.value) fieldErrors.value.email = 'Enter your email address'
-    if (password.value.length < 8) fieldErrors.value.password = 'At least 8 characters'
-    if (Object.values(fieldErrors.value).some(Boolean)) return
+    if (username.value.length < 3) fieldErrors.value.username = 'At least 3 characters';
+    if (!email.value) fieldErrors.value.email = 'Enter your email address';
+    if (password.value.length < 8) fieldErrors.value.password = 'At least 8 characters';
+    if (Object.values(fieldErrors.value).some(Boolean)) return;
 
-    if (Object.values(fieldErrors.value).some(Boolean)) return
+    if (Object.values(fieldErrors.value).some(Boolean)) return;
     try {
-      await auth.register({ username: username.value, email: email.value, password: password.value });
+      await auth.register({ username: username.value, email: email.value, password: password.value });;
 
       notifications.success(
         'Registration was successful',
         `The user ${email.value} has been successfully registered`,
       );
 
-      emit('switch-to-login');
+      emit('switch-to-verify', email.value);
     } catch (e) {
       const parsed = parseApiError(e);
       fieldErrors.value = { ...fieldErrors.value, ...parsed.fieldErrors };
@@ -39,9 +42,9 @@
 
       if (parsed.formError) {
         notifications.error('Registration Error', parsed.formError)
-      }
-    }
-  }
+      };
+    };
+  };
 
 </script>
 
@@ -52,36 +55,40 @@
         v-model="username"
         type="text"
         placeholder="Name"
-        :error-message="fieldErrors.username"  
+        :error-message="fieldErrors.username"
+        input-class="!bg-secondary"
       />
       <UiInput 
         v-model="email"
         type="email"
         placeholder="Login" 
-        :error-message="fieldErrors.email"  
+        :error-message="fieldErrors.email"
+        input-class="!bg-secondary"  
       />
       <UiInput 
         v-model="password"
         type="password"
         placeholder="Password" 
-        :error-message="fieldErrors.password" 
+        :error-message="fieldErrors.password"
+        input-class="!bg-secondary" 
       />
     </div>
     <div class="grid grid-cols-2 gap-4 mb-2">
-      <button
-        type="submit"
-        :disabled="auth.isLoading"
-        class="btn-global py-3">
-        Register
-      </button>
-      <button
+      <UiButton
         @click="$emit('switch-to-login')" 
         type="button"
-        class="btn-global py-3">
+        style-type="cancel"
+        class="!py-3 !text-body-xl">
         Cancel
-      </button>
+      </UiButton>
+      <UiButton
+        type="submit"
+        :disabled="auth.isLoading"
+        class="!py-3 !text-body-xl">
+        Register
+      </UiButton>
     </div>
-    <p v-if="formError" class="mt-4 text-center text-sm text-error">
+    <p v-if="formError" class="mt-4 text-center text-lg text-error">
       {{ formError }}
     </p>
   </form>

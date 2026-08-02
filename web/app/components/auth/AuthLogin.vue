@@ -1,10 +1,15 @@
 <script setup lang="ts">
 
-  const auth = useAuthStore()
-  const email = ref('')
-  const password = ref('')
-  const fieldErrors = ref({ email: '', password: '' })
-  const formError = ref('')
+  const emit = defineEmits<{
+    'switch-to-register': []
+    'switch-to-verify': [email: string]
+  }>();
+
+  const auth = useAuthStore();
+  const email = ref('');
+  const password = ref('');
+  const fieldErrors = ref({ email: '', password: '' });
+  const formError = ref('');
 
   async function onSubmit() {
     fieldErrors.value = { email: '', password: '' }
@@ -18,8 +23,16 @@
       await auth.login({ email: email.value, password: password.value })
     } catch (e: any) {
       formError.value = e.data?.detail || 'Login error'
-    }
-  }
+
+      const status = (e as any)?.status ?? (e as any)?.response?.status;
+
+      const detail = (e as any)?.data?.detail;
+      if (status === 403 && detail === 'Email is not verified') {
+        emit('switch-to-verify', email.value);
+        return;
+      };
+    };
+  };
 
 </script>
 
@@ -71,7 +84,7 @@
         Register
       </button>
     </div>
-    <p v-if="formError" class="mt-4 text-center text-sm text-error">
+    <p v-if="formError" class="mt-4 text-center text-lg text-error">
       {{ formError }}
     </p>
   </form>
