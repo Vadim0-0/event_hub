@@ -63,6 +63,17 @@ class Settings(BaseSettings):
       f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}"
       f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
     )
+  
+  # --- SMTP ---
+  smtp_host: str = "mailhog"
+  smtp_port: int = 1025
+  smtp_from_email: str = "noreply@eventhub.local"
+  smtp_use_tls: bool = False
+
+  # --- Email verification ---
+  email_verification_code_ttl_seconds: int = 900   # 15 minutes
+  email_verification_code_length: int = 6
+  email_verification_resend_cooldown_seconds: int = 60
 
 # Caching result
 @lru_cache

@@ -1,4 +1,4 @@
-from .auth import send_welcome_email
+from .auth import send_welcome_email, send_verification_email
 from .events import (
   send_event_created_notification, 
   send_event_updated_notification, 
@@ -13,6 +13,7 @@ from .registrations import (
 
 __all__ = [
   "send_welcome_email",
+  "send_verification_email",
   "send_event_created_notification",
   "send_event_updated_notification",
   "send_event_deleted_notification",

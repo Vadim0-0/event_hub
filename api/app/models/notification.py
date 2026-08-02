@@ -9,6 +9,7 @@ from ..database import Base
 
 class NotificationType(StrEnum):
   WELCOME = "welcome"
+  EMAIL_VERIFICATION = "email_verification" 
   EVENT_CREATED = "event_created"
   EVENT_UPDATED = "event_updated"
   EVENT_DELETED = "event_deleted"

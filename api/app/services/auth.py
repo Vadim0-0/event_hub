@@ -1,3 +1,4 @@
+from redis.asyncio import Redis
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -8,46 +9,146 @@ from ..security import (
   verify_password,
   create_access_token,
 )
+from . import email_verification
 
 class EmailAlreadyRegisteredError(Exception):
   """Email is already taken"""
   pass
 
+
 class UsernameAlreadyRegisteredError(Exception):
   pass
+
+
+class UserNotFoundError(Exception):
+  pass
+
 
 class InvalidCredentialsError(Exception):
   """Wrong email or password"""
   pass
 
-# User registration, password hashing, saving to the DB
-async def register_user(data: UserRegister, db: AsyncSession) -> User:
-  email_taken = await db.scalar(select(User.id).where(User.email == data.email))
-  if email_taken:
-    raise EmailAlreadyRegisteredError("This email is already registered")
 
-  username_taken = await db.scalar(select(User.id).where(User.username == data.username))
-  if username_taken:
-    raise UsernameAlreadyRegisteredError(f"Username ({data.username}) already registered")
+class EmailNotVerifiedError(Exception):
+  pass
 
-  user = User(
-    username = data.username,
-    email=data.email,
-    password_hash=get_password_hash(data.password),
-  )
 
-  db.add(user)
+class InvalidVerificationCodeError(Exception):
+  pass
+
+
+class UserNotFoundForVerificationError(Exception):
+  pass
+
+
+class EmailAlreadyVerifiedError(Exception):
+  pass
+
+
+async def _get_user_by_email(db: AsyncSession, email: str) -> User | None:
+  result = await db.execute(select(User).where(User.email == email))
+  return result.scalar_one_or_none()
+
+
+async def _is_username_taken(db: AsyncSession, username: str) -> bool:
+    result = await db.scalar(
+        select(User.id).where(User.username == username)
+    )
+    return result is not None
+
+
+async def register_user(
+  data: UserRegister,
+  db: AsyncSession,
+  redis: Redis,
+) -> tuple[User, str]:
+  existing = await _get_user_by_email(db, data.email)
+
+  if existing is not None:
+    if existing.is_email_verified:
+      raise EmailAlreadyRegisteredError("This email is already registered")
+
+    username_taken = await _is_username_taken(db, data.username)
+    if username_taken:
+      raise UsernameAlreadyRegisteredError(f"Username ({data.username}) already registered")
+    
+    existing.username = data.username
+    existing.password_hash = get_password_hash(data.password)
+    user = existing
+  else:
+    username_taken = await _is_username_taken(db, data.username)
+    if username_taken:
+      raise UsernameAlreadyRegisteredError(
+        f"Username ({data.username}) already registered"
+      )
+    
+    user = User(
+      username=data.username,
+      email=data.email,
+      password_hash=get_password_hash(data.password),
+      is_email_verified=False,
+    )
+
+    db.add(user)
+
   await db.commit()
   await db.refresh(user)
 
-  return user
+  code = email_verification.generate_verification_code()
+  await email_verification.store_verification_code(redis, user.email, code)
+  await email_verification.set_resend_cooldown(redis, user.email)
+
+  return user, code
+
+
+async def verify_email(
+  email: str,
+  code: str,
+  db: AsyncSession,
+  redis: Redis,
+) -> tuple[User, str]:
+  user = await _get_user_by_email(db, email)
+  if user is None:
+    raise UserNotFoundForVerificationError("User not found")
+  
+  if user.is_email_verified:
+    raise EmailAlreadyVerifiedError("Email is already verified")
+  
+  is_valid = await email_verification.verify_and_consume_code(redis, email, code)
+  if not is_valid:
+    raise InvalidVerificationCodeError("Invalid or expired verification code")
+  
+  user.is_email_verified = True
+  await db.commit()
+  await db.refresh(user)
+
+  return user, create_access_token(subject=user.id)
+
+
+async def resend_verification_code(
+  email: str,
+  db: AsyncSession,
+  redis: Redis,
+) -> tuple[User | None, str | None]:
+  user = await _get_user_by_email(db, email)
+  if user is None or user.is_email_verified:
+    return None, None
+
+  try:
+    code = await email_verification.issue_verification_code(redis, user.email)
+  except email_verification.ResendTooSoonError as e:
+    raise email_verification.ResendTooSoonError(retry_after=e.retry_after) from e
+
+  return user, code
 
 
 async def login(data: UserLogin, db: AsyncSession) -> str:
-  result = await db.execute(select(User).where(User.email == data.email))
-  user = result.scalar_one_or_none()
+  user = await _get_user_by_email(db, data.email)
 
   if not user or not verify_password(data.password, user.password_hash):
     raise InvalidCredentialsError("Incorrect email or password")
 
+  if not user.is_email_verified:
+    raise EmailNotVerifiedError("Email is not verified")
+  
   return create_access_token(subject=user.id)

@@ -3,6 +3,7 @@ from arq.connections import RedisSettings
 from ..config import settings
 from .tasks import (
   send_welcome_email,
+  send_verification_email,
   send_event_created_notification,
   send_event_updated_notification, 
   send_event_deleted_notification,
@@ -27,6 +28,7 @@ class WorkerSettings:
   on_shutdown = shutdown
   functions = [
     send_welcome_email,
+    send_verification_email,
     send_event_created_notification,
     send_event_updated_notification,
     send_event_deleted_notification,

@@ -41,3 +41,23 @@ class UsersCountOut(BaseModel):
 class UserEventStatsOut(BaseModel):
   created_count: int
   joined_count: int
+
+
+class RegisterPendingOut(BaseModel):
+  message: str
+  email: EmailStr
+
+
+class VerifyEmailIn(BaseModel):
+  email: EmailStr
+  code: str = Field(min_length=6, max_length=6, pattern=r"^\d{6}$")
+
+
+class ResendVerificationIn(BaseModel):
+  email: EmailStr
+
+
+class VerifyEmailOut(BaseModel):
+  user: UserOut
+  access_token: str
+  token_type: str = "bearer"
