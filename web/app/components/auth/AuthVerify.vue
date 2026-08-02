@@ -91,12 +91,12 @@
 
 <template>
   <form @submit.prevent="onSubmit">
-    <div>
-      <h2>
+    <div class="flex flex-col gap-0.5 mb-8">
+      <h2 class="text-heading-lg font-bold text-text-main">
         OTP Verification
       </h2>
-      <p>
-        Enter the 6-digit code sent to <span>{{ email }}</span>
+      <p class="text-lg text-text-main">
+        Enter the 6-digit code sent to <span class="font-semibold">{{ email }}</span>
       </p>
     </div>
     <div class="mb-8">
@@ -113,7 +113,7 @@
     <div class="flex items-center justify-center gap-2 mb-4">
       <UiButton
         type="button"
-        style-type="cancel"
+        style-type="primary"
         class="w-11 h-11 !py-0"
         :disabled="isResendDisabled"
         @click="onResend"

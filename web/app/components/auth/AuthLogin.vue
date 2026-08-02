@@ -38,7 +38,12 @@
 
 <template>
   <form @submit.prevent="onSubmit">
-    <div class="flex flex-col gap-4 mb-8">
+    <div class="mb-8">
+      <h2 class="text-heading-lg font-bold text-text-main">
+        Login
+      </h2>
+    </div>
+    <div class="flex flex-col gap-4 mb-6">
       <UiInput 
         v-model="email"
         type="email"
@@ -54,7 +59,7 @@
         input-class="!bg-secondary"
       />
     </div>
-    <div class="grid grid-cols-2 gap-4 mb-2">
+    <div class="grid grid-cols-2 gap-4 mb-6">
       <NuxtLink to="/" 
         class="
           btn-global py-3 
@@ -68,21 +73,21 @@
       <UiButton
         type="submit"
         :disabled="auth.isLoading"
+        class="!py-3 !text-body-xl"
       >
         Login
       </UiButton>
     </div>
-    <div class="flex justify-center w-full">
-      <button 
-        @click="$emit('switch-to-register')"
-        type="button" 
-        class="
-          btn-global w-full border-[2px] border-solid border-primary bg-transparent text-primary
-          hover:bg-transparent hover:text-primary-hover hover:border-primary-hover
-        "
-      >
-        Register
-      </button>
+    <div class="flex flex-col items-center">
+      <p class="text-lg text-text-secondary">
+        Don't have an account? 
+        <button 
+          type="button" 
+          @click="$emit('switch-to-register')"
+          class="pl-2 text-primary font-bold hover:text-primary-hover"
+        
+          >Sign Up</button>
+      </p>
     </div>
     <p v-if="formError" class="mt-4 text-center text-lg text-error">
       {{ formError }}

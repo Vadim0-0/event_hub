@@ -50,6 +50,11 @@
 
 <template>
   <form @submit.prevent="onSubmit">
+    <div class="mb-8">
+      <h2 class="text-heading-lg font-bold text-text-main">
+        Create Account
+      </h2>
+    </div>
     <div class="flex flex-col gap-4 mb-8">
       <UiInput 
         v-model="username"
