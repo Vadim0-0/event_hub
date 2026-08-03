@@ -24,9 +24,15 @@ TEST_DATABASE_URL = settings.sqlalchemy_database_url
 
 @pytest.fixture(autouse=True)
 def fixed_verification_code():
-  with patch(
-    "app.services.email_verification.generate_verification_code",
-    return_value="123456",
+  with (
+    patch(
+      "app.services.email_verification.generate_verification_code",
+      return_value="123456",
+    ),
+    patch(
+      "app.services.email_change.generate_verification_code",
+      return_value="123456",
+    ),
   ):
     yield
 
@@ -89,6 +95,7 @@ async def client(db_session, redis):
   with (
     patch("app.routers.events.enqueue_job", mock_enqueue),
     patch("app.routers.auth.enqueue_job", mock_enqueue),
+    patch("app.routers.user.enqueue_job", mock_enqueue),
   ):
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
