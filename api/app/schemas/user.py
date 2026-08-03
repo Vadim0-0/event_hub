@@ -61,3 +61,25 @@ class VerifyEmailOut(BaseModel):
   user: UserOut
   access_token: str
   token_type: str = "bearer"
+
+
+class UserUpdate(BaseModel):
+  username: str | None = Field(default=None, min_length=3, max_length=100, pattern=r"^[a-zA-Z0-9_ ]+$")
+
+
+class UserPasswordUpdate(BaseModel):
+  current_password: str
+  new_password: str = Field(min_length=8)
+
+
+class EmailChangeRequest(BaseModel):
+  new_email: EmailStr
+
+
+class EmailChangeConfirm(BaseModel):
+  token: str = Field(min_length=6, max_length=6)
+
+
+class EmailChangePendingOut(BaseModel):
+  message: str
+  new_email: EmailStr

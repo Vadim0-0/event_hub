@@ -10,10 +10,23 @@ from ..database import get_db
 from ..dependencies import get_current_user
 from ..models.user import User
 from ..redis_client import get_redis
+from ..worker.enqueue import enqueue_job
 from ..schemas.event import EventOut, EventsCountOut
-from ..schemas.user import UserEventStatsOut, UserListItemOut, UsersCountOut
+from ..schemas.user import (
+  UserOut,
+  UserUpdate,
+  UserPasswordUpdate,
+  UserListItemOut,
+  UsersCountOut,
+  UserEventStatsOut,
+  EmailChangeRequest,
+  EmailChangeConfirm,
+  EmailChangePendingOut,
+  RegisterPendingOut,
+)
 from ..services import events as events_service
 from ..services import users as users_service
+from ..services import email_verification
 
 SortOrder = Literal["asc", "desc"]
 
@@ -229,3 +242,95 @@ async def get_events_by_creator_count(
 
   total = await users_service.count_user_events(db, user_id, search)
   return {"total": total}
+
+
+@router.patch("/me", response_model=UserOut, summary="Update current user profile")
+async def update_me(
+  data: UserUpdate,
+  db: AsyncSession = Depends(get_db),
+  current_user: User = Depends(get_current_user),
+):
+  try:
+    user = await users_service.update_user_profile(db, current_user, data)
+  except users_service.UsernameAlreadyTakenError as e:
+    raise HTTPException(
+      status_code=409,
+      detail={"message": str(e), "field": "username"},
+    )
+  return user
+
+
+@router.patch("/me/password", status_code=204, summary="Change current user password")
+async def change_password(
+  data: UserPasswordUpdate,
+  db: AsyncSession = Depends(get_db),
+  current_user: User = Depends(get_current_user),
+):
+  try:
+    await users_service.update_user_password(db, current_user, data)
+    return {"message": "Password changed successfully"}
+  except users_service.InvalidCurrentPasswordError as e:
+    raise HTTPException(status_code=400, detail=str(e))
+  except users_service.SamePasswordError as e:
+    raise HTTPException(status_code=400, detail=str(e))
+  
+
+
+@router.post("/me/email-change/request", response_model=EmailChangePendingOut)
+async def request_email_change(
+  data: EmailChangeRequest,
+  db: AsyncSession = Depends(get_db),
+  redis: Redis = Depends(get_redis),
+  current_user: User = Depends(get_current_user),
+):
+  try:
+    code = await users_service.request_email_change(
+      db, redis, current_user, str(data.new_email)
+    )
+  except users_service.SameEmailError as e:
+    raise HTTPException(status_code=400, detail=str(e))
+  except users_service.EmailAlreadyTakenError as e:
+    raise HTTPException(
+      status_code=409,
+      detail={"message": str(e), "field": "email"},
+    )
+  except email_verification.ResendTooSoonError as e:
+    raise HTTPException(
+      status_code=429,
+      detail={"message": str(e), "retry_after": e.retry_after},
+      headers={"Retry-After": str(e.retry_after)},
+    )
+
+  await enqueue_job(
+    "send_email_change_code",
+    current_user.id,
+    str(data.new_email),
+    code,
+  )
+
+  return EmailChangePendingOut(
+    message="Confirmation code sent to the new email",
+    new_email=data.new_email,
+  )
+
+
+@router.post("/me/email-change/confirm", response_model=UserOut)
+async def confirm_email_change(
+  data: EmailChangeConfirm,
+  db: AsyncSession = Depends(get_db),
+  redis: Redis = Depends(get_redis),
+  current_user: User = Depends(get_current_user),
+):
+  try:
+    user = await users_service.confirm_email_change(
+      db, redis, current_user, data.token
+    )
+  except users_service.InvalidEmailChangeCodeError as e:
+    raise HTTPException(status_code=400, detail=str(e))
+  except users_service.EmailAlreadyTakenError as e:
+    raise HTTPException(
+      status_code=409,
+      detail={"message": str(e), "field": "email"},
+    )
+
+  return user

@@ -4,6 +4,9 @@ from ..config import settings
 from .tasks import (
   send_welcome_email,
   send_verification_email,
+
+  send_email_change_code,
+
   send_event_created_notification,
   send_event_updated_notification, 
   send_event_deleted_notification,
@@ -29,6 +32,9 @@ class WorkerSettings:
   functions = [
     send_welcome_email,
     send_verification_email,
+
+    send_email_change_code,
+    
     send_event_created_notification,
     send_event_updated_notification,
     send_event_deleted_notification,

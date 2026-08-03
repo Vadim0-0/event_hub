@@ -29,3 +29,5 @@ async def send_welcome_email(ctx, user_id: int, user_email: str):
     redis=get_redis(),
   )
   return {"user_id": user_id, "status": "sent"}
+
+

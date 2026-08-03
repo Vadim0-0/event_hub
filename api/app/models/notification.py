@@ -17,6 +17,7 @@ class NotificationType(StrEnum):
   NEW_PARTICIPANT = "new_participant"
   LEAVE_CONFIRMED = "leave_confirmed"
   PARTICIPANT_LEFT = "participant_left"
+  EMAIL_CHANGE = "email_change"
 
 
 class NotificationStatus(StrEnum):
