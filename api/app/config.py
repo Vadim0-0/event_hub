@@ -19,31 +19,6 @@ class Settings(BaseSettings):
   algorithm: str = "HS256"
   access_token_expire_minutes: int = 1440
 
-  # --- Redis Settings ---
-  redis_url: str | None = None
-  redis_host: str = "localhost"
-  redis_port: int = 6379
-  redis_db: int = 0
-  cache_ttl_seconds: int = 60
-
-  @computed_field
-  @property
-  def final_redis_url(self) -> str:
-    if self.redis_url:
-      return self.redis_url
-    return f"redis://{self.redis_host}:{self.redis_port}/{self.redis_db}"
-
-  # --- ARQ (Task Queue) Settings ---
-  arq_redis_db: int = 1 
-
-  @computed_field
-  @property
-  def arq_redis_url(self) -> str:
-    if self.redis_url:
-      base = self.redis_url.rsplit("/", 1)[0]
-      return f"{base}/{self.arq_redis_db}"
-    return f"redis://{self.redis_host}:{self.redis_port}/{self.arq_redis_db}"
-
   # --- PostgreSQL Settings ---
   database_url: str | None = None
   postgres_user: str = "postgres"
@@ -52,7 +27,23 @@ class Settings(BaseSettings):
   postgres_port: int = 5432
   postgres_db: str = "postgres"
 
-  cors_origins: list[str] = ["http://localhost","http://localhost:3000"]
+  # --- Redis Settings ---
+  redis_url: str | None = None
+  redis_host: str = "localhost"
+  redis_port: int = 6379
+  redis_db: int = 0
+  cache_ttl_seconds: int = 60
+
+  # --- ARQ (Task Queue) Settings ---
+  arq_redis_db: int = 1 
+
+  # --- SMTP ---
+  smtp_host: str = "mailhog"
+  smtp_port: int = 1025
+  smtp_from_email: str = "noreply@eventhub.local"
+  smtp_use_tls: bool = False
+  smtp_user: str | None = None
+  smtp_password: str | None = None
 
   @computed_field
   @property
@@ -63,12 +54,24 @@ class Settings(BaseSettings):
       f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}"
       f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
     )
-  
-  # --- SMTP ---
-  smtp_host: str = "mailhog"
-  smtp_port: int = 1025
-  smtp_from_email: str = "noreply@eventhub.local"
-  smtp_use_tls: bool = False
+
+  @computed_field
+  @property
+  def final_redis_url(self) -> str:
+    if self.redis_url:
+      return self.redis_url
+    return f"redis://{self.redis_host}:{self.redis_port}/{self.redis_db}"
+
+  @computed_field
+  @property
+  def arq_redis_url(self) -> str:
+    if self.redis_url:
+      base = self.redis_url.rsplit("/", 1)[0]
+      return f"{base}/{self.arq_redis_db}"
+    return f"redis://{self.redis_host}:{self.redis_port}/{self.arq_redis_db}"
+
+  # CORS
+  cors_origins: list[str] = ["http://localhost","http://localhost:3000"]
 
   # --- Email verification ---
   email_verification_code_ttl_seconds: int = 900   # 15 minutes
