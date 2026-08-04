@@ -4,19 +4,12 @@ from sqlalchemy import func, select, or_
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models.event import Event
-from ..models.registration import EventRegistration
-from ..schemas.event import CreatorOut, EventCreate, EventOut, EventUpdate
+from ...models.event import Event
+from ...models.registration import EventRegistration
+from ...schemas.event import CreatorOut, EventCreate, EventOut, EventUpdate
 
-
-class EventNotFoundError(Exception):
-  """Event not found"""
-  pass
-
-
-class PermissionDeniedError(Exception):
-  """Permission Denied Error"""
-  pass
+from . import helpers
+from . import exceptions
 
 
 async def build_event_out(
@@ -47,6 +40,31 @@ async def build_event_out(
 
 async def build_events_out(db: AsyncSession, events: Sequence[Event]) -> list[EventOut]:
   return [await build_event_out(db, event) for event in events]
+
+
+async def is_user_participant(
+  db: AsyncSession,
+  event_id: UUID,
+  user_id: int,
+) -> bool:
+  result = await db.execute(
+    select(EventRegistration.id).where(
+      EventRegistration.event_id == event_id,
+      EventRegistration.user_id == user_id,
+    )
+  )
+  return result.scalar_one_or_none() is not None
+
+
+async def get_event_by_id(
+  db: AsyncSession, 
+  event_id: UUID
+) -> EventOut:
+  event = await db.get(Event, event_id, options=[selectinload(Event.creator)])
+  if event is None:
+    raise exceptions.EventNotFoundError(f"Event (id:{event_id}) not found")
+
+  return await build_event_out(db, event)
 
 
 # Creating an event
@@ -127,30 +145,6 @@ async def count_events(
   return result.scalar_one()
 
 
-async def get_event_by_id(
-  db: AsyncSession, 
-  event_id: UUID
-) -> EventOut:
-  event = await db.get(Event, event_id, options=[selectinload(Event.creator)])
-  if event is None:
-    raise EventNotFoundError(f"Event (id:{event_id}) not found")
-
-  return await build_event_out(db, event)
-
-
-async def is_user_participant(
-  db: AsyncSession,
-  event_id: UUID,
-  user_id: int,
-) -> bool:
-  result = await db.execute(
-    select(EventRegistration.id).where(
-      EventRegistration.event_id == event_id,
-      EventRegistration.user_id == user_id,
-    )
-  )
-  return result.scalar_one_or_none() is not None
-
 
 async def update_event(
   event_data: EventUpdate, 
@@ -165,10 +159,10 @@ async def update_event(
   event = result.scalar_one_or_none()
 
   if event is None:
-    raise EventNotFoundError(f"Event (id:{event_id}) not found")
+    raise exceptions.EventNotFoundError(f"Event (id:{event_id}) not found")
 
   if event.creator_id != user_id:
-    raise PermissionDeniedError("Only the creator can update the event")
+    raise exceptions.PermissionDeniedError("Only the creator can update the event")
 
   update_data = event_data.model_dump(exclude_unset=True, exclude_none=True)
 
@@ -193,10 +187,10 @@ async def delete_event(
   event = result.scalar_one_or_none()
 
   if event is None:
-    raise EventNotFoundError(f"Event (id:{event_id}) not found")
+    raise exceptions.EventNotFoundError(f"Event (id:{event_id}) not found")
 
   if event.creator_id != user_id:
-    raise PermissionDeniedError("Only the creator can update the event")
+    raise exceptions.PermissionDeniedError("Only the creator can update the event")
 
   await db.delete(event)
   await db.commit()

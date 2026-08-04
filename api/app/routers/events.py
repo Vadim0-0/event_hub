@@ -17,7 +17,6 @@ from ..services import registrations as registration_service
 from ..cache import cache_get, cache_set, cache_delete
 from ..redis_client import get_redis
 from ..config import settings
-from ..services import event_cache
 
 from ..worker.enqueue import enqueue_job
 
@@ -40,7 +39,7 @@ async def create_event(
 
   new_event = await events_service.create_event(event_data, db, current_user.id)
 
-  await event_cache.invalidate_event_lists(redis, current_user.id)
+  await events_service.invalidate_event_lists(redis, current_user.id)
 
   await enqueue_job(
     "send_event_created_notification",
@@ -173,9 +172,9 @@ async def join_event(
   await enqueue_job("send_registration_confirmed_notification", event_id, current_user.email)
   await enqueue_job("send_new_participant_notification", event_id, current_user.email)
 
-  await event_cache.invalidate_event_detail(redis, event_id)
-  await event_cache.invalidate_event_participants(redis, event_id)
-  await event_cache.invalidate_event_lists(redis, current_user.id)
+  await events_service.invalidate_event_detail(redis, event_id)
+  await events_service.invalidate_event_participants(redis, event_id)
+  await events_service.invalidate_event_lists(redis, current_user.id)
   
   return registration
 
@@ -204,9 +203,9 @@ async def leave_event(
   except registration_service.EventAlreadyStartedError as e:
     raise HTTPException(status_code=409, detail=str(e))
 
-  await event_cache.invalidate_event_detail(redis, event_id)
-  await event_cache.invalidate_event_participants(redis, event_id)
-  await event_cache.invalidate_event_lists(redis, current_user.id)
+  await events_service.invalidate_event_detail(redis, event_id)
+  await events_service.invalidate_event_participants(redis, event_id)
+  await events_service.invalidate_event_lists(redis, current_user.id)
 
 
 @router.get("/{event_id}/participants", response_model=list[ParticipantOut], summary="Get a list of event participants")
@@ -280,7 +279,7 @@ async def update_event(
   cache_key = f"event:{event_id}"
   await cache_delete(redis, cache_key)
 
-  await event_cache.invalidate_event_lists(redis, current_user.id)
+  await events_service.invalidate_event_lists(redis, current_user.id)
 
   return await events_service.build_event_out(db, updated_event)
 
@@ -325,7 +324,7 @@ async def delete_event(
   cache_key = f"event:{event_id}"
   await cache_delete(redis, cache_key)
 
-  await event_cache.invalidate_event_completely(redis, event_id, current_user.id)
+  await events_service.invalidate_event_completely(redis, event_id, current_user.id)
 
   await enqueue_job(
     "send_event_deleted_notification",

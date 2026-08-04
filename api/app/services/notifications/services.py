@@ -2,9 +2,9 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models.user import User
+from ...models.user import User
 
-from ..models.notification import (
+from ...models.notification import (
   NotificationType,
   NotificationStatus,
   Notification

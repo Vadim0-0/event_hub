@@ -1,6 +1,6 @@
 from uuid import UUID
 from redis.asyncio import Redis
-from ..cache import cache_delete, cache_delete_pattern
+from ...cache import cache_delete, cache_delete_pattern
 
 
 async def invalidate_event_detail(redis: Redis, event_id: UUID) -> None:

@@ -10,9 +10,9 @@ from ...models.notification import (
   NotificationType,
   NotificationStatus,
 )
-from ...services.notifications import save_notification
-from ...services.notification_cache import invalidate_user_notifications
 from ...services.mailer import deliver_email
+
+from ...services import notifications as notifications_service
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ async def send_email(
     status = NotificationStatus.FAILED
 
   async with AsyncSessionLocal() as db:
-    await save_notification(
+    await notifications_service.save_notification(
       db,
       type=notification_type,
       recipient_email=to,
@@ -55,4 +55,4 @@ async def send_email(
       user_id_for_cache = result.scalar_one_or_none()
 
   if user_id_for_cache is not None:
-    await invalidate_user_notifications(redis, user_id_for_cache)
+    await notifications_service.invalidate_user_notifications(redis, user_id_for_cache)

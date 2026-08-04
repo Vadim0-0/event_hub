@@ -5,38 +5,10 @@ from datetime import datetime, timezone
 
 from sqlalchemy.orm import selectinload
 
-from ..models.event import Event
-from ..models.registration import EventRegistration
+from ...models.event import Event
+from ...models.registration import EventRegistration
 
-
-class EventCreatorCannotJoinError(Exception):
-  """The event creator cannot register"""
-  pass
-
-
-class EventAlreadyStartedError(Exception):
-  """The event has already begun"""
-  pass
-
-
-class EventNotFoundError(Exception):
-  """Event not found"""
-  pass
-
-
-class AlreadyRegisteredError(Exception):
-  """The user is already registered"""
-  pass
-
-
-class EventFullError(Exception):
-  """There are no vacancies"""
-  pass
-
-
-class NotRegisteredError(Exception):
-  """User is not registered for this event"""
-  pass
+from . import exceptions
 
 
 async def join_event(
@@ -48,19 +20,19 @@ async def join_event(
   # check if an event exists
   event = await db.get(Event, event_id, with_for_update=True)
   if event is None:
-    raise EventNotFoundError(
+    raise exceptions.EventNotFoundError(
       f"Event (id:{event_id}) not found"
     )
 
   # The registered user is the creator
   if event.creator_id == user_id:
-    raise EventCreatorCannotJoinError(
+    raise exceptions.EventCreatorCannotJoinError(
       f"Event creator cannot join event '{event.title}' (id:{event_id})"
     )
 
   # The event has already begun
   if event.starts_at < datetime.now(timezone.utc):
-    raise EventAlreadyStartedError(
+    raise exceptions.EventAlreadyStartedError(
       f"Event '{event.title}' (id:{event_id}) has already started"
     )
 
@@ -72,7 +44,7 @@ async def join_event(
     )
   )
   if existing.scalar_one_or_none() is not None:
-    raise AlreadyRegisteredError(
+    raise exceptions.AlreadyRegisteredError(
       f"User (id:{user_id}) already registered for event '{event.title}' (id:{event_id})"
     )
 
@@ -85,7 +57,7 @@ async def join_event(
     )
     count = count_result.scalar_one()
     if count >= event.max_participants:
-      raise EventFullError(
+      raise exceptions.EventFullError(
         f"Event '{event.title}' (id:{event_id}) is full ({count}/{event.max_participants})"
       )
 
@@ -107,7 +79,7 @@ async def leave_event(
   # check if an event exists
   event = await db.get(Event, event_id, with_for_update=True)
   if event is None:
-    raise EventNotFoundError(
+    raise exceptions.EventNotFoundError(
       f"Event (id:{event_id}) not found"
     )
 
@@ -120,12 +92,12 @@ async def leave_event(
 
   registration = result.scalar_one_or_none()
   if registration is None:
-    raise NotRegisteredError(
+    raise exceptions.NotRegisteredError(
       f"User (id:{user_id}) is not registered for event (id:{event_id})"
     )
 
   if event.starts_at < datetime.now(timezone.utc):
-    raise EventAlreadyStartedError(
+    raise exceptions.EventAlreadyStartedError(
       f"Event '{event.title}' (id:{event.id}) has already started"
     )
 
@@ -144,7 +116,7 @@ async def get_event_participants(
    # check if an event exists
   event = await db.get(Event, event_id)
   if event is None:
-    raise EventNotFoundError(f"Event (id:{event_id}) not found")
+    raise exceptions.EventNotFoundError(f"Event (id:{event_id}) not found")
 
   result = await db.execute(
     select(EventRegistration)

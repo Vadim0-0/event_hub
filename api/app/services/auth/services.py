@@ -2,59 +2,17 @@ from redis.asyncio import Redis
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models.user import User
-from ..schemas.user import UserLogin, UserRegister
-from ..security import (
+from ...models.user import User
+from ...schemas.user import UserLogin, UserRegister
+from ...security import (
   get_password_hash,
   verify_password,
   create_access_token,
 )
-from . import email_verification
+from .. import email_verification
 
-class EmailAlreadyRegisteredError(Exception):
-  """Email is already taken"""
-  pass
-
-
-class UsernameAlreadyRegisteredError(Exception):
-  pass
-
-
-class UserNotFoundError(Exception):
-  pass
-
-
-class InvalidCredentialsError(Exception):
-  """Wrong email or password"""
-  pass
-
-
-class EmailNotVerifiedError(Exception):
-  pass
-
-
-class InvalidVerificationCodeError(Exception):
-  pass
-
-
-class UserNotFoundForVerificationError(Exception):
-  pass
-
-
-class EmailAlreadyVerifiedError(Exception):
-  pass
-
-
-async def _get_user_by_email(db: AsyncSession, email: str) -> User | None:
-  result = await db.execute(select(User).where(User.email == email))
-  return result.scalar_one_or_none()
-
-
-async def _is_username_taken(db: AsyncSession, username: str) -> bool:
-    result = await db.scalar(
-        select(User.id).where(User.username == username)
-    )
-    return result is not None
+from . import helpers
+from . import exceptions
 
 
 async def register_user(
@@ -62,23 +20,23 @@ async def register_user(
   db: AsyncSession,
   redis: Redis,
 ) -> tuple[User, str]:
-  existing = await _get_user_by_email(db, data.email)
+  existing = await helpers.get_user_by_email(db, data.email)
 
   if existing is not None:
     if existing.is_email_verified:
-      raise EmailAlreadyRegisteredError("This email is already registered")
+      raise exceptions.EmailAlreadyRegisteredError("This email is already registered")
 
-    username_taken = await _is_username_taken(db, data.username)
+    username_taken = await helpers.is_username_taken(db, data.username)
     if username_taken:
-      raise UsernameAlreadyRegisteredError(f"Username ({data.username}) already registered")
+      raise exceptions.UsernameAlreadyRegisteredError(f"Username ({data.username}) already registered")
     
     existing.username = data.username
     existing.password_hash = get_password_hash(data.password)
     user = existing
   else:
-    username_taken = await _is_username_taken(db, data.username)
+    username_taken = await helpers.is_username_taken(db, data.username)
     if username_taken:
-      raise UsernameAlreadyRegisteredError(
+      raise exceptions.UsernameAlreadyRegisteredError(
         f"Username ({data.username}) already registered"
       )
     
@@ -107,16 +65,16 @@ async def verify_email(
   db: AsyncSession,
   redis: Redis,
 ) -> tuple[User, str]:
-  user = await _get_user_by_email(db, email)
+  user = await helpers.get_user_by_email(db, email)
   if user is None:
-    raise UserNotFoundForVerificationError("User not found")
+    raise exceptions.UserNotFoundForVerificationError("User not found")
   
   if user.is_email_verified:
-    raise EmailAlreadyVerifiedError("Email is already verified")
+    raise exceptions.EmailAlreadyVerifiedError("Email is already verified")
   
   is_valid = await email_verification.verify_and_consume_code(redis, email, code)
   if not is_valid:
-    raise InvalidVerificationCodeError("Invalid or expired verification code")
+    raise exceptions.InvalidVerificationCodeError("Invalid or expired verification code")
   
   user.is_email_verified = True
   await db.commit()
@@ -130,7 +88,7 @@ async def resend_verification_code(
   db: AsyncSession,
   redis: Redis,
 ) -> tuple[User | None, str | None]:
-  user = await _get_user_by_email(db, email)
+  user = await helpers.get_user_by_email(db, email)
   if user is None or user.is_email_verified:
     return None, None
 
@@ -143,12 +101,12 @@ async def resend_verification_code(
 
 
 async def login(data: UserLogin, db: AsyncSession) -> str:
-  user = await _get_user_by_email(db, data.email)
+  user = await helpers.get_user_by_email(db, data.email)
 
   if not user or not verify_password(data.password, user.password_hash):
-    raise InvalidCredentialsError("Incorrect email or password")
+    raise exceptions.InvalidCredentialsError("Incorrect email or password")
 
   if not user.is_email_verified:
-    raise EmailNotVerifiedError("Email is not verified")
+    raise exceptions.EmailNotVerifiedError("Email is not verified")
   
   return create_access_token(subject=user.id)

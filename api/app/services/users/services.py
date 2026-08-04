@@ -3,81 +3,23 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from ..models.event import Event
-from ..models.registration import EventRegistration
-from ..models.user import User
-from ..schemas.user import UserUpdate, UserPasswordUpdate
-from ..security import get_password_hash, verify_password
-from . import email_change
-from .email_verification import generate_verification_code
+from ...models.event import Event
+from ...models.registration import EventRegistration
+from ...models.user import User
+from ...schemas.user import UserUpdate, UserPasswordUpdate
+from ...security import get_password_hash, verify_password
+from .. import email_change
+from ..email_verification import generate_verification_code
 
-class UserNotFoundError(Exception):
-  pass
-
-
-class UsernameAlreadyTakenError(Exception):
-  pass 
-
-
-class InvalidCurrentPasswordError(Exception):
-  pass
-
-
-class EmailAlreadyTakenError(Exception):
-  pass 
-
-
-class SameEmailError(Exception):
-  pass
-
-
-class InvalidEmailChangeCodeError(Exception):
-  pass
-
-
-class EmailChangeNotRequestedError(Exception):
-  pass
-
-
-class SamePasswordError(Exception):
-  pass
+from . import helpers
+from . import exceptions
 
 
 async def get_user_or_raise(db: AsyncSession, user_id: int) -> User:
   user = await db.get(User, user_id)
   if user is None:
-    raise UserNotFoundError(f"User (id:{user_id}) not found")
+    raise exceptions.UserNotFoundError(f"User (id:{user_id}) not found")
   return user
-
-
-def _apply_user_search(query, search: str | None):
-  if not search:
-    return query
-
-  pattern = f"%{search.strip()}%"
-  return query.where(
-    or_(
-      User.username.ilike(pattern),
-      User.email.ilike(pattern),
-    )
-  )
-
-
-def _apply_event_search(query, search: str | None):
-  if not search:
-    return query
-
-  pattern = f"%{search.strip()}%"
-  return query.where(
-    or_(
-      Event.title.ilike(pattern),
-      Event.description.ilike(pattern),
-    )
-  )
-
-
-def _verified_users_only(query):
-  return query.where(User.is_email_verified.is_(True))
 
 
 async def list_users(
@@ -88,8 +30,8 @@ async def list_users(
   exclude_user_id: int | None = None,
 ) -> list[User]:
   query = select(User).order_by(User.username.asc())
-  query = _verified_users_only(query)
-  query = _apply_user_search(query, search)
+  query = helpers.verified_users_only(query)
+  query = helpers.apply_user_search(query, search)
 
   if exclude_user_id is not None:
     query = query.where(User.id != exclude_user_id)
@@ -106,8 +48,8 @@ async def count_users(
   exclude_user_id: int | None = None,
 ) -> int:
   query = select(func.count()).select_from(User)
-  query = _verified_users_only(query)
-  query = _apply_user_search(query, search)
+  query = helpers.verified_users_only(query)
+  query = helpers.apply_user_search(query, search)
 
   if exclude_user_id is not None:
     query = query.where(User.id != exclude_user_id)
@@ -129,7 +71,7 @@ async def get_user_events(
     .options(selectinload(Event.creator))
     .where(Event.creator_id == user_id)
   )
-  query = _apply_event_search(query, search)
+  query = helpers.apply_event_search(query, search)
 
   order = Event.starts_at.asc() if sort == "asc" else Event.starts_at.desc()
   query = query.order_by(order).offset(skip).limit(limit)
@@ -148,7 +90,7 @@ async def count_user_events(
     .select_from(Event)
     .where(Event.creator_id == user_id)
   )
-  query = _apply_event_search(query, search)
+  query = helpers.apply_event_search(query, search)
 
   result = await db.execute(query)
   return result.scalar_one()
@@ -168,7 +110,7 @@ async def get_user_joined_events(
     .options(selectinload(Event.creator))
     .where(EventRegistration.user_id == user_id)
   )
-  query = _apply_event_search(query, search)
+  query = helpers.apply_event_search(query, search)
 
   order = Event.starts_at.asc() if sort == "asc" else Event.starts_at.desc()
   query = query.order_by(order).offset(skip).limit(limit)
@@ -188,7 +130,7 @@ async def count_user_joined_events(
     .join(EventRegistration, EventRegistration.event_id == Event.id)
     .where(EventRegistration.user_id == user_id)
   )
-  query = _apply_event_search(query, search)
+  query = helpers.apply_event_search(query, search)
 
   result = await db.execute(query)
   return result.scalar_one()
@@ -236,7 +178,7 @@ async def update_user_profile(
     )
   )
   if taken is not None:
-    raise UsernameAlreadyTakenError(f"Username ({data.username}) already taken")
+    raise exceptions.UsernameAlreadyTakenError(f"Username ({data.username}) already taken")
 
   user.username = data.username
   await db.commit()
@@ -251,10 +193,10 @@ async def update_user_password(
   data: UserPasswordUpdate,
 ) -> None:
   if data.current_password == data.new_password:
-    raise SamePasswordError("New password must be different from the current one")
+    raise exceptions.SamePasswordError("New password must be different from the current one")
 
   if not verify_password(data.current_password, user.password_hash):
-    raise InvalidCurrentPasswordError("Current password is incorrect")
+    raise exceptions.InvalidCurrentPasswordError("Current password is incorrect")
 
   user.password_hash = get_password_hash(data.new_password)
   await db.commit()
@@ -269,13 +211,13 @@ async def request_email_change(
   new_email = new_email.lower()
 
   if new_email == user.email.lower():
-    raise SameEmailError("New email must be different from current email")
+    raise exceptions.SameEmailError("New email must be different from current email")
 
   existing = await db.scalar(
     select(User.id).where(User.email == new_email)
   )
   if existing is not None:
-    raise EmailAlreadyTakenError("This email is already registered")
+    raise exceptions.EmailAlreadyTakenError("This email is already registered")
 
   code = await email_change.issue_email_change_code(
     redis=redis,
@@ -299,7 +241,7 @@ async def confirm_email_change(
   )
 
   if new_email is None:
-    raise InvalidEmailChangeCodeError("Invalid or expired confirmation code")
+    raise exceptions.InvalidEmailChangeCodeError("Invalid or expired confirmation code")
 
   existing = await db.scalar(
     select(User.id).where(
@@ -308,7 +250,7 @@ async def confirm_email_change(
     )
   )
   if existing is not None:
-    raise EmailAlreadyTakenError("This email is already registered")
+    raise exceptions.EmailAlreadyTakenError("This email is already registered")
 
   user.email = new_email
   user.is_email_verified = True
