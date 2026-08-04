@@ -31,13 +31,13 @@ dev: ## Dev mode: hot reload, pgAdmin, port 8000
 	$(COMPOSE_DEV) up -d --build
 
 down: ## Stop containers
-	$(COMPOSE) down
+	$(COMPOSE_DEV) down
 
 restart: ## Restart api and worker
 	$(COMPOSE) restart api worker
 
 logs: ## Follow API logs
-	$(COMPOSE) logs -f api
+	$(COMPOSE_DEV) logs -f api worker
 
 logs-all: ## Follow logs for all services
 	$(COMPOSE) logs -f
@@ -54,7 +54,7 @@ clean: ## Stop containers and remove volumes (database will be wiped!)
 # --- Migrations ---
 
 migrate: ## Apply Alembic migrations
-	$(COMPOSE) exec api alembic upgrade head
+	$(COMPOSE_DEV) exec api alembic upgrade head
 
 migration: ## Create migration: make migration msg="add users table"
 	$(COMPOSE) exec api alembic revision --autogenerate -m "$(msg)"
