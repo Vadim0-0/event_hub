@@ -8,17 +8,14 @@ services:
       - "8000:8000"
     volumes:
       - ./api:/app
-    environment:
-      SMTP_HOST: mailhog
-      SMTP_PORT: 1025
-      SMTP_FROM_EMAIL: noreply@eventhub.local
-      SMTP_USE_TLS: "false"
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
     depends_on:
       mailhog:
         condition: service_started
   
   worker:
+    volumes:
+      - ./api:/app
     environment:
       SMTP_HOST: mailhog
       SMTP_PORT: 1025
