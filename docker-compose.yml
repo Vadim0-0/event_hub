@@ -36,14 +36,33 @@ services:
     container_name: event_hub_api
     restart: unless-stopped
     environment:
+      # Postgres
       POSTGRES_USER: ${POSTGRES_USER:-auth_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-auth_password}
       POSTGRES_DB: ${POSTGRES_DB:-auth_db}
       POSTGRES_HOST: db
       POSTGRES_PORT: 5432
-      SECRET_KEY: ${SECRET_KEY}
+      
+      # Redis
       REDIS_HOST: redis
       REDIS_PORT: 6379
+
+      # ARQ
+      ARQ_REDIS_DB: 1
+
+      # JWT
+      SECRET_KEY: ${SECRET_KEY}
+
+      # SMTP
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL}
+      SMTP_USE_TLS: ${SMTP_USE_TLS}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+
+      # Web UI
+      WEB_APP_BASE_URL: ${WEB_APP_BASE_URL:-}
     depends_on:
       db:
         condition: service_healthy
@@ -57,15 +76,33 @@ services:
     container_name: event_hub_worker
     restart: unless-stopped
     environment:
+      # Postgres
       POSTGRES_USER: ${POSTGRES_USER:-auth_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-auth_password}
       POSTGRES_DB: ${POSTGRES_DB:-auth_db}
       POSTGRES_HOST: db
       POSTGRES_PORT: 5432
-      SECRET_KEY: ${SECRET_KEY}
+
+      # Redis
       REDIS_HOST: redis
       REDIS_PORT: 6379
+
+      # ARQ
       ARQ_REDIS_DB: 1
+
+      # SMTP
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL}
+      SMTP_USE_TLS: ${SMTP_USE_TLS}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+
+      # JWT
+      SECRET_KEY: ${SECRET_KEY}
+
+      # Web UI
+      WEB_APP_BASE_URL: ${WEB_APP_BASE_URL:-}
     depends_on:
       redis:
         condition: service_healthy
