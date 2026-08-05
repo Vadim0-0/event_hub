@@ -1,21 +1,24 @@
 from arq.connections import RedisSettings
 
 from ..config import settings
-from .tasks import (
-  send_welcome_email,
-  send_verification_email,
-
-  send_email_change_code,
-
-  send_event_created_notification,
-  send_event_updated_notification, 
-  send_event_deleted_notification,
-  send_registration_confirmed_notification,
-  send_new_participant_notification,
-  send_leave_confirmed_notification,
-  send_participant_left_notification,
-)
 from ..redis_client import init_redis, close_redis
+
+from ..notifications.handlers import (
+  notify_verification_code,
+  notify_welcome,
+  notify_login,
+  notify_email_change_code,
+  notify_password_changed,
+  notify_email_changed,
+  notify_profile_updated,
+  notify_event_created,
+  notify_event_updated,
+  notify_event_deleted,
+  notify_registration_confirmed,
+  notify_new_participant,
+  notify_leave_confirmed,
+  notify_participant_left,
+)
 
 
 async def startup(ctx):
@@ -29,18 +32,22 @@ async def shutdown(ctx):
 class WorkerSettings:
   on_startup = startup
   on_shutdown = shutdown
-  functions = [
-    send_welcome_email,
-    send_verification_email,
 
-    send_email_change_code,
-    
-    send_event_created_notification,
-    send_event_updated_notification,
-    send_event_deleted_notification,
-    send_registration_confirmed_notification,
-    send_new_participant_notification,
-    send_leave_confirmed_notification,
-    send_participant_left_notification,
-  ]
   redis_settings = RedisSettings.from_dsn(settings.arq_redis_url)
+
+  functions = [
+    notify_verification_code,
+    notify_welcome,
+    notify_login,
+    notify_email_change_code,
+    notify_password_changed,
+    notify_email_changed,
+    notify_profile_updated,
+    notify_event_created,
+    notify_event_updated,
+    notify_event_deleted,
+    notify_registration_confirmed,
+    notify_new_participant,
+    notify_leave_confirmed,
+    notify_participant_left,
+  ]

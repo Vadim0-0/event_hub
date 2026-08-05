@@ -1,29 +1,12 @@
 from datetime import datetime
-from enum import StrEnum
 import uuid
+
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import String, Text, DateTime, ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column
+
+from ..notifications import types
 from ..database import Base
-
-
-class NotificationType(StrEnum):
-  WELCOME = "welcome"
-  EMAIL_VERIFICATION = "email_verification" 
-  EVENT_CREATED = "event_created"
-  EVENT_UPDATED = "event_updated"
-  EVENT_DELETED = "event_deleted"
-  REGISTRATION_CONFIRMED = "registration_confirmed"
-  NEW_PARTICIPANT = "new_participant"
-  LEAVE_CONFIRMED = "leave_confirmed"
-  PARTICIPANT_LEFT = "participant_left"
-  EMAIL_CHANGE = "email_change"
-
-
-class NotificationStatus(StrEnum):
-  SENT = "sent"
-  SKIPPED = "skipped"
-  FAILED = "failed"
 
 
 class Notification(Base):
@@ -38,7 +21,7 @@ class Notification(Base):
   recipient_email: Mapped[str] = mapped_column(String(255), index=True)
   subject: Mapped[str] = mapped_column(String(255))
   body: Mapped[str] = mapped_column(Text)
-  status: Mapped[str] = mapped_column(String(20), default=NotificationStatus.SENT)
+  status: Mapped[str] = mapped_column(String(20), default=types.NotificationStatus.SENT)
   task_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
   event_id: Mapped[uuid.UUID | None] = mapped_column(
     UUID(as_uuid=True),

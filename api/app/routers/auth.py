@@ -18,7 +18,7 @@ from ..schemas.user import (
 )
 from ..services import auth as auth_service
 from ..services import email_verification
-from ..worker.enqueue import enqueue_job
+from ..notifications import dispatch
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -43,7 +43,7 @@ async def register(
       detail={"message": str(e), "field": "username"},
     )
 
-  await enqueue_job("send_verification_email", user.id, user.email, code)
+  await dispatch.notify.auth.verification_code(user.id, user.email, code)
   
   return RegisterPendingOut(
     message="Verification code sent to your email",
@@ -71,7 +71,7 @@ async def verify_email(
   except auth_service.InvalidVerificationCodeError as e:
     raise HTTPException(status_code=400, detail=str(e))
 
-  await enqueue_job("send_welcome_email", user.id, user.email)
+  await dispatch.notify.auth.welcome(user.id, user.email, user.username)
 
   return VerifyEmailOut(
     user=UserOut.model_validate(user),
@@ -98,7 +98,7 @@ async def resend_verification_code(
     )
 
   if user is not None and code is not None:
-    await enqueue_job("send_verification_email", user.id, user.email, code)
+    await dispatch.notify.auth.verification_code(user.id, user.email, code)
 
   return RegisterPendingOut(
     message="If the account exists and is not verified, a new code was sent",
@@ -107,15 +107,21 @@ async def resend_verification_code(
 
 
 @router.post("/login", response_model=Token)
-async def login(data: UserLogin, db: AsyncSession = Depends(get_db)):
+async def login(
+  data: UserLogin, 
+  db: AsyncSession = Depends(get_db)
+):
   try:
-    access_token = await auth_service.login(data, db)
+    user, access_token = await auth_service.login(data, db)
   except auth_service.InvalidCredentialsError as e:
     raise HTTPException(status_code=401, detail=str(e))
   except auth_service.EmailNotVerifiedError as e:
     raise HTTPException(status_code=403, detail=str(e))
   
+  await dispatch.notify.auth.login(user.id, user.email, user.username)
+
   return Token(access_token=access_token)
+
 
 # Getting the current user
 @router.get("/me", response_model=UserOut)

@@ -3,6 +3,8 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+
+from ...notifications.types import ChangedField
 from ...models.event import Event
 from ...models.registration import EventRegistration
 from ...models.user import User
@@ -164,12 +166,14 @@ async def update_user_profile(
   db: AsyncSession,
   user: User,
   data: UserUpdate,
-) -> User:
+) -> tuple[User, list[ChangedField]]:
+  changes: list[ChangedField] = []
+
   if data.username is None:
-    return user
+    return user, changes
 
   if data.username == user.username:
-    return user
+    return user, changes
 
   taken = await db.scalar(
     select(User.id).where(
@@ -179,6 +183,10 @@ async def update_user_profile(
   )
   if taken is not None:
     raise exceptions.UsernameAlreadyTakenError(f"Username ({data.username}) already taken")
+  
+  if data.username and data.username != user.username:
+    changes.append(ChangedField("username", "Username", user.username, data.username))
+    user.username = data.username
 
   user.username = data.username
   await db.commit()

@@ -4,6 +4,7 @@ from sqlalchemy import func, select, or_
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ...notifications import types, messages
 from ...models.event import Event
 from ...models.registration import EventRegistration
 from ...schemas.event import CreatorOut, EventCreate, EventOut, EventUpdate
@@ -151,7 +152,9 @@ async def update_event(
   db: AsyncSession, 
   event_id: UUID, 
   user_id: int
-):
+) -> tuple[Event, list[types.ChangedField]]:
+  changes = []
+
   result = await db.execute(
     select(Event)
     .where(Event.id == event_id)
@@ -166,8 +169,11 @@ async def update_event(
 
   update_data = event_data.model_dump(exclude_unset=True, exclude_none=True)
 
-  for field, value in update_data.items():
-    setattr(event, field, value)
+  for field, new_value in update_data.items():
+    old_value = getattr(event, field)
+    if old_value != new_value:
+      changes.append(types.ChangedField(field, messages.EVENT_FIELD_LABELS[field], str(old_value), str(new_value)))
+      setattr(event, field, new_value)
 
   await db.commit()
   await db.refresh(event, attribute_names=["creator"])

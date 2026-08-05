@@ -17,8 +17,8 @@ from ..services import registrations as registration_service
 from ..cache import cache_get, cache_set, cache_delete
 from ..redis_client import get_redis
 from ..config import settings
+from ..notifications import dispatch
 
-from ..worker.enqueue import enqueue_job
 
 SortOrder = Literal["asc", "desc"]
 
@@ -41,11 +41,7 @@ async def create_event(
 
   await events_service.invalidate_event_lists(redis, current_user.id)
 
-  await enqueue_job(
-    "send_event_created_notification",
-    new_event.id,
-    current_user.email,
-  )
+  await dispatch.notify.events.created(new_event.id, current_user.email)
 
   return await events_service.build_event_out(db, new_event)
 
@@ -169,8 +165,7 @@ async def join_event(
   except registration_service.EventFullError as e:
     raise HTTPException(status_code=409, detail=str(e))
 
-  await enqueue_job("send_registration_confirmed_notification", event_id, current_user.email)
-  await enqueue_job("send_new_participant_notification", event_id, current_user.email)
+  await dispatch.notify.registrations.joined(event_id, current_user.email)
 
   await events_service.invalidate_event_detail(redis, event_id)
   await events_service.invalidate_event_participants(redis, event_id)
@@ -202,6 +197,8 @@ async def leave_event(
     raise HTTPException(status_code=404, detail=str(e))
   except registration_service.EventAlreadyStartedError as e:
     raise HTTPException(status_code=409, detail=str(e))
+
+  await dispatch.notify.registrations.left(event_id, current_user.email)
 
   await events_service.invalidate_event_detail(redis, event_id)
   await events_service.invalidate_event_participants(redis, event_id)
@@ -263,18 +260,18 @@ async def update_event(
   """
 
   try:
-    updated_event = await events_service.update_event(
+    updated_event, changes = await events_service.update_event(
       event_data=event_data,
       event_id=event_id,
       db=db,
       user_id=current_user.id
     )
+    if changes:
+      await dispatch.notify.events.updated(event_id, [c.__dict__ for c in changes])
   except events_service.EventNotFoundError as e:
     raise HTTPException(status_code=404, detail=str(e))
   except events_service.PermissionDeniedError as e:
     raise HTTPException(status_code=403, detail=str(e)) 
-
-  await enqueue_job("send_event_updated_notification", event_id)
 
   cache_key = f"event:{event_id}"
   await cache_delete(redis, cache_key)
@@ -326,9 +323,4 @@ async def delete_event(
 
   await events_service.invalidate_event_completely(redis, event_id, current_user.id)
 
-  await enqueue_job(
-    "send_event_deleted_notification",
-    event_id,
-    event_title,
-    participant_emails,
-  )
+  await dispatch.notify.events.deleted(event_id, event_title, participant_emails)

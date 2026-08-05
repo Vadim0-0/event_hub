@@ -100,7 +100,7 @@ async def resend_verification_code(
   return user, code
 
 
-async def login(data: UserLogin, db: AsyncSession) -> str:
+async def login(data: UserLogin, db: AsyncSession) -> tuple[User, str]:
   user = await helpers.get_user_by_email(db, data.email)
 
   if not user or not verify_password(data.password, user.password_hash):
@@ -108,5 +108,5 @@ async def login(data: UserLogin, db: AsyncSession) -> str:
 
   if not user.is_email_verified:
     raise exceptions.EmailNotVerifiedError("Email is not verified")
-  
-  return create_access_token(subject=user.id)
+    
+  return user, create_access_token(subject=user.id)

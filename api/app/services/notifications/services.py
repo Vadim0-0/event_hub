@@ -4,11 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...models.user import User
 
-from ...models.notification import (
-  NotificationType,
-  NotificationStatus,
-  Notification
-)
+from ...notifications.types import NotificationType, NotificationStatus
+from ...models.notification import Notification
 
 
 async def save_notification(

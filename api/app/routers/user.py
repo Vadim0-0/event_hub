@@ -10,7 +10,6 @@ from ..database import get_db
 from ..dependencies import get_current_user
 from ..models.user import User
 from ..redis_client import get_redis
-from ..worker.enqueue import enqueue_job
 from ..schemas.event import EventOut, EventsCountOut
 from ..schemas.user import (
   UserOut,
@@ -24,6 +23,7 @@ from ..schemas.user import (
   EmailChangePendingOut,
   RegisterPendingOut,
 )
+from ..notifications import dispatch
 from ..services import events as events_service
 from ..services import users as users_service
 from ..services import email_verification
@@ -251,7 +251,10 @@ async def update_me(
   current_user: User = Depends(get_current_user),
 ):
   try:
-    user = await users_service.update_user_profile(db, current_user, data)
+    user, changes = await users_service.update_user_profile(db, current_user, data)
+
+    if changes:
+      await dispatch.notify.profile.updated(user.id, user.email, user.username, [c.__dict__ for c in changes])
   except users_service.UsernameAlreadyTakenError as e:
     raise HTTPException(
       status_code=409,
@@ -268,13 +271,14 @@ async def change_password(
 ):
   try:
     await users_service.update_user_password(db, current_user, data)
-    return {"message": "Password changed successfully"}
+    await dispatch.notify.profile.password_changed(
+      current_user.id, current_user.email, current_user.username
+    )
   except users_service.InvalidCurrentPasswordError as e:
     raise HTTPException(status_code=400, detail=str(e))
   except users_service.SamePasswordError as e:
     raise HTTPException(status_code=400, detail=str(e))
   
-
 
 @router.post("/me/email-change/request", response_model=EmailChangePendingOut)
 async def request_email_change(
@@ -301,8 +305,7 @@ async def request_email_change(
       headers={"Retry-After": str(e.retry_after)},
     )
 
-  await enqueue_job(
-    "send_email_change_code",
+  await dispatch.notify.profile.email_change_code(
     current_user.id,
     str(data.new_email),
     code,
@@ -321,9 +324,19 @@ async def confirm_email_change(
   redis: Redis = Depends(get_redis),
   current_user: User = Depends(get_current_user),
 ):
+  
   try:
+    old_email = current_user.email
+
     user = await users_service.confirm_email_change(
       db, redis, current_user, data.token
+    )
+
+    await dispatch.notify.profile.email_changed(
+      user.id,
+      user.email,
+      user.username,
+      old_email,
     )
   except users_service.InvalidEmailChangeCodeError as e:
     raise HTTPException(status_code=400, detail=str(e))
