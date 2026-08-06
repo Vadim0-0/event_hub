@@ -7,6 +7,7 @@
     eventId: string
     totalCount?: number
     isCreator?: boolean
+    readOnly?: boolean
   }>();
 
   const emit = defineEmits<{
@@ -75,6 +76,8 @@
 
   const selectedEventStore = useSelectedEventStore();
 
+  const canRemoveParticipants = computed(() => props.isCreator && !props.readOnly);
+
 
   // --- Sync API data → accumulated list ---
   watch(participants, (newData) => {
@@ -117,7 +120,7 @@
   };
 
   async function removeParticipant(participant: Participant) {
-    if (!props.isCreator) return;
+    if (!canRemoveParticipants.value) return;
     if (removingUserId.value) return;
 
     removingUserId.value = participant.user.id;
@@ -250,7 +253,6 @@
 
             <button
               class="ml-auto w-10"
-              @click="copyParticipantEmail(participant)"
             >
               <Icon 
                 name="material-symbols-light:face-right-rounded"
@@ -278,7 +280,7 @@
               <UiButton 
                 v-if="isCreator"
                 style-type="delete"
-                :disabled="removingUserId === participant.user.id"
+                :disabled="!canRemoveParticipants"
                 @click="removeParticipant(participant)"
               >
                 {{ removingUserId === participant.user.id ? 'Removing...' : 'Delete' }}

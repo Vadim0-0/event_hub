@@ -75,14 +75,16 @@
 
 
   // --- UI flags ---
-  const isActionDisabled = computed(() =>
+  const showChangeEventButton = computed(() => isCreator.value && !isStarted.value);
+
+  const isParticipationDisabled = computed(() =>
     isActionPending.value ||
     isCreator.value ||
-    (!isParticipant.value && (isFull.value || isStarted.value)),
+    isStarted.value ||
+    (!isParticipant.value && isFull.value),
   );
 
-  const showChangeEventButton = computed(() => isCreator.value);
-
+  const isEventReadOnly = computed(() => isStarted.value);
 
   // --- Participants panel ---
   function openParticipantsUsers() {
@@ -96,7 +98,7 @@
 
   // --- Handlers ---
   async function handleToggleParticipation() {
-    if (isActionDisabled.value) return;
+    if (isParticipationDisabled.value) return;
 
     isActionPending.value = true;
     try {
@@ -207,6 +209,10 @@
               class="size-6 text-main"
             />
           </UiButton>
+
+          <p v-if="isStarted" class="text-text-secondary">
+            This event has already ended
+          </p>
         </div>
       </div>
 
@@ -222,7 +228,7 @@
         
         <UiButton
           :style-type="isParticipant ? 'delete' : 'primary'"
-          :disabled="isActionDisabled"
+          :disabled="isParticipationDisabled"
           @click="handleToggleParticipation"
         >
           <template v-if="isParticipant">
@@ -248,14 +254,14 @@
           v-if="participantsUsersVisible"
           class="absolute top-0 right-0 w-full h-full z-2"
         >
-          <ParticipantsUsers 
-            v-if="participantsUsersVisible"
-            :event-id="currentEvent.id"
-            :total-count="currentEvent.participants_count"
-            :is-creator="isCreator"
-            @close="closeParticipantsUsers"
-            @participant-removed="onParticipantRemoved"
-          />
+        <ParticipantsUsers
+          :event-id="currentEvent.id"
+          :total-count="currentEvent.participants_count"
+          :is-creator="isCreator"
+          :read-only="isEventReadOnly"
+          @close="closeParticipantsUsers"
+          @participant-removed="onParticipantRemoved"
+        />
         </div>
       </Transition>
     </div>

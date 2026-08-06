@@ -19,11 +19,13 @@
   const isMyEventsPage = computed(() => slot.value === 'myEventsPage');
   const isJoinedEventsPage = computed(() => slot.value === 'joinedEventsPage');
   const isUsersPage = computed(() => slot.value === 'usersPage');
+  const isHistoryEventsPage = computed(() => slot.value === 'historyEventsPage');
 
   const isEventsListPage = computed(() =>
     isAllEventsPage.value ||
     isMyEventsPage.value ||
-    isJoinedEventsPage.value,
+    isJoinedEventsPage.value ||
+    isHistoryEventsPage.value,
   );
 
 
@@ -36,6 +38,8 @@
         return { title: 'My Events', showSearch: true, showSort: true };
       case 'joinedEventsPage':
         return { title: 'Joined Events', showSearch: true, showSort: true };
+      case 'historyEventsPage':
+        return { title: 'History', showSearch: true, showSort: true };
       case 'usersPage':
         return { title: 'Users', showSearch: true, showSort: false };
       default:
@@ -101,6 +105,14 @@
     error: joinedError,
   } = useJoinedEventsList(page, isJoinedEventsPage, debouncedSearch, sort);
 
+  const {
+    events: historyEvents,
+    total: historyTotal,
+    totalPages: historyTotalPages,
+    pending: historyPending,
+    error: historyError,
+  } = useHistoryEventsList(page, isHistoryEventsPage, debouncedSearch, sort);
+
 
   // --- Users data ---
   const {
@@ -117,6 +129,7 @@
     if (isAllEventsPage.value) return events.value;
     if (isMyEventsPage.value) return myEvents.value;
     if (isJoinedEventsPage.value) return joinedEvents.value;
+    if (isHistoryEventsPage.value) return historyEvents.value;
     return [];
   });
 
@@ -124,6 +137,7 @@
     if (isAllEventsPage.value) return total.value;
     if (isMyEventsPage.value) return myTotal.value;
     if (isJoinedEventsPage.value) return joinedTotal.value;
+    if (isHistoryEventsPage.value) return historyTotal.value;
     return 0;
   });
 
@@ -131,6 +145,7 @@
     if (isAllEventsPage.value) return totalPages.value;
     if (isMyEventsPage.value) return myTotalPages.value;
     if (isJoinedEventsPage.value) return joinedTotalPages.value;
+    if (isHistoryEventsPage.value) return historyTotalPages.value;
     return 1;
   });
 
@@ -138,6 +153,7 @@
     if (isAllEventsPage.value) return pending.value;
     if (isMyEventsPage.value) return myPending.value;
     if (isJoinedEventsPage.value) return joinedPending.value;
+    if (isHistoryEventsPage.value) return historyPending.value;
     return false;
   });
 
@@ -145,6 +161,7 @@
     if (isAllEventsPage.value) return error.value;
     if (isMyEventsPage.value) return myError.value;
     if (isJoinedEventsPage.value) return joinedError.value;
+    if (isHistoryEventsPage.value) return historyError.value;
     return null;
   });
 
