@@ -10,6 +10,8 @@ from .services import (
   create_event,
   list_events,
   count_events,
+  list_past_events,
+  count_past_events,
   update_event,
   delete_event,
 )
@@ -31,6 +33,8 @@ __all__ = [
   "create_event",
   "list_events",
   "count_events",
+  "list_past_events",
+  "count_past_events",
   "update_event",
   "delete_event",
 

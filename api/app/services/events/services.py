@@ -146,6 +146,58 @@ async def count_events(
   return result.scalar_one()
 
 
+async def list_past_events(
+  db: AsyncSession, 
+  skip: int, 
+  limit: int,
+  search: str | None = None,
+  sort: str = "desc",
+):
+
+  query = (
+    select(Event)
+    .options(selectinload(Event.creator))
+    .where(Event.starts_at <= func.now())
+  )
+
+  if search:
+    pattern = f"%{search.strip()}%"
+    query = query.where(
+      or_(
+        Event.title.ilike(pattern),
+        Event.description.ilike(pattern),
+      )
+    )
+
+  order = Event.starts_at.asc() if sort == "asc" else Event.starts_at.desc()
+  query = query.order_by(order).offset(skip).limit(limit)
+
+  result = await db.execute(query)
+  return result.scalars().all()
+
+
+async def count_past_events(
+  db: AsyncSession,
+  search: str | None = None,
+) -> int:
+  query = (
+    select(func.count())
+    .select_from(Event)
+    .where(Event.starts_at <= func.now())
+  )
+
+  if search:
+    pattern = f"%{search.strip()}%"
+    query = query.where(
+      or_(
+        Event.title.ilike(pattern),
+        Event.description.ilike(pattern),
+      )
+    )
+    
+  result = await db.execute(query)
+  return result.scalar_one()
+
 
 async def update_event(
   event_data: EventUpdate, 

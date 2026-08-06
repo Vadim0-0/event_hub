@@ -93,6 +93,54 @@ async def get_events_count(
   return {"total": total}
 
 
+@router.get("/history", response_model=list[EventOut], summary="Get past events")
+async def list_past_events(
+  db: AsyncSession = Depends(get_db),
+  skip: int = 0,
+  limit: int = 100,
+  search: str | None = None,
+  sort: SortOrder = "desc",
+  redis: Redis = Depends(get_redis),
+):
+  """ Get list of past events """
+
+  cache_key = f"events:history:skip={skip}:limit={limit}:search={search or ''}:sort={sort}"
+
+  cached = await cache_get(redis, cache_key)
+  if cached is not None:
+    return [EventOut.model_validate(item) for item in cached]
+
+  events = await events_service.list_past_events(
+    db,
+    skip=skip,
+    limit=limit,
+    search=search,
+    sort=sort,
+  )
+
+  data = [
+    event_out.model_dump(mode="json")
+    for event_out in await events_service.build_events_out(db, events)
+  ]
+  await cache_set(
+    redis, 
+    cache_key,
+    data, 
+    settings.cache_ttl_seconds
+  )
+  return data 
+
+
+@router.get("/history/count", response_model=EventsCountOut, summary="Get past events count")
+async def get_past_events_count(
+  db: AsyncSession = Depends(get_db),
+  search: str | None = None,
+):
+  total = await events_service.count_past_events(db, search=search)
+  return {"total": total}
+
+
+
 @router.get("/{event_id}", response_model=EventDetailOut, summary="Get event by ID")
 async def get_event(
   event_id: UUID,
