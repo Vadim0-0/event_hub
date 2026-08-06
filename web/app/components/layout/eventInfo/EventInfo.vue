@@ -116,6 +116,13 @@
     };
   };
 
+  async function onParticipantRemoved() {
+    await loadEventDetails(props.event.id);
+    if (eventDetails.value) {
+      emit('updated', eventDetails.value);
+    };
+  };
+
   function handleChangeEvent() {
     emit('edit', currentEvent.value);
   };
@@ -242,9 +249,12 @@
           class="absolute top-0 right-0 w-full h-full z-2"
         >
           <ParticipantsUsers 
+            v-if="participantsUsersVisible"
             :event-id="currentEvent.id"
-            @close="closeParticipantsUsers"
             :total-count="currentEvent.participants_count"
+            :is-creator="isCreator"
+            @close="closeParticipantsUsers"
+            @participant-removed="onParticipantRemoved"
           />
         </div>
       </Transition>
