@@ -100,6 +100,13 @@ def participant_left_message(title: str, participant_email: str) -> tuple[str, s
   )
 
 
+def participant_removed_message(event_title: str) -> tuple[str, str]:
+  return (
+    f"Removed from event: {event_title}",
+    f"You were removed from the event '{event_title}' by the organizer.",
+  )
+
+
 EVENT_FIELD_LABELS = {
   "title": "Title",
   "description": "Description",

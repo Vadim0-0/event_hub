@@ -130,3 +130,47 @@ async def get_event_participants(
   registrations = result.unique().scalars().all()
 
   return list(registrations)
+
+
+async def remove_participant(
+  db: AsyncSession,
+  *,
+  event_id: UUID,
+  participant_user_id: int,
+  actor_user_id: int,
+) -> str:
+  event = await db.get(Event, event_id, with_for_update=True)
+  if event is None:
+    raise exceptions.EventNotFoundError(f"Event (id:{event_id}) not found")
+
+  if event.creator_id != actor_user_id:
+    raise exceptions.PermissionDeniedError("Only the creator can remove participants")
+
+  if participant_user_id == actor_user_id:
+    raise exceptions.CannotRemoveSelfError("Use leave endpoint to exit the event")
+
+  if event.starts_at < datetime.now(timezone.utc):
+    raise exceptions.EventAlreadyStartedError(
+      f"Event '{event.title}' (id:{event.id}) has already started"
+    )
+
+  result = await db.execute(
+    select(EventRegistration)
+    .options(selectinload(EventRegistration.user))
+    .where(
+      EventRegistration.user_id == participant_user_id,
+      EventRegistration.event_id == event_id,
+    )
+  )
+  registration = result.scalar_one_or_none()
+  if registration is None:
+    raise exceptions.NotRegisteredError(
+      f"User (id:{participant_user_id}) is not registered for event (id:{event_id})"
+    )
+
+  participant_email = registration.user.email
+
+  await db.delete(registration)
+  await db.commit()
+
+  return participant_email

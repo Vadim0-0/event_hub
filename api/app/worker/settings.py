@@ -18,6 +18,7 @@ from ..notifications.handlers import (
   notify_new_participant,
   notify_leave_confirmed,
   notify_participant_left,
+  notify_participant_removed,
 )
 
 
@@ -50,4 +51,5 @@ class WorkerSettings:
     notify_new_participant,
     notify_leave_confirmed,
     notify_participant_left,
+    notify_participant_removed,
   ]

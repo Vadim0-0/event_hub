@@ -26,3 +26,12 @@ class EventFullError(Exception):
 class NotRegisteredError(Exception):
   """User is not registered for this event"""
   pass
+
+
+class PermissionDeniedError(Exception):
+  """Only the creator can remove participants"""
+  pass
+
+
+class CannotRemoveSelfError(Exception):
+  pass

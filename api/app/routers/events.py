@@ -205,6 +205,40 @@ async def leave_event(
   await events_service.invalidate_event_lists(redis, current_user.id)
 
 
+@router.delete("/{event_id}/participants/{user_id}", status_code=204, summary="Remove participant from event (creator only)")
+async def remove_participant(
+  event_id: UUID,
+  user_id: int,
+  db: AsyncSession = Depends(get_db),
+  current_user: User = Depends(get_current_user),
+  redis: Redis = Depends(get_redis),
+):
+  try:
+    participant_email = await registration_service.remove_participant(
+      db,
+      event_id=event_id,
+      participant_user_id=user_id,
+      actor_user_id=current_user.id,
+    )
+  except registration_service.EventNotFoundError as e:
+    raise HTTPException(status_code=404, detail=str(e))
+  except registration_service.NotRegisteredError as e:
+    raise HTTPException(status_code=404, detail=str(e))
+  except registration_service.PermissionDeniedError as e:
+    raise HTTPException(status_code=403, detail=str(e))
+  except registration_service.CannotRemoveSelfError as e:
+    raise HTTPException(status_code=400, detail=str(e))
+  except registration_service.EventAlreadyStartedError as e:
+    raise HTTPException(status_code=409, detail=str(e))
+
+  await dispatch.notify.registrations.removed(event_id, participant_email)
+
+  await events_service.invalidate_event_detail(redis, event_id)
+  await events_service.invalidate_event_participants(redis, event_id)
+  await events_service.invalidate_event_lists(redis, user_id)
+  await events_service.invalidate_event_lists(redis, current_user.id)
+
+
 @router.get("/{event_id}/participants", response_model=list[ParticipantOut], summary="Get a list of event participants")
 async def get_participants(
   event_id: UUID,

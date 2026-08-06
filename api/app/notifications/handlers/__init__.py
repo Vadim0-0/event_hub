@@ -19,6 +19,7 @@ from .registrations import (
   notify_new_participant,
   notify_leave_confirmed,
   notify_participant_left,
+  notify_participant_removed,
 )
 
 __all__ = [
@@ -39,4 +40,5 @@ __all__ = [
   "notify_new_participant",
   "notify_leave_confirmed",
   "notify_participant_left",
+  "notify_participant_removed",
 ]

@@ -44,7 +44,7 @@ class notify:
     async def created(event_id: UUID, creator_email: str):
       await enqueue_job("notify_event_created", event_id, creator_email)
 
-      
+
     @staticmethod
     async def updated(event_id: UUID, changes: list[dict]):
       await enqueue_job("notify_event_updated", event_id, changes)
@@ -66,3 +66,8 @@ class notify:
     async def left(event_id: UUID, participant_email: str):
       await enqueue_job("notify_leave_confirmed", event_id, participant_email)
       await enqueue_job("notify_participant_left", event_id, participant_email)
+    
+
+    @staticmethod
+    async def removed(event_id: UUID, participant_email: str):
+      await enqueue_job("notify_participant_removed", event_id, participant_email)

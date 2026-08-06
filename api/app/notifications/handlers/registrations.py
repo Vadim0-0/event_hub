@@ -98,3 +98,22 @@ async def notify_participant_left(ctx, event_id: UUID, participant_email: str):
     task_name="notify_participant_left",
     event_id=event_id,
   )
+
+
+async def notify_participant_removed(ctx, event_id: UUID, participant_email: str):
+  async with AsyncSessionLocal() as db:
+    event = await db.get(Event, event_id)
+    if event is None:
+      return {"status": "skipped"}
+
+    subject, body = messages.participant_removed_message(event.title)
+
+  await delivery.send(
+    to=participant_email,
+    subject=subject,
+    body=body,
+    redis=get_redis(),
+    notification_type=types.NotificationType.PARTICIPANT_REMOVED,
+    task_name="notify_participant_removed",
+    event_id=event_id,
+  )
