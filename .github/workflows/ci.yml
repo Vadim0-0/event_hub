@@ -137,7 +137,7 @@ jobs:
       - name: Build Docker images
         run: docker compose build api worker
   
-  #  ── Job 5: Changelog ────────────────────────────────────
+  #  ── Job 5: Changelog & Release ──────────────────────────
   changelog:
     runs-on: ubuntu-latest
     if: github.ref_type == 'tag'
@@ -150,10 +150,27 @@ jobs:
 
       - uses: taiki-e/install-action@git-cliff
 
+      - name: Generate release notes
+        run: git cliff --latest --strip header --github-repo "${{ github.repository }}" -o RELEASE_NOTES.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Generate changelog
-        run: git cliff -o CHANGELOG.md
+        run: git cliff --github-repo "${{ github.repository }}" -o CHANGELOG.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          body_path: RELEASE_NOTES.md
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Commit changelog
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "docs: update CHANGELOG for ${{ github.ref_name }}"
+          branch: main
