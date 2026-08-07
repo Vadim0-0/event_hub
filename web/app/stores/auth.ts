@@ -1,10 +1,5 @@
 import { defineStore } from 'pinia';
-
-interface User {
-  id: number
-  username: string
-  email: string
-};
+import type { User } from '~/types/user';
 
 export const useAuthStore = defineStore('auth', () => {
   const token = useCookie<string | null>('auth_token', { maxAge: 60 * 60 * 24 * 7 });
@@ -75,6 +70,10 @@ export const useAuthStore = defineStore('auth', () => {
     }
   };
 
+  function setUser(nextUser: User) {
+    user.value = nextUser;
+  };
+
   function logout() {
     token.value = null
     user.value = null
@@ -91,6 +90,7 @@ export const useAuthStore = defineStore('auth', () => {
     resendVerificationCode,
     login,
     fetchMe,
+    setUser,
     logout
   };
 });
