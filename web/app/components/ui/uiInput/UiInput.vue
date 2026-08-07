@@ -196,7 +196,8 @@
     border: none;
 
     &__label {
-      margin-bottom: 5px;
+      padding: 0 5px;
+      margin-bottom: 1px;
       color: var(--color-text-main);
       font-size: var(--text-body-sm);
       font-weight: 500;
