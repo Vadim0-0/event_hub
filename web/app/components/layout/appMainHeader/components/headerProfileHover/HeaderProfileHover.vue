@@ -5,6 +5,11 @@
 
   const eventsStore = useEventsStore();
   const auth = useAuthStore();
+  const editProfilerStore = useEditProfilerStore();
+
+  const emit = defineEmits<{
+    closeProfile: []
+  }>()
 
   function handleProfileBtnClick(btnId: string) {
     if (btnId === 'logOut') {
@@ -13,7 +18,8 @@
       return;
     }
     if (btnId === 'settings') {
-      // navigateTo('/settings')
+      editProfilerStore.open();
+      emit('closeProfile');
     }
   };
 

@@ -216,6 +216,7 @@
           :statistics="statistics"
           :profile-btns="profileBtns"
           :defaults="profileDefaults"
+          @close-profile="closeProfile"
         />
       </div>
     </Transition>

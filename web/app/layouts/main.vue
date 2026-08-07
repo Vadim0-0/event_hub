@@ -47,6 +47,7 @@
   // Visible EventInfo 
   const selectedEventStore = useSelectedEventStore();
   const eventSetupStore = useEventSetupStore();
+  const editProfilerStore = useEditProfilerStore();
 
   function openEventSetupCreate() {
     selectedEventStore.close();
@@ -112,6 +113,13 @@
       @deleted="onEventDeleted"
     />
   </Transition>
+
+  <Transition name="smooth-appearance">
+    <LayoutEditProfiler 
+      v-if="editProfilerStore.isOpen"
+      @close="editProfilerStore.close()"
+    />
+  </Transition>
 </template>
 
 <style scoped lang="scss">
@@ -124,6 +132,15 @@
   .slide-leave-to {
     opacity: 1;
     transform: translateX(100%);
+  }
+
+  .smooth-appearance-enter-active,
+  .smooth-appearance-leave-active {
+    transition: opacity 0.3s ease-in-out;
+  }
+  .smooth-appearance-enter-from,
+  .smooth-appearance-leave-to {
+    opacity: 0;
   }
 
 </style>
