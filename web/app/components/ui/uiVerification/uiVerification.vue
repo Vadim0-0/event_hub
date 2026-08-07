@@ -187,7 +187,7 @@
         }
 
         &:hover {
-          background-color: var(--color-primary-light-2) !important;
+          // background-color: var(--color-primary-light-2) !important;
         }
   
         &:disabled {
