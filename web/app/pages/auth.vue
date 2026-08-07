@@ -4,6 +4,10 @@
     guestOnly: true,
   })
 
+  useHead({
+    title: 'Auth',
+  });
+
   const mode = ref<'login' | 'register' | 'verify'>('login');
   const pendingEmail = ref('');
 
