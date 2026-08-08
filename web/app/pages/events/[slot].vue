@@ -1,7 +1,22 @@
 <script setup lang="ts">
 
-  import allEventsRaw from '~~/data/pages/events/allEvents.json';
+  import allEventsPageRaw from '~~/data/pages/events/allEventsPage.json'
+  import myEventsPageRaw from '~~/data/pages/events/myEventsPage.json'
+  import joinedEventsPageRaw from '~~/data/pages/events/joinedEventsPage.json'
+  import historyEventsPageRaw from '~~/data/pages/events/historyEventsPage.json'
+  import usersPageRaw from '~~/data/pages/events/usersPage.json'
+  
+  import { mapAllEventsPage } from '~/mappers/allEventsPage';
+  import { mapMyEventsPage } from '~/mappers/myEventsPage';
+  import { mapJoinedEventsPage } from '~/mappers/joinedEventsPage';
+  import { mapHistoryEventsPage } from '~/mappers/historyEventsPage';
+  import { mapUsersPage } from '~/mappers/usersPage';
+
   import type { AllEventsPageRaw } from '~/types/allEventsPage';
+  import type { MyEventsPageRaw } from '~/types/myEventsPage';
+  import type { JoinedEventsPageRaw } from '~/types/joinedEventsPage';
+  import type { HistoryEventsPageRaw } from '~/types/historyEventsPage';
+  import type { UsersPageRaw } from '~/types/usersPage';
 
 
   // --- Meta ---
@@ -47,17 +62,50 @@
     }
   });
 
+  type EventsSlotPageContent = {
+    title: string
+    infoText: string
+    emptyText: string
+    loadingErrorText: string
+    sortingButtonText?: string
+  };
+
 
   // --- Page content (i18n) ---
   const { locale } = useI18n();
-  const allEventsPageData = (allEventsRaw as AllEventsPageRaw[])[0]!;
+  const allEventsPageData = (allEventsPageRaw as AllEventsPageRaw[])[0]!;
 
-  const pageContent = computed(() => {
-    if (slot.value === 'allEventsPage') {
-      return mapAllEventsPage(allEventsPageData, locale.value);
+  const pageContent = computed((): EventsSlotPageContent | null => {
+    switch (slot.value) {
+      case 'allEventsPage':
+        return mapAllEventsPage(
+          (allEventsPageRaw as AllEventsPageRaw[])[0]!,
+          locale.value,
+        )
+      case 'myEventsPage':
+        return mapMyEventsPage(
+          (myEventsPageRaw as MyEventsPageRaw[])[0]!,
+          locale.value,
+        )
+      case 'joinedEventsPage':
+        return mapJoinedEventsPage(
+          (joinedEventsPageRaw as JoinedEventsPageRaw[])[0]!,
+          locale.value,
+        )
+      case 'historyEventsPage':
+        return mapHistoryEventsPage(
+          (historyEventsPageRaw as HistoryEventsPageRaw[])[0]!,
+          locale.value,
+        )
+      case 'usersPage':
+        return mapUsersPage(
+          (usersPageRaw as UsersPageRaw[])[0]!,
+          locale.value,
+        )
+      default:
+        return null
     }
-    return null;
-  });
+  })
 
   useHead({
     title: computed(() => pageContent.value?.title ?? pageConfig.value.title),
@@ -231,7 +279,7 @@
             text-4xl font-semibold text-text-main 
           "
         >
-          {{ pageContent?.title ?? pageConfig.title }}
+          {{ pageContent?.title }}
         </h1>
       </div>
       <div
@@ -266,21 +314,21 @@
           "
         >
           <p v-if="isEventsListPage">
-            {{ pageContent?.infoText ?? 'Events:' }} <span>{{ activeTotal }}</span>
+            {{ pageContent?.infoText }} <span>{{ activeTotal }}</span>
           </p>
           <p v-else-if="isUsersPage">
-            Users: <span>{{ usersTotal }}</span>
+            {{ pageContent?.infoText }} <span>{{ usersTotal }}</span>
           </p>
         </div>
 
-        <div v-if="isEventsListPage">
+        <div v-if="pageContent?.sortingButtonText">
           <UiButton @click="toggleSort" style-type="cancel">
             <Icon 
               :name="sortIcon"
               class="size-5 text-text-main"
               mode="svg"
             />
-            {{ pageContent?.sortingButtonText  ?? 'Sorting'}}
+            {{ pageContent?.sortingButtonText }}
           </UiButton>
         </div>
       </div>
@@ -289,14 +337,14 @@
           v-if="isErrorLoad"
           class="p-3 bg-error/10 rounded-sm">
           <p class="text-body-xl text-error">
-            {{ pageContent?.loadingErrorText ?? 'Loading error' }}
+            {{ pageContent?.loadingErrorText }}
           </p>
         </div>
         <div 
           v-else-if="isEmpty"
           class="p-3 bg-primary-light rounded-sm">
           <p class="text-body-xl text-text-main">
-            {{ pageContent?.emptyText ?? 'Empty' }}
+            {{ pageContent?.emptyText }}
           </p>
         </div>
 

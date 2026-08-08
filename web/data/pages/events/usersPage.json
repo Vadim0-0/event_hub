@@ -1,0 +1,20 @@
+[
+  {
+    "title": {
+      "ru": "Пользователи",
+      "en": "Users"
+    },
+    "infoText": {
+      "ru": "Пользователи:",
+      "en": "Users:"
+    },
+    "loadingErrorText": {
+      "ru": "Ошибка загрузки",
+      "en": "Loading error"
+    },
+    "emptyText": {
+      "ru": "Пусто",
+      "en": "Empty"
+    }
+  }
+]

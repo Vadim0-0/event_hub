@@ -1,0 +1,24 @@
+[
+  {
+    "title": {
+      "ru": "История событий",
+      "en": "History Events"
+    },
+    "infoText": {
+      "ru": "События:",
+      "en": "Events:"
+    },
+    "sortingButtonText": {
+      "ru": "Сортировка",
+      "en": "Sorting"
+    },
+    "loadingErrorText": {
+      "ru": "Ошибка загрузки",
+      "en": "Loading error"
+    },
+    "emptyText": {
+      "ru": "Пусто",
+      "en": "Empty"
+    }
+  }
+]
