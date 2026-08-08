@@ -3,6 +3,8 @@
   
   defineProps<HeaderNavigation & { collapsed?: boolean }>()
 
+    const localePath = useLocalePath();
+
 
 </script>
 
@@ -13,7 +15,7 @@
     <NuxtLink
       v-for="btn in navigation"
       :key="btn.id"
-      :to="btn.to"
+      :to="localePath(btn.to)"
       class="
         group
         flex items-center gap-2

@@ -1,6 +1,6 @@
-const locales = [
-  { code: 'en', name: 'English', language: 'en-US' },
-  { code: 'ru', name: 'Russian', language: 'ru-RU' },
+export const locales = [
+  { code: 'en', name: 'English', shortName: 'En', language: 'en-US' },
+  { code: 'ru', name: 'Russian', shortName: 'Ru', language: 'ru-RU' },
 ] as const
 
 export type I18nLocaleCode = (typeof locales)[number]['code']

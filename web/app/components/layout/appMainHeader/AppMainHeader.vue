@@ -5,8 +5,9 @@
   import type { MainHeaderRaw, StatisticCountKey } from '~/types/mainHeader';
 
   // Data
+  const { locale, languageOptions, selectedLocale } = useLocaleSwitch();
+
   const eventsStore = useEventsStore();
-  const { locale } = useI18n();
   const auth = useAuthStore();
 
   const headerData = (mainHeaderRaw as MainHeaderRaw[])[0]!;
@@ -78,12 +79,12 @@
       transition-all transition-300 ease-in-out
       bg-main border-r-2 border-solid border-third shadow-sm
     "
-    :class="isCollapsed ? 'w-[72px] px-2' : 'w-[300px] px-4'"
+    :class="isCollapsed ? 'w-18 px-2' : 'w-75 px-4'"
   >
     <div 
       class="
         flex items-center justify-center overflow-hidden
-        mb-5
+        mb-2
         border-2 border-solid rounded-xl border-third bg-fourth 
         
         transition-all easy-in-out duration-300
@@ -100,7 +101,7 @@
         <Icon 
           name="mdi:events"
           class="
-            flex-shrink-0
+            shrink-0
             size-8 
             text-primary
             transition-all easy-in-out duration-300
@@ -122,6 +123,14 @@
       </NuxtLink>
     </div>
 
+    <div class="mb-3">
+      <UiSelect
+        v-model="selectedLocale"
+        :options="languageOptions"
+        :style-type="isCollapsed ? 'collapsed' : 'normal'"
+      />
+    </div>
+
     <div class="flex-1 overflow-y-auto">
       <HeaderNavigation 
         :navigation="navigation"
@@ -141,7 +150,7 @@
             relative
             flex justify-center items-center p-1
             rounded-md
-            bg-primary-light border-1 border-slid border-primary
+            bg-primary-light border border-slid border-primary
           "
           :class="isCollapsed ? 'flex-col gap-1' : 'gap-2.5'"
         >
@@ -173,13 +182,13 @@
         class="
           flex items-center 
           w-full rounded-md
-          bg-third border-1 border-solid border-fifth
+          bg-third border border-solid border-fifth
         "
         :class="isCollapsed ? 'justify-center gap-0 py-1.5 px-1' : 'py-1.5 px-4 gap-2'"
       >
         <div 
           class="
-            flex items-center justify-center overflow-hidden rounded-[50%] flex-shrink-0
+            flex items-center justify-center overflow-hidden rounded-[50%] shrink-0
             bg-main border-r-2 border-solid border-third
           "
           :class="isCollapsed ? 'p-1' : 'p-2.5'"
@@ -228,7 +237,7 @@
         flex items-center justify-center py-2 rounded-r-sm
         bg-third
       "
-      :class="isCollapsed ? 'right-[-27px] scale-x-[-1]' : 'right-0 '"
+      :class="isCollapsed ? '-right-6.75 scale-x-[-1]' : 'right-0 '"
       @click="toggleHeader"
     >
       <Icon
