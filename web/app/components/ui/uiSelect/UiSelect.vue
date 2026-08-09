@@ -4,6 +4,8 @@
 
   type SelectStyle = 'normal' | 'collapsed';
 
+  type ListLayout = 'bottom' | 'top';
+
   export type SelectOptionLabel =
   | string
   | { normal: string; collapsed: string }
@@ -24,6 +26,7 @@
     name?: string
     errorMessage?: string
     styleType?: SelectStyle
+    listLayout?: ListLayout
   };
 
 
@@ -38,6 +41,7 @@
     name: undefined,
     errorMessage: '',
     styleType: 'normal',
+    listLayout: 'bottom'
   });
 
   const modelValue = defineModel<string>({ default: '' });
@@ -98,7 +102,7 @@
 
 <template>
   <label
-    :class="[props.class, `ui-select--${props.styleType}`, { error: hasError }]"
+    :class="[props.class, `ui-select--${props.styleType}`, { error: hasError }, `list-${listLayout}`]"
     :for="props.id"
     class="ui-select"
   >
@@ -107,7 +111,10 @@
       {{ props.label }}
     </span>
 
-    <div ref="contentRef" class="ui-select__content">
+    <div 
+      ref="contentRef" 
+      class="ui-select__content"
+    >
       <button
         type="button"
         class="ui-select__content-btn"
@@ -121,7 +128,7 @@
         </span>
       </button>
   
-      <ul :class="{ active: isOpen }" data-lenis-prevent>
+      <ul :class="[ {active: isOpen} ]" data-lenis-prevent >
         <li v-for="option in props.options" :key="option.value">
           <button 
             type="button" 
@@ -214,7 +221,6 @@
           display: flex;
           align-items: center;
           justify-content: center;
-          transform: rotate(180deg);
           transition: transform 0.3s ease-in-out;
 
           & svg {
@@ -226,19 +232,10 @@
         &:hover {
           background-color: var(--color-primary-light);
         }
-
-        &.active {
-          border-radius: 5px 5px 0 0;
-
-          & .ui-select__content-btn__arrow {
-            transform: rotate(0);
-          }
-        }
       }
 
       & ul {
         position: absolute;
-        top: 100%;
         left: 0;
 
         display: flex;
@@ -249,13 +246,9 @@
 
         background-color: var(--color-main);
         border: 1px solid var(--color-fifth);
-        border-top: none;
-        border-radius: 0 0 5px 5px;
-        box-shadow: 0px 6px 15px -1px rgba(33, 33, 33, 0.1);
 
         transition: all 0.3s ease-in-out;
         opacity: 0;
-        transform: translateY(-20px);
         pointer-events: none;
         visibility: hidden;
 
@@ -320,6 +313,75 @@
           &__arrow {
             width: 15px;
             height: 15px;
+          }
+        }
+      }
+    }
+
+
+    &.list-top {
+      
+      & .ui-select__content {
+
+        &-btn {
+
+          &__arrow {
+            transform: rotate(0);
+          }
+
+          &.active {
+            border-radius: 0 0 5px 5px;
+
+            & .ui-select__content-btn__arrow {
+              transform: rotate(180deg);
+            }
+          }
+        }
+        
+        & ul {
+          bottom: 100%;
+          transform: translateY(20px);
+
+          border-radius: 5px 5px 0 0;
+          border-bottom: none;
+          box-shadow: 0px -2px 15px -1px rgba(33, 33, 33, 0.1);
+
+          &.active {
+            transform: translateY(0);
+          }
+        }
+      }
+    }
+
+    &.list-bottom {
+
+      & .ui-select__content {
+
+        &-btn {
+
+          &__arrow {
+            transform: rotate(180deg);
+          }
+
+          &.active {
+            border-radius: 5px 5px 0 0;
+
+            & .ui-select__content-btn__arrow {
+              transform: rotate(0);
+            }
+          }
+        }
+        
+        & ul {
+          top: 100%;
+          transform: translateY(-20px);
+
+          border-radius: 0 0 5px 5px;
+          border-top: none;
+          box-shadow: 0px 6px 15px -1px rgba(33, 33, 33, 0.1);
+
+          &.active {
+            transform: translateY(0);
           }
         }
       }
