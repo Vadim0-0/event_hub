@@ -1,9 +1,16 @@
 <script setup lang="ts">
+  import { mapAuthPage } from '~/mappers/authPage';
+
+  type AuthPageMapped = ReturnType<typeof mapAuthPage>;
 
   const auth = useAuthStore()
   const emit = defineEmits<{
     'switch-to-login': []
     'switch-to-verify': [email: string]
+  }>();
+  
+  const props = defineProps<{
+    content: AuthPageMapped['registration']
   }>();
 
   const username = ref('');
@@ -20,9 +27,9 @@
     fieldErrors.value = { username: '', email: '', password: '' };
     formError.value = '';
 
-    if (username.value.length < 3) fieldErrors.value.username = 'At least 3 characters';
-    if (!email.value) fieldErrors.value.email = 'Enter your email address';
-    if (password.value.length < 8) fieldErrors.value.password = 'At least 8 characters';
+    if (username.value.length < 3) fieldErrors.value.username = props.content.errors.nameValue;
+    if (!email.value) fieldErrors.value.email = props.content.errors.emailEmpty;
+    if (password.value.length < 8) fieldErrors.value.password = props.content.errors.passwordValue;
     if (Object.values(fieldErrors.value).some(Boolean)) return;
 
     if (Object.values(fieldErrors.value).some(Boolean)) return;
@@ -30,8 +37,8 @@
       await auth.register({ username: username.value, email: email.value, password: password.value });;
 
       notifications.success(
-        'Registration was successful',
-        `The user ${email.value} has been successfully registered`,
+        props.content.notifications.success.title,
+        props.content.notifications.success.text.replace('{email}', email.value),
       );
 
       emit('switch-to-verify', email.value);
@@ -41,7 +48,10 @@
       formError.value = parsed.formError;
 
       if (parsed.formError) {
-        notifications.error('Registration Error', parsed.formError)
+        notifications.error(
+          props.content.notifications.error.title,
+          parsed.formError
+        )
       };
     };
   };
@@ -52,28 +62,28 @@
   <form @submit.prevent="onSubmit">
     <div class="mb-8">
       <h2 class="text-heading-lg font-bold text-text-main">
-        Create Account
+        {{ content.title }}
       </h2>
     </div>
     <div class="flex flex-col gap-4 mb-8">
       <UiInput 
         v-model="username"
         type="text"
-        placeholder="Name"
+        :placeholder="content.namePlaceholder"
         :error-message="fieldErrors.username"
         input-class="!bg-secondary"
       />
       <UiInput 
         v-model="email"
         type="email"
-        placeholder="Login" 
+        :placeholder="content.emailPlaceholder"
         :error-message="fieldErrors.email"
         input-class="!bg-secondary"  
       />
       <UiInput 
         v-model="password"
         type="password"
-        placeholder="Password" 
+        :placeholder="content.passwordPlaceholder"
         :error-message="fieldErrors.password"
         input-class="!bg-secondary" 
       />
@@ -84,13 +94,14 @@
         type="button"
         style-type="cancel"
         class="!py-3 !text-body-xl">
-        Cancel
+        {{ content.cancelButton }}
       </UiButton>
       <UiButton
         type="submit"
         :disabled="auth.isLoading"
-        class="!py-3 !text-body-xl">
-        Register
+        class="!py-3 !text-body-xl"
+      >
+        {{ auth.isLoading ? content.confirmButton.loading : content.confirmButton.initial }}
       </UiButton>
     </div>
     <p v-if="formError" class="mt-4 text-center text-lg text-error">

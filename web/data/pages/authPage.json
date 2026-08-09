@@ -1,0 +1,252 @@
+[
+  {
+    "title": {
+      "ru": "Авторизация",
+      "en": "Authorization"
+    },
+    "sections": {
+      "login": {
+         "title": {
+           "ru": "Вход",
+           "en": "Login"
+         },
+         "emailInput": {
+           "placeholder": {
+             "ru": "Логин",
+             "en": "Login"
+           }
+         },
+         "passwordInput": {
+           "placeholder": {
+             "ru": "Пароль",
+             "en": "Password"
+           }
+         },
+         "cancelButton": {
+           "ru": "Отмена",
+           "en": "Cancel"
+         },
+         "confirmButton": {
+           "initialState" : {
+              "ru": "Войти",
+              "en": "Login"
+            },
+           "loadStatus": {
+              "ru": "Вход...",
+              "en": "Login..."
+            }
+         },
+         "createAccount": {
+           "text": {
+             "ru": "У вас нет учётной записи?",
+             "en": "Don't have an account?"
+           },
+           "button": {
+             "ru": "Зарегистрироваться",
+             "en": "Sign Up"
+           } 
+         },
+         "errors": {
+           "emailField": {
+             "emptyError": {
+               "ru": "Введите свой адрес электронной почты",
+               "en": "Enter your email address"
+             }
+           },
+           "passwordField": {
+             "emptyError": {
+               "ru": "Введите пароль",
+               "en": "Enter your password"
+             }
+           },
+           "generalError": {
+             "ru": "Ошибка входа в систему",
+             "en": "Login error"
+           },
+           "notVerify": {
+             "ru": "Адрес электронной почты не подтвержден",
+             "en": "Email is not verified"
+           }
+         },
+         "notifications": {
+           "success": {
+             "title": {
+               "ru": "Ввод данных завершен",
+               "en": "The input is complete"
+             },
+             "text": {
+               "ru": "Вы успешно вошли в свою учетную запись",
+               "en": "You have successfully logged in to your account"
+             }
+           },
+           "send": {
+             "title": {
+               "ru": "Код отправлен",
+               "en": "Code sent"
+             },
+             "text": {
+               "ru": "Проверьте свою электронную почту",
+               "en": "Check your email"
+             }
+           }
+         }
+      },
+      "registration": {
+        "title": {
+          "ru": "Создать аккаунт",
+          "en": "Create Account"
+        },
+        "nameInput": {
+          "placeholder": {
+            "ru": "Имя",
+            "en": "Name"
+          }
+        },
+        "emailInput": {
+          "placeholder": {
+            "ru": "Логин",
+            "en": "Login"
+          }
+        },
+        "passwordInput": {
+          "placeholder": {
+            "ru": "Пароль",
+            "en": "Password"
+          }
+        },
+        "cancelButton": {
+          "ru": "Отмена",
+          "en": "Cancel"
+        },
+        "confirmButton": {
+          "initialState": {
+            "ru": "Зарегистрироваться",
+            "en": "Register"
+          },
+          "loadStatus": {
+            "ru": "Регистрация...",
+            "en": "Registration..."
+          }
+        },
+        "errors": {
+          "nameField": {
+            "valueError": {
+              "ru": "Не менее 3 символов",
+              "en": "At least 3 characters"
+            }
+          },
+          "emailField": {
+            "emptyError": {
+              "ru": "Введите свой адрес электронной почты",
+              "en": "Enter your email address"
+            }
+          },
+          "passwordField": {
+            "valueError": {
+              "ru": "Не менее 8 символов",
+              "en": "At least 8 characters"
+            }
+          },
+          "generalError": {
+            "ru": "Ошибка регистрации",
+            "en": "Registration Error"
+          }
+        },
+        "notifications": {
+          "success": {
+            "title": {
+              "ru": "Регистрация прошла успешно",
+              "en": "Registration was successful"
+            },
+            "text": {
+              "ru": "Пользователь {email} успешно зарегистрирован",
+              "en": "The user {email} has been successfully registered"
+            }
+          },
+          "error": {
+            "title": {
+              "ru": "Ошибка регистрации",
+              "en": "Registration Error"
+            }
+          }
+        }
+      },
+      "verify": {
+         "title": {
+           "ru": "Подтверждение OTP",
+           "en": "OTP Verification"
+         },
+         "text": {
+           "ru": "Введите 6-значный код, отправленный на",
+           "en": "Enter the 6-digit code sent to"
+         },
+         "verifyResend": {
+           "firstText": {
+             "main": {
+               "ru": "Вы можете повторно отправить OTP через",
+               "en": "You can resend OTP in"
+             },
+             "time": {
+               "ru": "сек",
+               "en": "sec"
+             }
+           },
+           "secondText": {
+             "main": {
+               "ru": "Не получили код? Нажмите, чтобы отправить его заново",
+               "en": "Didn't receive the code? Click to resend"
+             }
+           }
+         },
+         "cancelButton": {
+           "ru": "Отмена",
+           "en": "Cancel"
+         },
+         "confirmButton": {
+           "initialState": {
+             "ru": "Подтвердить",
+             "en": "Confirm"
+           },
+           "loadStatus": {
+             "ru": "Подтверждение...",
+             "en": "Confirmation..."
+           }
+         },
+         "errors": {
+           "verifyField": {
+             "emptyError": {
+               "ru": "Введите полный 6-значный код",
+               "en": "Enter the full 6-digit code"
+             }
+           },
+           "resendError": {
+             "ru": "Пожалуйста, подождите, прежде чем отправить сообщение повторно",
+             "en": "Please wait before resending"
+           }
+         },
+         "notifications": {
+           "success": {
+             "title": {
+               "ru": "Адрес электронной почты подтвержден",
+               "en": "Email verified"
+             },
+             "text": {
+               "ru": "Добро пожаловать",
+               "en": "Welcome!"
+             }
+           },
+           "send": {
+             "title": {
+               "ru": "Код отправлен",
+               "en": "Code sent"
+             },
+             "text": {
+               "ru": "Проверьте свою электронную почту",
+               "en": "Check your email"
+             }
+           }
+         }
+      }
+    }
+  }
+]

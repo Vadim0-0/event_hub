@@ -1,8 +1,12 @@
 <script setup lang="ts">
+  import { mapAuthPage } from '~/mappers/authPage';
+
+  type AuthPageMapped = ReturnType<typeof mapAuthPage>;
 
   // --- Props & Emits ---
   const props = defineProps<{
     email: string
+    content: AuthPageMapped['verify']
   }>();
 
   const emit = defineEmits<{
@@ -43,7 +47,7 @@
     formError.value = '';
 
     if (!isCodeComplete.value) {
-      fieldError.value = 'Enter the full 6-digit code';
+      fieldError.value = props.content.errors.verifyEmpty;
       return;
     }
 
@@ -53,7 +57,10 @@
         code: code.value,
       });
 
-      notifications.success('Email verified', 'Welcome!');
+      notifications.success(
+        props.content.notifications.success.title,
+        props.content.notifications.success.text,
+      );
     } catch (e) {
       const parsed = parseApiError(e);
       fieldError.value = parsed.fieldErrors.code ?? '';
@@ -68,14 +75,17 @@
     try {
       await auth.resendVerificationCode(props.email);
       start(60);
-      notifications.success('Code sent', 'Check your email');
+      notifications.success(
+        props.content.notifications.send.title,
+        props.content.notifications.send.text,
+      )
     } catch (e) {
       const status = (e as any)?.status ?? (e as any)?.response?.status;
       const detail = (e as any)?.data?.detail;
 
       if (status === 429 && detail?.retry_after) {
         start(detail.retry_after);
-        formError.value = detail.message ?? 'Please wait before resending';
+        formError.value = detail.message ?? props.content.errors.resend;
         return;
       };
 
@@ -93,10 +103,10 @@
   <form @submit.prevent="onSubmit">
     <div class="flex flex-col gap-0.5 mb-8">
       <h2 class="text-heading-lg font-bold text-text-main">
-        OTP Verification
+        {{ content.title }}
       </h2>
       <p class="text-lg text-text-main">
-        Enter the 6-digit code sent to <span class="font-semibold">{{ email }}</span>
+        {{ content.text }} <span class="font-semibold">{{ email }}</span>
       </p>
     </div>
     <div class="mb-8">
@@ -118,14 +128,16 @@
         :disabled="isResendDisabled"
         @click="onResend"
       >
-        <Icon name="fluent:arrow-sync-12-regular" mode="svg" class="w-[100%] h-[100%]" :class="{ 'animate-spin': auth.isLoading }"/>
+        <Icon name="fluent:arrow-sync-12-regular" mode="svg" class="w-full h-full" :class="{ 'animate-spin': auth.isLoading }"/>
       </UiButton>
 
       <p v-if="isCooldownActive" class="text-center text-lg text-text-main">
-        You can resend OTP in <span>{{ secondsLeft }}</span> sec
+        {{ content.verifyResend.firstText.main }}
+        <span>{{ secondsLeft }}</span>
+        {{ content.verifyResend.firstText.time }}
       </p>
       <p v-else class="text-center text-lg text-text-main">
-        Didn't receive the code? Click to resend
+        {{ content.verifyResend.secondText.main }}
       </p>
     </div>
 
@@ -136,14 +148,14 @@
         class="!py-3 !text-body-xl"
         @click="onCancel"
       >
-        Cancel
+        {{ content.cancelButton }}
       </UiButton>
       <UiButton
         type="submit"
         class="!py-3 !text-body-xl"
         :disabled="isConfirmDisabled"
       >
-        Confirm
+        {{ auth.isLoading ? content.confirmButton.loading : content.confirmButton.initial }}
       </UiButton>
     </div>
     
