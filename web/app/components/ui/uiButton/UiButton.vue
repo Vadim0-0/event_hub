@@ -53,7 +53,7 @@
     color: var(--color-text-main);
 
     &:hover {
-      background-color: var(--color-primary-light);
+      background-color: var(--color-third);
     }
 
     &--primary {
