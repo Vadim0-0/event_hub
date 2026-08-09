@@ -30,7 +30,7 @@
       <Icon
         :name="btn.icon"
         class="
-          flex-shrink-0
+          shrink-0
           size-6 text-text-main
           transition-all transition-300 ease-in-out
           group-[.active]:text-main
