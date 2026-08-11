@@ -124,18 +124,28 @@ async def build_conversation_out(db, conversation, current_user_id) -> Conversat
   )
 
 
-async def list_user_conversations(db, user_id, skip, limit):
+async def list_user_conversations(
+  db,
+  user_id: int,
+  skip: int,
+  limit: int,
+  search: str | None = None,
+):
   participant_filter = or_(
     Conversation.user1_id == user_id,
     Conversation.user2_id == user_id,
   )
+
+  where_clause = helpers.build_conversation_list_where(user_id, search)
+
   total = await db.scalar(
-    select(func.count()).select_from(Conversation).where(participant_filter)
+    select(func.count()).select_from(Conversation).where(where_clause)
   )
+
   result = await db.execute(
     select(Conversation)
     .options(selectinload(Conversation.user1), selectinload(Conversation.user2))
-    .where(participant_filter)
+    .where(where_clause)
     .order_by(Conversation.updated_at.desc())
     .offset(skip)
     .limit(limit)

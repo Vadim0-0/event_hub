@@ -18,10 +18,17 @@ router = APIRouter(prefix="/conversations", tags=["conversations"])
 async def list_conversations(
   skip: int = 0,
   limit: int = 20,
+  search: str | None = None,
   db: AsyncSession = Depends(get_db),
   current_user: User = Depends(get_current_user),
 ):
-  conversations, total = await messaging_service.list_user_conversations(db, current_user.id, skip, limit)
+  conversations, total = await messaging_service.list_user_conversations(
+    db,
+    current_user.id,
+    skip,
+    limit,
+    search=search,
+  )
   items = [
     await messaging_service.build_conversation_out(db, c, current_user.id)
     for c in conversations

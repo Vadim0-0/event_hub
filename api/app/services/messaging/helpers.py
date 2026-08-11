@@ -74,3 +74,32 @@ async def count_unread(db, conversation_id, user_id) -> int:
     conditions.append(Message.created_at > last_read_at)
 
   return await db.scalar(select(func.count()).select_from(Message).where(and_(*conditions))) or 0
+
+
+def build_conversation_list_where(user_id: int, search: str | None):
+  participant_filter = or_(
+    Conversation.user1_id == user_id,
+    Conversation.user2_id == user_id,
+  )
+
+  if not search or not search.strip():
+    return participant_filter
+
+  pattern = f"%{search.strip()}%"
+
+  return and_(
+    participant_filter,
+    or_(
+      and_(
+        Conversation.user1_id == user_id,
+        Conversation.user2.has(User.username.ilike(pattern)),
+      ),
+      and_(
+        Conversation.user2_id == user_id,
+        Conversation.user1.has(User.username.ilike(pattern)),
+      ),
+      Conversation.messages.any(
+        and_(Message.body.ilike(pattern), Message.is_deleted.is_(False)),
+      ),
+    ),
+  )
