@@ -1,0 +1,76 @@
+from uuid import UUID
+from sqlalchemy import select, func, or_, and_
+from sqlalchemy.orm import selectinload
+
+from ...models.conversation import Conversation
+from ...models.message import Message
+from ...models.conversation_read import ConversationRead
+from ...models.user import User
+
+
+def normalize_user_pair(user_a_id: int, user_b_id: int) -> tuple[int, int]:
+  if user_a_id == user_b_id:
+    raise ValueError("User cannot create conversation with themselves")
+
+  return (min(user_a_id, user_b_id), max(user_a_id, user_b_id))
+
+
+def user_is_participant(conversation: Conversation, user_id: int) -> bool:
+  return user_id in (conversation.user1_id, conversation.user2_id)
+
+
+def conversation_participant(conversation: Conversation, current_user_id: int) -> User:
+  if not user_is_participant(conversation, current_user_id):
+    raise ValueError("User is not a participant")
+
+  return conversation.user1 if conversation.user1_id != current_user_id else conversation.user2
+
+
+def recipient_id(conversation: Conversation, sender_id: int) -> int:
+  return (
+    conversation.user2_id
+    if conversation.user1_id == sender_id
+    else conversation.user1_id
+  )
+
+
+async def get_conversation_by_pair(db, user_a_id, user_b_id) -> Conversation | None:
+  u1, u2 = normalize_user_pair(user_a_id, user_b_id)
+  result = await db.execute(
+    select(Conversation).where(Conversation.user1_id == u1, Conversation.user2_id == u2)
+  )
+  return result.scalar_one_or_none()
+
+
+async def get_conversation_by_id(db, conversation_id: UUID) -> Conversation | None:
+  result = await db.execute(
+    select(Conversation)
+    .options(selectinload(Conversation.user1), selectinload(Conversation.user2))
+    .where(Conversation.id == conversation_id)
+  )
+  return result.scalar_one_or_none()
+
+
+async def get_last_message(db, conversation_id: UUID) -> Message | None:
+  result = await db.execute(
+    select(Message)
+    .where(Message.conversation_id == conversation_id, Message.is_deleted.is_(False))
+    .order_by(Message.created_at.desc())
+    .limit(1)
+  )
+  return result.scalar_one_or_none()
+
+
+async def count_unread(db, conversation_id, user_id) -> int:
+  read = await db.get(ConversationRead, {"conversation_id": conversation_id, "user_id": user_id})
+  last_read_at = read.last_read_at if read else None
+
+  conditions = [
+    Message.conversation_id == conversation_id,
+    Message.sender_id != user_id,
+    Message.is_deleted.is_(False),
+  ]
+  if last_read_at:
+    conditions.append(Message.created_at > last_read_at)
+
+  return await db.scalar(select(func.count()).select_from(Message).where(and_(*conditions))) or 0

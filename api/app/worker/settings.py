@@ -19,10 +19,21 @@ from ..notifications.handlers import (
   notify_leave_confirmed,
   notify_participant_left,
   notify_participant_removed,
+  notify_new_message,
 )
 
 
 async def startup(ctx):
+  from ..models import (  # noqa: F401
+    user,
+    event,
+    registration,
+    notification,
+    conversation,
+    message,
+    conversation_read,
+  )
+  
   await init_redis()
 
 
@@ -52,4 +63,5 @@ class WorkerSettings:
     notify_leave_confirmed,
     notify_participant_left,
     notify_participant_removed,
+     notify_new_message,
   ]

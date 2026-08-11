@@ -107,6 +107,15 @@ def participant_removed_message(event_title: str) -> tuple[str, str]:
   )
 
 
+# messaging
+def new_message_message(sender_username: str, preview: str) -> tuple[str, str]:
+  preview = preview[:200] + ("..." if len(preview) > 200 else "")
+  return (
+    f"New message from {sender_username}",
+    f"{sender_username} wrote:\n\n{preview}\n\nOpen Event Hub to reply.",
+  )
+
+
 EVENT_FIELD_LABELS = {
   "title": "Title",
   "description": "Description",

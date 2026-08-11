@@ -26,6 +26,9 @@ class NotificationType(StrEnum):
   PARTICIPANT_LEFT = "participant_left"
   PARTICIPANT_REMOVED = "participant_removed"
 
+  # messaging
+  NEW_MESSAGE = "new_message"
+
 
 class NotificationStatus(StrEnum):
   SENT = "sent"

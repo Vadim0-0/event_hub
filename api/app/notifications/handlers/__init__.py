@@ -21,6 +21,9 @@ from .registrations import (
   notify_participant_left,
   notify_participant_removed,
 )
+from .messaging import (
+  notify_new_message,
+)
 
 __all__ = [
   "notify_verification_code",
@@ -41,4 +44,6 @@ __all__ = [
   "notify_leave_confirmed",
   "notify_participant_left",
   "notify_participant_removed",
+
+  "notify_new_message",
 ]

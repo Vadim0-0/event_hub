@@ -71,3 +71,20 @@ class notify:
     @staticmethod
     async def removed(event_id: UUID, participant_email: str):
       await enqueue_job("notify_participant_removed", event_id, participant_email)
+
+  
+  class messages:
+    @staticmethod
+    async def received(
+      conversation_id: UUID,
+      recipient_id: int,
+      sender_username: str,
+      body: str,
+    ):
+      await enqueue_job(
+        "notify_new_message",
+        conversation_id,
+        recipient_id,
+        sender_username,
+        body,
+      )

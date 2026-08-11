@@ -21,3 +21,21 @@ class User(Base):
   
   created_events: Mapped[list["Event"]] = relationship(back_populates="creator")
   registrations: Mapped[list["EventRegistration"]] = relationship(back_populates="user")
+
+  conversations_as_user1: Mapped[list["Conversation"]] = relationship(
+    back_populates="user1",
+    foreign_keys="Conversation.user1_id",
+  )
+  conversations_as_user2: Mapped[list["Conversation"]] = relationship(
+    back_populates="user2",
+    foreign_keys="Conversation.user2_id",
+  )
+
+  sent_messages: Mapped[list["Message"]] = relationship(
+    back_populates="sender",
+    foreign_keys="Message.sender_id",
+  )
+
+  @property
+  def conversations(self) -> list["Conversation"]:
+    return self.conversations_as_user1 + self.conversations_as_user2
