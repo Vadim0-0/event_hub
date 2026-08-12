@@ -97,9 +97,16 @@ async def mark_as_read(db, conversation_id, user_id) -> None:
   await db.commit()
 
 
-async def soft_delete_message(db, message_id, user_id) -> Message:
+async def soft_delete_message(
+  db, 
+  message_id, 
+  user_id, 
+  conversation_id=None,
+) -> Message:
   message = await db.get(Message, message_id)
   if not message:
+    raise exceptions.MessageNotFoundError()
+  if conversation_id is not None and message.conversation_id != conversation_id:
     raise exceptions.MessageNotFoundError()
   if message.sender_id != user_id:
     raise exceptions.ConversationAccessDeniedError()
@@ -131,11 +138,6 @@ async def list_user_conversations(
   limit: int,
   search: str | None = None,
 ):
-  participant_filter = or_(
-    Conversation.user1_id == user_id,
-    Conversation.user2_id == user_id,
-  )
-
   where_clause = helpers.build_conversation_list_where(user_id, search)
 
   total = await db.scalar(

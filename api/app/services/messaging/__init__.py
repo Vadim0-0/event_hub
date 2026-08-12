@@ -20,6 +20,13 @@ from .services import (
 from .helpers import (
   conversation_participant,
 )
+from .cache import (
+  invalidate_user_conversations,
+  invalidate_user_unread_count,
+  invalidate_conversation_detail,
+  invalidate_conversation_messages,
+  invalidate_for_both_participants,
+)
 
 __all__ = [
   "ConversationNotFoundError",
@@ -40,4 +47,10 @@ __all__ = [
   "total_unread_count",
 
   "conversation_participant",
+
+  "invalidate_user_conversations",
+  "invalidate_user_unread_count",
+  "invalidate_conversation_detail",
+  "invalidate_conversation_messages",
+  "invalidate_for_both_participants",
 ]
