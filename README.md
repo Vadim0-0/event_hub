@@ -2,20 +2,36 @@
 
 > [Русская версия](README-RU.md)
 
-Event management platform: user registration, event creation, participant enrollment, and notifications.
+Event management platform: user registration, event creation, participant enrollment, direct messaging, and notifications.
 
 A learning pet project showcasing async Python, SQLAlchemy 2.0, background jobs, and a full Docker-based stack.
 
 ## Features
 
-- **Authentication** — registration and login via JWT (python-jose + bcrypt)
-- **Events** — CRUD, filtering, pagination, participant limits
+- **Authentication** — email verification, registration and login via JWT (python-jose + bcrypt)
+- **User profiles** — username updates, password change, email change with confirmation
+- **Timezones** — IANA timezone per user (e.g. `Europe/Moscow`), validated at registration
+- **Events** — CRUD, filtering, pagination, participant limits, event history
 - **Registrations** — join and leave events with validation
-- **Notifications** — background processing via ARQ worker and Redis
-- **Caching** — Redis for frequently accessed data
+- **Messaging** — 1-on-1 chats between users: conversations, message history, read status, unread counter
+- **Notifications** — background processing via ARQ worker and Redis (including new messages)
+- **Caching** — Redis for frequently accessed data (events, conversations, unread counts)
 - **Frontend** — Nuxt 4 SPA with Pinia and i18n
 - **Testing** — pytest + httpx for core API logic
 - **Infrastructure** — Docker Compose (PostgreSQL, Redis, Nginx)
+
+### Timezones
+
+- Each user stores an IANA timezone (`UTC` by default) in their profile.
+- Timezones are validated with Python `zoneinfo` (e.g. `Asia/Tokyo`, `America/New_York`).
+- All datetimes in the database are stored in UTC (`DateTime(timezone=True)`); the user's timezone is available for display on the client.
+
+### Messaging
+
+- Private conversations between two registered users.
+- Cursor-based message pagination, soft delete for the sender's own messages.
+- Read/unread tracking with a global unread counter.
+- New messages trigger in-app notifications and cache invalidation in Redis.
 
 ## Tech Stack
 
@@ -128,22 +144,50 @@ To run pytest locally without Docker, configure `api/tests/.env.test` using `api
 
 Full documentation is available in Swagger (`/docs`). Summary:
 
+### Auth & Users
+
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/auth/register` | Register a new user |
+| POST | `/auth/register` | Register (sends verification code; accepts `timezone`) |
+| POST | `/auth/verify-email` | Confirm email and receive JWT |
+| POST | `/auth/resend-verification-code` | Resend verification code |
 | POST | `/auth/login` | Login and receive JWT |
-| GET | `/auth/me` | Current user |
+| GET | `/auth/me` | Current user (includes `timezone`) |
+| GET | `/users/` | List registered users |
+| PATCH | `/users/me` | Update profile |
+| GET | `/users/me/events` | Events created by the current user |
+| GET | `/users/me/joined-events` | Events the current user joined |
+
+### Events
+
+| Method | Path | Description |
+|--------|------|-------------|
 | POST | `/events/` | Create an event |
-| GET | `/events/` | List events (filters, pagination) |
-| GET | `/events/count` | Upcoming events count |
+| GET | `/events/` | List upcoming events (filters, pagination) |
+| GET | `/events/history` | Past events |
 | GET | `/events/{id}` | Event details |
 | PATCH | `/events/{id}` | Update an event |
 | DELETE | `/events/{id}` | Delete an event |
 | POST | `/events/{id}/join` | Join an event |
 | DELETE | `/events/{id}/leave` | Leave an event |
 | GET | `/events/{id}/participants` | Event participants |
-| GET | `/events/me` | Events created by the user |
-| GET | `/events/joined/me` | Events the user joined |
+
+### Conversations
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/conversations/` | List user's conversations |
+| POST | `/conversations/` | Start or get a conversation with another user |
+| GET | `/conversations/unread-count` | Total unread messages |
+| GET | `/conversations/{id}/messages` | Message history (cursor pagination) |
+| POST | `/conversations/{id}/messages` | Send a message |
+| POST | `/conversations/{id}/read` | Mark conversation as read |
+| DELETE | `/conversations/{id}/soft_delete_message` | Soft-delete own message |
+
+### Other
+
+| Method | Path | Description |
+|--------|------|-------------|
 | GET | `/notifications/my` | User notifications |
 | GET | `/health` | Health check |
 
