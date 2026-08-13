@@ -230,7 +230,7 @@ async def update_event(
   await db.commit()
   await db.refresh(event, attribute_names=["creator"])
   
-  return event
+  return event, changes
 
 
 async def delete_event(

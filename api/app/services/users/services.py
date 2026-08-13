@@ -192,7 +192,7 @@ async def update_user_profile(
   await db.commit()
   await db.refresh(user)
 
-  return user
+  return user, changes
 
 
 async def update_user_password(
