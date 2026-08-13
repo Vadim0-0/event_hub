@@ -1,28 +1,12 @@
 from httpx import AsyncClient
-from uuid import UUID
 import pytest
+import helpers
 from datetime import datetime, timedelta, timezone
 
 EVENTS_URL = "/events/"
 GET_USER_EVENTS_URL = "/users/me/events"
 
 NONEXISTENT_EVENT_ID = "00000000-0000-0000-0000-000000000001"
-
-@pytest.fixture
-def user_data_factory():
-  """ factory for generating unique user data """
-  counter = 0
-
-  def _counter_user_data(username_prefix="Test User"):
-    nonlocal counter
-    counter += 1
-    return {
-      "username": f"{username_prefix}{counter}",
-      "email": f"test{counter}@example.com",
-      "password": "password123",
-    }
-  
-  return _counter_user_data
 
 
 @pytest.fixture
@@ -43,45 +27,14 @@ def event_data_factory():
   return _counter_event_data
 
 
-async def register_user(client: AsyncClient, user_data: dict) -> dict:
-  reg = await client.post("/auth/register", json=user_data)
-  assert reg.status_code == 201
-  
-  verify = await client.post("/auth/verify-email", json={
-    "email": user_data["email"],
-    "code": "123456",
-  })
-
-  assert verify.status_code == 200
-  return verify.json()["user"]
-
-
-async def login_user(client, email: str, password: str) -> dict:
-  response = await client.post(
-    "/auth/login",
-    json={
-      "email": email,
-      "password": password,
-    }
-  )
-  assert response.status_code == 200
-
-  token = response.json()["access_token"]
-  return {"Authorization": f"Bearer {token}"}
-
-
 # Creating Event
 @pytest.mark.asyncio
 async def test_creating_event(client: AsyncClient, user_data_factory, event_data_factory):
   """ Creating event """
   user_data = user_data_factory()
-  await register_user(client, user_data)
+  auth = await helpers.register_and_verify(client, user_data)
 
-  user_headers = await login_user(
-    client, 
-    email = user_data["email"],
-    password =  user_data["password"]
-  )
+  user_headers = {"Authorization": f"Bearer {auth['access_token']}"}
 
   event_data = event_data_factory()
 
@@ -104,13 +57,9 @@ async def test_creating_event(client: AsyncClient, user_data_factory, event_data
 async def test_get_user_events(client: AsyncClient, user_data_factory, event_data_factory):
   """ Get User Events """
   user_data = user_data_factory()
-  await register_user(client, user_data)
+  auth = await helpers.register_and_verify(client, user_data)
 
-  user_headers = await login_user(
-    client, 
-    email = user_data["email"],
-    password =  user_data["password"]
-  )
+  user_headers = {"Authorization": f"Bearer {auth['access_token']}"}
 
   event1_data = event_data_factory()
   event2_data = event_data_factory()
@@ -149,19 +98,12 @@ async def test_get_all_events(client: AsyncClient, user_data_factory, event_data
   """ Test for receiving all events """
   creator1_data = user_data_factory()
   creator2_data = user_data_factory()
-  await register_user(client, creator1_data)
-  await register_user(client, creator2_data)
 
-  creator1_headers = await login_user(
-    client, 
-    email = creator1_data["email"],
-    password =  creator1_data["password"]
-  )
-  creator2_headers = await login_user(
-    client, 
-    email = creator2_data["email"],
-    password =  creator2_data["password"]
-  )
+  auth1 = await helpers.register_and_verify(client, creator1_data)
+  auth2 = await helpers.register_and_verify(client, creator2_data)
+
+  creator1_headers = {"Authorization": f"Bearer {auth1['access_token']}"}
+  creator2_headers = {"Authorization": f"Bearer {auth2['access_token']}"}
 
   event1_data = event_data_factory()
   event2_data = event_data_factory()
@@ -192,22 +134,14 @@ async def test_get_all_events(client: AsyncClient, user_data_factory, event_data
 async def test_join_event(client: AsyncClient, user_data_factory, event_data_factory):
   """ Test event registration """
   creator_data = user_data_factory()
-  await register_user(client, creator_data)
 
-  creator_headers = await login_user(
-    client, 
-    email = creator_data["email"],
-    password =  creator_data["password"]
-  )
+  creator_auth = await helpers.register_and_verify(client, creator_data)
+  creator_headers = {"Authorization": f"Bearer {creator_auth['access_token']}"}
 
   user_data = user_data_factory()
-  await register_user(client, user_data)
 
-  user_headers = await login_user(
-    client,
-    email = user_data["email"],
-    password =  user_data["password"]
-  )
+  user_auth = await helpers.register_and_verify(client, user_data)
+  user_headers = {"Authorization": f"Bearer {user_auth['access_token']}"}
 
   event_data = event_data_factory()
 
@@ -233,22 +167,13 @@ async def test_join_event(client: AsyncClient, user_data_factory, event_data_fac
 async def test_join_event_when_already_started(client: AsyncClient, user_data_factory, event_data_factory):
   """ Test leaving an event when already started """
   creator_data = user_data_factory()
-  await register_user(client, creator_data)
-
-  creator_headers = await login_user(
-    client, 
-    email = creator_data["email"],
-    password =  creator_data["password"]
-  )
+  creator_auth = await helpers.register_and_verify(client, creator_data)
+  creator_headers = {"Authorization": f"Bearer {creator_auth['access_token']}"}
 
   user_data = user_data_factory()
-  await register_user(client, user_data)
 
-  user_headers = await login_user(
-    client,
-    email = user_data["email"],
-    password =  user_data["password"]
-  )
+  user_auth = await helpers.register_and_verify(client, user_data)
+  user_headers = {"Authorization": f"Bearer {user_auth['access_token']}"}
 
   event_data = event_data_factory()
 
@@ -274,13 +199,8 @@ async def test_join_event_when_full(client: AsyncClient, user_data_factory, even
   """ Test registration for a completed event """
 
   creator_data = user_data_factory()
-  await register_user(client, creator_data)
-
-  creator_headers = await login_user(
-    client, 
-    email = creator_data["email"],
-    password =  creator_data["password"]
-  )
+  creator_auth = await helpers.register_and_verify(client, creator_data)
+  creator_headers = {"Authorization": f"Bearer {creator_auth['access_token']}"}
 
   event_data = event_data_factory(max_participants=2)
 
@@ -293,30 +213,16 @@ async def test_join_event_when_full(client: AsyncClient, user_data_factory, even
 
   for _ in range(1, event_data["max_participants"] + 1):
     participant_data = user_data_factory()
-    await register_user(
-      client,
-      participant_data
-    )
-    participant_headers = await login_user(
-      client,
-      email=participant_data["email"],
-      password=participant_data["password"]
-    )
+    participant_auth = await helpers.register_and_verify(client, participant_data)
+    participant_headers = {"Authorization": f"Bearer {participant_auth['access_token']}"}
     await client.post(
       f"/events/{event_id}/join",
       headers=participant_headers,
     )
 
   extra_user_data = user_data_factory()
-  await register_user(
-    client,
-    user_data=extra_user_data
-  )
-  extra_user_headers = await login_user(
-    client,
-    email=extra_user_data["email"],
-    password=extra_user_data["password"]
-  )
+  extra_user_auth = await helpers.register_and_verify(client, extra_user_data)
+  extra_user_headers = {"Authorization": f"Bearer {extra_user_auth['access_token']}"}
 
   response = await client.post(
     f"/events/{event_id}/join",
@@ -330,13 +236,8 @@ async def test_creator_cannot_join_own_event(client: AsyncClient, user_data_fact
   """ Test, creator cannot register for his event """
 
   creator_data = user_data_factory()
-  await register_user(client, creator_data)
-
-  creator_headers = await login_user(
-    client, 
-    email = creator_data["email"],
-    password =  creator_data["password"]
-  )
+  creator_auth = await helpers.register_and_verify(client, creator_data)
+  creator_headers = {"Authorization": f"Bearer {creator_auth['access_token']}"}
 
   event_data = event_data_factory()
 
@@ -358,22 +259,12 @@ async def test_creator_cannot_join_own_event(client: AsyncClient, user_data_fact
 async def test_join_same_event(client: AsyncClient, user_data_factory, event_data_factory):
   """ Test re-registration for the same event """
   creator_data = user_data_factory()
-  await register_user(client, creator_data)
-
-  creator_headers = await login_user(
-    client, 
-    email = creator_data["email"],
-    password =  creator_data["password"]
-  )
+  creator_auth = await helpers.register_and_verify(client, creator_data)
+  creator_headers = {"Authorization": f"Bearer {creator_auth['access_token']}"}
 
   user_data = user_data_factory()
-  await register_user(client, user_data)
-
-  user_headers = await login_user(
-    client,
-    email = user_data["email"],
-    password =  user_data["password"]
-  )
+  user_auth = await helpers.register_and_verify(client, user_data)
+  user_headers = {"Authorization": f"Bearer {user_auth['access_token']}"}
 
   event_data = event_data_factory()
 
@@ -402,13 +293,8 @@ async def test_join_nonexistent_event(client: AsyncClient, user_data_factory):
   """ Test registration for non-existent events """
 
   user_data = user_data_factory()
-  await register_user(client, user_data)
-
-  user_headers = await login_user(
-    client,
-    email = user_data["email"],
-    password =  user_data["password"]
-  )
+  user_auth = await helpers.register_and_verify(client, user_data)
+  user_headers = {"Authorization": f"Bearer {user_auth['access_token']}"}
 
   response = await client.post(
     f"/events/{NONEXISTENT_EVENT_ID}/join",
@@ -426,22 +312,12 @@ async def test_leave_event(
 ):
   """ Test leave event """
   creator_data = user_data_factory()
-  await register_user(client, creator_data)
-
-  creator_headers = await login_user(
-    client, 
-    email = creator_data["email"],
-    password =  creator_data["password"]
-  )
+  creator_auth = await helpers.register_and_verify(client, creator_data)
+  creator_headers = {"Authorization": f"Bearer {creator_auth['access_token']}"}
 
   user_data = user_data_factory()
-  await register_user(client, user_data)
-
-  user_headers = await login_user(
-    client,
-    email = user_data["email"],
-    password =  user_data["password"]
-  )
+  user_auth = await helpers.register_and_verify(client, user_data)
+  user_headers = {"Authorization": f"Bearer {user_auth['access_token']}"}
 
   event_data = event_data_factory()
 
@@ -472,22 +348,12 @@ async def test_leave_event_twice(
 ):
   """ Test leave event twice """
   creator_data = user_data_factory()
-  await register_user(client, creator_data)
-
-  creator_headers = await login_user(
-    client, 
-    email = creator_data["email"],
-    password =  creator_data["password"]
-  )
+  creator_auth = await helpers.register_and_verify(client, creator_data)
+  creator_headers = {"Authorization": f"Bearer {creator_auth['access_token']}"}
 
   user_data = user_data_factory()
-  await register_user(client, user_data)
-
-  user_headers = await login_user(
-    client,
-    email = user_data["email"],
-    password =  user_data["password"]
-  )
+  user_auth = await helpers.register_and_verify(client, user_data)
+  user_headers = {"Authorization": f"Bearer {user_auth['access_token']}"}
 
   event_data = event_data_factory()
 
@@ -519,13 +385,8 @@ async def test_leave_event_twice(
 async def test_leave_event_nonexistent(client: AsyncClient, user_data_factory, event_data_factory):
   """ Test leaving an event when the event does not exist """
   user_data = user_data_factory()
-  await register_user(client, user_data)
-
-  user_headers = await login_user(
-    client,
-    email = user_data["email"],
-    password =  user_data["password"]
-  )
+  user_auth = await helpers.register_and_verify(client, user_data)
+  user_headers = {"Authorization": f"Bearer {user_auth['access_token']}"}
 
   response = await client.delete(
     f"/events/{NONEXISTENT_EVENT_ID}/leave",
@@ -538,22 +399,12 @@ async def test_leave_event_nonexistent(client: AsyncClient, user_data_factory, e
 async def test_leave_event_not_registered(client: AsyncClient, user_data_factory, event_data_factory):
   """ Test leaving an event when the user is not registered """
   creator_data = user_data_factory()
-  await register_user(client, creator_data)
-
-  creator_headers = await login_user(
-    client, 
-    email = creator_data["email"],
-    password =  creator_data["password"]
-  )
+  creator_auth = await helpers.register_and_verify(client, creator_data)
+  creator_headers = {"Authorization": f"Bearer {creator_auth['access_token']}"}
 
   user_data = user_data_factory()
-  await register_user(client, user_data)
-
-  user_headers = await login_user(
-    client,
-    email = user_data["email"],
-    password =  user_data["password"]
-  )
+  user_auth = await helpers.register_and_verify(client, user_data)
+  user_headers = {"Authorization": f"Bearer {user_auth['access_token']}"}
 
   event_data = event_data_factory()
 
@@ -575,22 +426,12 @@ async def test_leave_event_not_registered(client: AsyncClient, user_data_factory
 async def test_leave_event_when_already_started(client: AsyncClient, user_data_factory, event_data_factory):
   """ Test leaving an event when already started """
   creator_data = user_data_factory()
-  await register_user(client, creator_data)
-
-  creator_headers = await login_user(
-    client, 
-    email = creator_data["email"],
-    password =  creator_data["password"]
-  )
+  creator_auth = await helpers.register_and_verify(client, creator_data)
+  creator_headers = {"Authorization": f"Bearer {creator_auth['access_token']}"}
 
   user_data = user_data_factory()
-  await register_user(client, user_data)
-
-  user_headers = await login_user(
-    client,
-    email = user_data["email"],
-    password =  user_data["password"]
-  )
+  user_auth = await helpers.register_and_verify(client, user_data)
+  user_headers = {"Authorization": f"Bearer {user_auth['access_token']}"}
 
   event_data = event_data_factory()
 
@@ -627,30 +468,17 @@ async def test_get_participants(client: AsyncClient, user_data_factory, event_da
   """ Test getting a list of participants """
 
   creator_data = user_data_factory()
-  await register_user(client, creator_data)
-
-  creator_headers = await login_user(
-    client, 
-    email = creator_data["email"],
-    password =  creator_data["password"]
-  )
+  creator_auth = await helpers.register_and_verify(client, creator_data)
+  creator_headers = {"Authorization": f"Bearer {creator_auth['access_token']}"}
 
   participant1_data = user_data_factory()
   participant2_data = user_data_factory()
 
-  await register_user(client, participant1_data)
-  await register_user(client, participant2_data)
+  participant1_auth = await helpers.register_and_verify(client, participant1_data)
+  participant2_auth = await helpers.register_and_verify(client, participant2_data)
 
-  participant1_headers = await login_user(
-    client, 
-    email = participant1_data["email"],
-    password =  participant1_data["password"]
-  )
-  participant2_headers = await login_user(
-    client, 
-    email = participant2_data["email"],
-    password =  participant2_data["password"]
-  )
+  participant1_headers = {"Authorization": f"Bearer {participant1_auth['access_token']}"}
+  participant2_headers = {"Authorization": f"Bearer {participant2_auth['access_token']}"}
 
   event_data = event_data_factory()
 
@@ -691,13 +519,8 @@ async def test_update_event(client: AsyncClient, user_data_factory, event_data_f
   """ Test update event """
 
   creator_data = user_data_factory()
-  await register_user(client, creator_data)
-
-  creator_headers = await login_user(
-    client, 
-    email = creator_data["email"],
-    password =  creator_data["password"]
-  )
+  creator_auth = await helpers.register_and_verify(client, creator_data)
+  creator_headers = {"Authorization": f"Bearer {creator_auth['access_token']}"}
 
   event_data = event_data_factory()
 
@@ -727,13 +550,8 @@ async def test_update_nonexistent_event(client: AsyncClient, user_data_factory, 
   """ Test update non-existent event """
 
   creator_data = user_data_factory()
-  await register_user(client, creator_data)
-
-  creator_headers = await login_user(
-    client, 
-    email = creator_data["email"],
-    password =  creator_data["password"]
-  )
+  creator_auth = await helpers.register_and_verify(client, creator_data)
+  creator_headers = {"Authorization": f"Bearer {creator_auth['access_token']}"}
 
   update_event = await client.patch(
     f"/events/{NONEXISTENT_EVENT_ID}",
@@ -750,13 +568,8 @@ async def test_update_event_not_authenticated(client: AsyncClient, user_data_fac
   """ Test event update without authorization """
 
   creator_data = user_data_factory()
-  await register_user(client, creator_data)
-
-  creator_headers = await login_user(
-    client, 
-    email = creator_data["email"],
-    password =  creator_data["password"]
-  )
+  creator_auth = await helpers.register_and_verify(client, creator_data)
+  creator_headers = {"Authorization": f"Bearer {creator_auth['access_token']}"}
 
   event_data = event_data_factory()
 
@@ -781,13 +594,8 @@ async def test_update_event_other_authenticated(client: AsyncClient, user_data_f
   """ Test event update other authorization """
 
   creator_data = user_data_factory()
-  await register_user(client, creator_data)
-
-  creator_headers = await login_user(
-    client, 
-    email = creator_data["email"],
-    password =  creator_data["password"]
-  )
+  creator_auth = await helpers.register_and_verify(client, creator_data)
+  creator_headers = {"Authorization": f"Bearer {creator_auth['access_token']}"}
 
   event_data = event_data_factory()
 
@@ -799,13 +607,8 @@ async def test_update_event_other_authenticated(client: AsyncClient, user_data_f
   event_id = create_event.json()["id"]
 
   other_user = user_data_factory()
-  await register_user(client, other_user)
-
-  other_headers = await login_user(
-    client, 
-    email = other_user["email"],
-    password =  other_user["password"]
-  )
+  other_auth = await helpers.register_and_verify(client, other_user)
+  other_headers = {"Authorization": f"Bearer {other_auth['access_token']}"}
 
   update_event = await client.patch(
     f"/events/{event_id}",
@@ -823,13 +626,8 @@ async def test_delete_event(client: AsyncClient, user_data_factory, event_data_f
   """ Test delete event """
 
   creator_data = user_data_factory()
-  await register_user(client, creator_data)
-
-  creator_headers = await login_user(
-    client, 
-    email = creator_data["email"],
-    password =  creator_data["password"]
-  )
+  creator_auth = await helpers.register_and_verify(client, creator_data)
+  creator_headers = {"Authorization": f"Bearer {creator_auth['access_token']}"}
 
   event_data = event_data_factory()
 
@@ -852,13 +650,8 @@ async def test_delete_event_not_authenticated(client: AsyncClient, user_data_fac
   """ Test event delete without authorization """
 
   creator_data = user_data_factory()
-  await register_user(client, creator_data)
-
-  creator_headers = await login_user(
-    client, 
-    email = creator_data["email"],
-    password =  creator_data["password"]
-  )
+  creator_auth = await helpers.register_and_verify(client, creator_data)
+  creator_headers = {"Authorization": f"Bearer {creator_auth['access_token']}"}
 
   event_data = event_data_factory()
 
@@ -880,13 +673,8 @@ async def test_delete_event_other_authenticated(client: AsyncClient, user_data_f
   """ Test delete update other authorization """
 
   creator_data = user_data_factory()
-  await register_user(client, creator_data)
-
-  creator_headers = await login_user(
-    client, 
-    email = creator_data["email"],
-    password =  creator_data["password"]
-  )
+  creator_auth = await helpers.register_and_verify(client, creator_data)
+  creator_headers = {"Authorization": f"Bearer {creator_auth['access_token']}"}
 
   event_data = event_data_factory()
 
@@ -898,13 +686,8 @@ async def test_delete_event_other_authenticated(client: AsyncClient, user_data_f
   event_id = create_event.json()["id"]
 
   other_user = user_data_factory()
-  await register_user(client, other_user)
-
-  other_headers = await login_user(
-    client, 
-    email = other_user["email"],
-    password =  other_user["password"]
-  )
+  other_auth = await helpers.register_and_verify(client, other_user)
+  other_headers = {"Authorization": f"Bearer {other_auth['access_token']}"}
 
   delete_event = await client.delete(
     f"/events/{event_id}",

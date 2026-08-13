@@ -9,6 +9,8 @@ from unittest.mock import AsyncMock, patch
 
 load_dotenv(Path(__file__).parent / ".env.test", override=True)
 
+pytest_plugins = ["helpers"]
+
 from app.config import settings
 from app.database import Base, get_db
 from app.main import app
@@ -17,6 +19,8 @@ from app.main import app
 from app.models.user import User # noqa: F401
 from app.models.event import Event # noqa: F401
 from app.models.registration import EventRegistration # noqa: F401
+from app.models.conversation import Conversation  # noqa: F401
+from app.models.message import Message            # noqa: F401
 from app.redis_client import get_redis
 
 TEST_DATABASE_URL = settings.sqlalchemy_database_url
@@ -92,11 +96,7 @@ async def client(db_session, redis):
   app.dependency_overrides[get_redis] = lambda: redis
 
   mock_enqueue = AsyncMock(return_value=None)
-  with (
-    patch("app.routers.events.enqueue_job", mock_enqueue),
-    patch("app.routers.auth.enqueue_job", mock_enqueue),
-    patch("app.routers.user.enqueue_job", mock_enqueue),
-  ):
+  with patch("app.notifications.dispatch.enqueue_job", mock_enqueue):
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
       yield ac
