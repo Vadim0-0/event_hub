@@ -12,6 +12,7 @@ class User(Base):
   username: Mapped[str] = mapped_column(String(100), unique=True, index=True)
   password_hash: Mapped[str] = mapped_column(String(255))
   created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+  timezone: Mapped[str] = mapped_column(String(64), server_default="UTC")
 
   is_email_verified: Mapped[bool] = mapped_column(
     Boolean,

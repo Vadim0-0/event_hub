@@ -1,10 +1,21 @@
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 class UserRegister(BaseModel):
   username: str = Field(min_length=3, max_length=100, pattern=r"^[a-zA-Z0-9_ ]+$", default="user")
   email: EmailStr
   password: str = Field(min_length=8)
+  timezone: str = Field(default="UTC", max_length=64)
+
+  @field_validator("timezone")
+  @classmethod
+  def validate_timezone(cls, v: str) -> str:
+    try:
+      ZoneInfo(v)
+    except ZoneInfoNotFoundError:
+      raise ValueError("Invalid timezone")
+    return v
 
 
 class UserLogin(BaseModel):
@@ -22,6 +33,16 @@ class UserOut(BaseModel):
   username: str
   email: EmailStr
   created_at: datetime
+  timezone: str = Field(default="UTC", max_length=64)
+  
+  @field_validator("timezone")
+  @classmethod
+  def validate_timezone(cls, v: str) -> str:
+    try:
+      ZoneInfo(v)
+    except ZoneInfoNotFoundError:
+      raise ValueError("Invalid timezone")
+    return v
 
   model_config = ConfigDict(from_attributes=True)
 

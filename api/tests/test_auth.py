@@ -12,23 +12,6 @@ ME_URL = "/auth/me"
 RESEND_URL = "/auth/resend-verification-code"
 
 
-@pytest.fixture
-def user_data_factory():
-  """ factory for generating unique user data """
-  counter = 0
-
-  def _counter_user_data(username_prefix="Test User"):
-    nonlocal counter
-    counter += 1
-    return {
-      "username": f"{username_prefix}{counter}",
-      "email": f"test{counter}@example.com",
-      "password": "password123",
-    }
-  
-  return _counter_user_data
-
-
 @pytest.mark.asyncio
 async def test_register_user(client, user_data_factory):
   user_data = user_data_factory()
@@ -147,6 +130,41 @@ async def test_login_user_wrong_password(client: AsyncClient, user_data_factory)
   })
   assert login_response.status_code == 401
   assert "detail" in login_response.json()
+
+
+@pytest.mark.asyncio
+async def test_register_saves_timezone(client, user_data_factory):
+  user_data = user_data_factory(timezone="Europe/Moscow")
+  await client.post(REGISTER_URL, json=user_data)
+
+  verify = await client.post(VERIFY_URL, json={
+    "email": user_data["email"],
+    "code": "123456",
+  })
+  assert verify.json()["user"]["timezone"] == "Europe/Moscow"
+  
+
+@pytest.mark.asyncio
+async def test_register_invalid_timezone(client, user_data_factory):
+  user_data = user_data_factory(timezone="Invalid/Zone")
+  response = await client.post(REGISTER_URL, json=user_data)
+  assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_reregister_unverified_updates_timezone(client, user_data_factory):
+  user_data = user_data_factory(timezone="UTC")
+  await client.post(REGISTER_URL, json=user_data)
+
+  updated = {**user_data, "username": "New Name", "timezone": "Asia/Tokyo"}
+  response = await client.post(REGISTER_URL, json=updated)
+  assert response.status_code == 201
+
+  verify = await client.post(VERIFY_URL, json={
+    "email": user_data["email"],
+    "code": "123456",
+  })
+  assert verify.json()["user"]["timezone"] == "Asia/Tokyo"
 
 
 @pytest.mark.asyncio

@@ -31,6 +31,7 @@ async def register_user(
       raise exceptions.UsernameAlreadyRegisteredError(f"Username ({data.username}) already registered")
     
     existing.username = data.username
+    existing.timezone = data.timezone
     existing.password_hash = get_password_hash(data.password)
     user = existing
   else:
@@ -45,6 +46,7 @@ async def register_user(
       email=data.email,
       password_hash=get_password_hash(data.password),
       is_email_verified=False,
+      timezone=data.timezone,
     )
 
     db.add(user)
