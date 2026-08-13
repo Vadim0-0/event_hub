@@ -37,7 +37,9 @@ def recipient_id(conversation: Conversation, sender_id: int) -> int:
 async def get_conversation_by_pair(db, user_a_id, user_b_id) -> Conversation | None:
   u1, u2 = normalize_user_pair(user_a_id, user_b_id)
   result = await db.execute(
-    select(Conversation).where(Conversation.user1_id == u1, Conversation.user2_id == u2)
+    select(Conversation)
+    .options(selectinload(Conversation.user1), selectinload(Conversation.user2))
+    .where(Conversation.user1_id == u1, Conversation.user2_id == u2)
   )
   return result.scalar_one_or_none()
 

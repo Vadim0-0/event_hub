@@ -162,7 +162,7 @@ async def get_messages(
   return [MessageOut.model_validate(item) for item in data]
 
 
-@router.post("/{conversation_id}/message", response_model=MessageOut, status_code=201)
+@router.post("/{conversation_id}/messages", response_model=MessageOut, status_code=201)
 async def send_message(
   conversation_id: UUID,
   data: MessageCreate,
