@@ -14,6 +14,7 @@ from ..schemas.messaging import (
 )
 from ..services import messaging as messaging_service
 from ..notifications import dispatch
+from ..realtime import publisher
 
 router = APIRouter(prefix="/conversations", tags=["conversations"])
 
@@ -171,6 +172,9 @@ async def send_message(
   redis: Redis = Depends(get_redis),
 ):
   try:
+    await messaging_service.mark_as_read(db, conversation_id, current_user.id)
+    await messaging_service.invalidate_user_unread_count(redis, current_user.id)
+
     message = await messaging_service.send_message(
       db, conversation_id, current_user.id, data.body
     )
@@ -194,6 +198,28 @@ async def send_message(
       sender_username=current_user.username,
       body=message.body,
     )
+
+    await publisher.publish_to_user(redis, recipient.id, {
+      "type": "message.new",
+      "payload": {
+        "conversation_id": str(conversation_id),
+        "sender_username": current_user.username,
+        "message": MessageOut.model_validate(message).model_dump(mode="json"),
+      },
+    })
+
+    await publisher.publish_to_user(redis, recipient.id, {
+      "type": "unread.updated",
+      "payload": { "total": await messaging_service.total_unread_count(db, recipient.id) },
+    })
+
+    await publisher.publish_to_user(redis, current_user.id, {
+      "type": "unread.updated",
+      "payload": {
+        "total": await messaging_service.total_unread_count(db, current_user.id),
+      },
+    })
+
     return message
   except messaging_service.EmptyMessageBodyError:
     raise HTTPException(400, detail={"message": "Message body cannot be empty"})
@@ -217,6 +243,13 @@ async def mark_read(
     await messaging_service.invalidate_conversation_detail(
       redis, conversation_id, current_user.id,
     )
+
+    await publisher.publish_to_user(redis, current_user.id, {
+      "type": "unread.updated",
+      "payload": {
+        "total": await messaging_service.total_unread_count(db, current_user.id),
+      },
+    })
   except messaging_service.ConversationNotFoundError:
     raise HTTPException(404, detail={"message": "Conversation not found"})
   except messaging_service.ConversationAccessDeniedError:
