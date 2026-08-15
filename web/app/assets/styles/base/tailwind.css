@@ -56,6 +56,28 @@
   --text-heading-sm: 34px;
 }
 
+/* Scroll */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-primary-light-2) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-primary-light-2);
+  border-radius: 2px;
+}
+*::-webkit-scrollbar-thumb:hover,
+*::-webkit-scrollbar-thumb:active {
+  background-color: var(--color-primary-hover);
+}
+
 @utility inline-size {
   container-type: inline-size;
 }
