@@ -87,6 +87,15 @@
           "ru": "История"
         },
         "icon": "material-symbols:history-rounded"
+      },
+      {
+        "id": "chatsPage",
+        "to": "/chats",
+        "text": {
+          "en": "Chats",
+          "ru": "Чаты"
+        },
+        "icon": "material-symbols:chat"
       }
     ]
   }
