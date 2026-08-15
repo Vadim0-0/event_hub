@@ -4,14 +4,20 @@
   import { mapMainHeader } from '~/mappers/mainHeader';
   import type { MainHeaderRaw, StatisticCountKey } from '~/types/mainHeader';
 
-  // Data
-  const { locale, languageOptions, selectedLocale } = useLocaleSwitch();
 
+  // --- Composables ---
+  const api = useApi();
+  const { locale, languageOptions, selectedLocale } = useLocaleSwitch();
   const eventsStore = useEventsStore();
   const auth = useAuthStore();
+  const messagingStore = useMessagingStore();
 
+
+  // --- Static data ---
   const headerData = (mainHeaderRaw as MainHeaderRaw[])[0]!;
 
+
+  // --- Content ---
   const content = computed(() =>
     mapMainHeader(headerData, locale.value),
   );
@@ -20,10 +26,12 @@
   const profileDefaults = computed(() => content.value.profileDefaults);
   const navigation = computed(() => content.value.navigation);
 
+
+  // --- Statistics ---
   function getCount(key: StatisticCountKey) {
     return key === 'createdCount'
       ? eventsStore.createdCount
-      : eventsStore.joinedCount
+      : eventsStore.joinedCount;
   };
 
   const statistics = computed(() =>
@@ -33,14 +41,19 @@
     })),
   );
 
-  // Open hoverProfile
-  const headerEl = ref<HTMLElement | null>(null);
-  defineExpose({ el: headerEl });
 
+  // --- State ---
+  const headerEl = ref<HTMLElement | null>(null);
   const isProfileOpen = ref(false);
+  const isCollapsed = ref(false);
   const profilePopupRef = ref<HTMLElement | null>(null);
   const profileButtonRef = ref<HTMLElement | null>(null);
 
+
+  defineExpose({ el: headerEl });
+
+
+  // --- Profile panel ---
   function openProfile() {
     isProfileOpen.value = true;
   };
@@ -53,20 +66,28 @@
     ignore: [profileButtonRef],
   });
 
-  //Opening a hint
 
-  // Resize Header
-  const isCollapsed = ref(false)
-
+  // --- Header collapse ---
   function toggleHeader() {
-    isCollapsed.value = !isCollapsed.value
-
+    isCollapsed.value = !isCollapsed.value;
     if (isCollapsed.value) {
-      closeProfile()
+      closeProfile();
     }
-  }
+  };
 
 
+  // --- Unread messages ---
+  async function loadUnreadCount() {
+    const data = await api<{ total: number }>('/conversations/unread-count');
+    messagingStore.setUnreadTotal(data.total);
+  };
+
+
+  // --- Lifecycle ---
+  onMounted(() => {
+    void loadUnreadCount();
+  });
+  
 </script>
 
 <template>

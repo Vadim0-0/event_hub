@@ -1,10 +1,12 @@
 <script setup lang="ts">
 
+
   const notifications = useNotificationsStore();
 
   const barClassByType = {
     success: 'after:bg-success',
     error: 'after:bg-error',
+    info: 'after:bg-primary',
   } as const;
 
 

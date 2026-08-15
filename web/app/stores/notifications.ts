@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 
-export type NotificationType = 'success' | 'error';
+export type NotificationType = 'success' | 'error' | 'info';
 
 export interface AppNotification {
   id: number
@@ -38,5 +38,16 @@ export const useNotificationsStore = defineStore('notifications', () => {
     items.value = items.value.filter((item) => item.id !== id)
   };
 
-  return { items, push, success, error, remove };
+  function info(title: string, message: string) {
+    return push({ type: 'info', title, message })
+  };
+
+  return { 
+    items, 
+    push, 
+    success, 
+    error, 
+    remove, 
+    info 
+  };
 });

@@ -1,54 +1,31 @@
 <script setup lang="ts">
   import type { EventDetail, Event as AppEvent } from '~/types/event';
 
-  // Margin Left based on the header width
-  const headerRef = ref<{ el: HTMLElement | null } | null>(null);
-  const marginLeftStyle = ref({ marginLeft: '0px' });
-  let resizeObserver: ResizeObserver | null = null;
 
-  const updateMarginLeft = () => {
-    if (headerRef.value) {
-      const width = headerRef.value?.el?.offsetWidth;
-      marginLeftStyle.value = { marginLeft: `${width}px` };
-    };
-  };
-
-  onMounted(() => {
-    const el = headerRef.value?.el;
-    if (el) {
-      updateMarginLeft();
-      resizeObserver = new ResizeObserver(updateMarginLeft);
-      resizeObserver.observe(el);
-    };
-  });
-
-  onUnmounted(() => {
-    if (resizeObserver) {
-      resizeObserver.disconnect();
-    };
-  });
-
-  // Loading Data
+  // --- Composables ---
   const eventsStore = useEventsStore();
   const notifications = useNotificationsStore();
-
-  onMounted(async () => {
-    try {
-      await eventsStore.fetchStats()
-    } catch (e) {
-      const parsed = parseApiError(e)
-      notifications.error(
-        'Ошибка',
-        parsed.formError || 'Не удалось загрузить события',
-      )
-    }
-  });
-
-  // Visible EventInfo 
   const selectedEventStore = useSelectedEventStore();
   const eventSetupStore = useEventSetupStore();
   const editProfilerStore = useEditProfilerStore();
+  const messagingStore = useMessagingStore();
+  const authStore = useAuthStore();
+  const { onEvent } = useRealtime();
 
+
+  // --- Layout ---
+  const headerRef = ref<{ el: HTMLElement | null } | null>(null);
+  const marginLeftStyle = ref({ marginLeft: '0px' });
+
+  let resizeObserver: ResizeObserver | null = null;
+
+  function updateMarginLeft() {
+    if (!headerRef.value?.el) return;
+    marginLeftStyle.value = { marginLeft: `${headerRef.value.el.offsetWidth}px` };
+  };
+
+
+  // --- Event panels ---
   function openEventSetupCreate() {
     selectedEventStore.close();
     eventSetupStore.openCreate();
@@ -77,12 +54,62 @@
   };
 
   function onEventDeleted() {
-    selectedEventStore.close()
-    eventSetupStore.close()
-    useEventsListRefreshStore().request()
-    eventsStore.fetchStats()
+    selectedEventStore.close();
+    eventSetupStore.close();
+    useEventsListRefreshStore().request();
+    eventsStore.fetchStats();
   };
 
+  
+  // --- Realtime ---
+  let unsubscribeRealtime: (() => void) | undefined;
+
+  function handleRealtimeEvent(event: { type: string; payload: any }) {
+    if (event.type === 'message.new') {
+      const { conversation_id, message, sender_username } = event.payload;
+
+      messagingStore.handleNewMessage(event.payload);
+
+      if (message.sender_id === authStore.user?.id) return;
+      if (messagingStore.activeConversationId === conversation_id) return;
+
+      notifications.info(sender_username ?? 'New message', message.body);
+      return;
+    }
+
+    if (event.type === 'unread.updated') {
+      messagingStore.setUnreadTotal(event.payload.total);
+    }
+  };
+
+
+  // --- Lifecycle ---
+  onMounted(async () => {
+    const el = headerRef.value?.el;
+    if (el) {
+      updateMarginLeft();
+      resizeObserver = new ResizeObserver(updateMarginLeft);
+      resizeObserver.observe(el);
+    }
+
+    unsubscribeRealtime = onEvent(handleRealtimeEvent);
+
+    try {
+      await eventsStore.fetchStats();
+    } catch (e) {
+      const parsed = parseApiError(e);
+      notifications.error(
+        'Error',
+        parsed.formError || 'Unable to load events',
+      );
+    }
+  });
+
+  onUnmounted(() => {
+    resizeObserver?.disconnect();
+    unsubscribeRealtime?.();
+  });
+  
 </script>
 
 <template>

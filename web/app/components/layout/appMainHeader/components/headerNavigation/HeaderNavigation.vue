@@ -1,10 +1,17 @@
 <script setup lang="ts">
+  import { storeToRefs } from 'pinia';
   import type { HeaderNavigation } from '~/types/mainHeader';
   
   defineProps<HeaderNavigation & { collapsed?: boolean }>()
 
-    const localePath = useLocalePath();
+  const localePath = useLocalePath();
+  const messagingStore = useMessagingStore();
+  const { unreadTotal } = storeToRefs(messagingStore);
 
+  function unreadBadgeLabel(count: number) {
+    if (count > 99) return '99';
+    return String(count);
+  };
 
 </script>
 
@@ -17,6 +24,7 @@
       :key="btn.id"
       :to="localePath(btn.to)"
       class="
+        relative
         group
         flex items-center gap-2
         overflow-hidden
@@ -27,6 +35,19 @@
       active-class="active !bg-primary"
       :class="collapsed ? 'justify-center' : ''"
     >
+      <span
+        v-if="btn.id === 'chatsPage' && unreadTotal > 0"
+        class="
+          absolute top-0.5 right-0.5 z-1
+          flex items-center justify-center p-1 min-w-5 h-5 bg-primary rounded-sm
+          text-main text-xs font-medium
+          transition-all duration-300 ease-in-out
+
+          group-[.active]:bg-third group-[.active]:text-text-main
+        "
+      >
+        {{ unreadBadgeLabel(unreadTotal) }}
+      </span>
       <Icon
         :name="btn.icon"
         class="
