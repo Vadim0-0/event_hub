@@ -26,7 +26,16 @@
     name?: string
     errorMessage?: string
     styleType?: SelectStyle
+
+    buttonStyle?: string
+
     listLayout?: ListLayout
+    listStyle?: string
+    listButtonStyle?: string
+
+    searchVisible?: boolean
+    searchPlaceholder?: string
+    searchStyle?: string
   };
 
 
@@ -41,7 +50,16 @@
     name: undefined,
     errorMessage: '',
     styleType: 'normal',
-    listLayout: 'bottom'
+
+    buttonStyle: '',
+
+    listLayout: 'bottom',
+    listStyle: '',
+    listButtonStyle: '',
+
+    searchVisible: false,
+    searchPlaceholder: 'Search...',
+    searchStyle: '',
   });
 
   const modelValue = defineModel<string>({ default: '' });
@@ -58,6 +76,7 @@
   // === Локальный state ===
   const isOpen = ref(false);
   const contentRef = ref<HTMLElement | null>(null);
+  const searchQuery = ref('');
 
 
   // === Computed ===
@@ -69,16 +88,35 @@
     return getOptionLabel(option.label, props.styleType);
   });
 
+  const filteredOptions = computed(() => {
+    if (!props.searchVisible || !searchQuery.value.trim()) {
+      return props.options;
+    }
+
+    const query = searchQuery.value.trim().toLowerCase();
+
+    return props.options.filter((option) => {
+      const label = getOptionLabel(option.label, props.styleType).toLowerCase();
+      const value = option.value.toLowerCase();
+      return label.includes(query) || value.includes(query);
+    });
+  });
+
 
   // === Handlers ===
   function toggleDropdown() {
     if (props.disabled) return;
     isOpen.value = !isOpen.value;
+
+    if (!isOpen.value) {
+      searchQuery.value = '';
+    };
   };
 
   function selectOption(option: SelectOption) {
     modelValue.value = option.value;
     isOpen.value = false;
+    searchQuery.value = '';
   };
 
   function handleClickOutside(event: MouseEvent) {
@@ -86,6 +124,7 @@
     const target = event.target as Node | null;
     if (contentRef.value && target && !contentRef.value.contains(target)) {
       isOpen.value = false;
+      searchQuery.value = '';
     };
   };
 
@@ -118,7 +157,7 @@
       <button
         type="button"
         class="ui-select__content-btn"
-        :class="{ active: isOpen }"
+        :class="[props.buttonStyle, { active: isOpen }]"
         :disabled="props.disabled"
         @click="toggleDropdown"
       >
@@ -128,11 +167,22 @@
         </span>
       </button>
   
-      <ul :class="[ {active: isOpen} ]" data-lenis-prevent >
-        <li v-for="option in props.options" :key="option.value">
+      <ul :class="[props.listStyle, {active: isOpen} ]" data-lenis-prevent >
+        <li v-if="searchVisible" class="item-search">
+          <input
+            ref="searchInputRef"
+            v-model="searchQuery"
+            type="text"
+            :placeholder="searchPlaceholder"
+            :class="searchStyle"
+            @click.stop
+            @keydown.stop
+          />
+        </li>
+        <li v-for="option in filteredOptions" :key="option.value">
           <button 
             type="button" 
-            :class="{ choose: modelValue === option.value }"
+            :class="[props.listButtonStyle, { choose: modelValue === option.value }]"
             @click="selectOption(option)"
           >
               {{ getOptionLabel(option.label, props.styleType) }}
@@ -210,7 +260,7 @@
 
         color: var(--color-text-main);
         font-size: var(--text-body-sm);
-        font-weight: 600;
+        font-weight: 500;
 
         & p {
           white-space: nowrap;
@@ -264,6 +314,38 @@
         & li {
           width: 100%;
 
+          &.item-search {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+
+            & input {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              gap: 5px;
+
+              padding: 6px 8px;
+              width: 100%;
+
+              color: var(--color-text-main);
+              font-size: var(--text-body-sm);
+              font-weight: 500;
+              background-color: var(--color-third);
+
+              &::placeholder {
+                font-size: var(--text-body-sm);
+                font-weight: 500;
+              }
+
+              &.choose {
+                background-color: var(--color-primary);
+                color: var(--color-main);
+              }
+            }
+          }
+
+
           & button {
             position: relative;
             display: flex;
@@ -276,8 +358,8 @@
 
             color: var(--color-text-main);
             font-size: var(--text-body-sm);
-            font-weight: 600;
-            background-color: var(--color-main);
+            font-weight: 500;
+            // background-color: var(--color-main);
 
             &:hover {
               background-color: var(--color-primary-light);

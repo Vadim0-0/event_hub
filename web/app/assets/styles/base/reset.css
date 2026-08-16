@@ -1,5 +1,15 @@
 @layer base {
 
+  input, select, textarea {
+    vertical-align:middle;
+    background-color: inherit;
+    border: none;
+  
+    &:focus {
+      outline: none;
+    }
+  }
+
   a {
     -webkit-user-drag: none;
     -webkit-tap-highlight-color: transparent;
