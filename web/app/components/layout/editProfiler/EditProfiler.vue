@@ -13,16 +13,20 @@
   const eventsStore = useEventsStore();
   const api = useApi();
   const notifications = useNotificationsStore();
+  const { timezoneOptions } = useTimezoneOptions();
   
   const originalEmail = ref('');
   const username = ref('');
   const email = ref('');
   const currentPassword = ref('');
   const newPassword = ref('');
+  const timezone = ref('UTC');
+  const originalTimezone = ref('UTC');
 
   const fieldErrors = ref({
     username: '',
     email: '',
+    timezone: '',
     currentPassword: '',
     newPassword: '',
     code: '',
@@ -52,7 +56,14 @@
 
 
   function validateForm(): boolean {
-    fieldErrors.value = { username: '', email: '', currentPassword: '', newPassword: '', code: '' };
+    fieldErrors.value = { 
+      username: '', 
+      email: '', 
+      timezone: '',
+      currentPassword: '', 
+      newPassword: '', 
+      code: '' 
+    };
     formError.value = '';
 
     if (username.value.trim().length < 3) {
@@ -63,6 +74,9 @@
     }
     if (!email.value.trim()) {
       fieldErrors.value.email = 'Enter your email';
+    }
+    if (!timezone.value) {
+      fieldErrors.value.timezone = 'Select a timezone';
     }
 
     const wantsPasswordChange = currentPassword.value || newPassword.value;
@@ -89,13 +103,23 @@
     formError.value = '';
 
     try {
-      // 1. Username
+      // 1.1 Username
       if (username.value.trim() !== auth.user?.username) {
         const updated = await api<User>('/users/me', {
           method: 'PATCH',
           body: { username: username.value.trim() },
         });
         auth.setUser(updated);
+      }
+
+      // 1.2 Timezone
+      if (timezone.value !== originalTimezone.value) {
+        const updated = await api<User>('/users/me', {
+          method: 'PATCH',
+          body: { timezone: timezone.value },
+        });
+        auth.setUser(updated);
+        originalTimezone.value = updated.timezone ?? timezone.value;
       }
 
       // 2. Password
@@ -192,6 +216,9 @@
       username.value = auth.user.username;
       email.value = auth.user.email;
       originalEmail.value = auth.user.email;
+
+      timezone.value = auth.user.timezone ?? 'UTC';
+      originalTimezone.value = auth.user.timezone ?? 'UTC';
     }
   });
 
@@ -237,6 +264,24 @@
               label="Name"
               placeholder="Your Name"
               :error-message="fieldErrors.username"
+              :disabled="isVerifyMode"
+            />
+            <UiSelect
+              v-model="timezone"
+              :options="timezoneOptions"
+              label="Your Timezone"
+
+              button-style="!bg-third !border-0 !min-h-[61px]"
+              
+              list-layout="bottom"
+              list-style="!bg-third !border-0"
+              list-button-style="!min-h-[61px]"
+
+              search-style="!min-h-[61px]"
+              search-visible
+              search-placeholder="Search timezone..."
+
+              :error-message="fieldErrors.timezone"
               :disabled="isVerifyMode"
             />
             <UiInput
