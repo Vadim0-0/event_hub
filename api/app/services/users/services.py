@@ -169,29 +169,29 @@ async def update_user_profile(
 ) -> tuple[User, list[ChangedField]]:
   changes: list[ChangedField] = []
 
-  if data.username is None:
-    return user, changes
-
-  if data.username == user.username:
-    return user, changes
-
-  taken = await db.scalar(
-    select(User.id).where(
-      User.username == data.username,
-      User.id != user.id,
+  if data.username is not None and data.username != user.username:
+    taken = await db.scalar(
+      select(User.id)
+      .where(
+        User.username == data.username,
+        User.id != user.id,
+      )
     )
-  )
-  if taken is not None:
-    raise exceptions.UsernameAlreadyTakenError(f"Username ({data.username}) already taken")
-  
-  if data.username and data.username != user.username:
+    if taken is not None:
+      raise exceptions.UsernameAlreadyTakenError(f"Username ({data.username}) already taken")
+
     changes.append(ChangedField("username", "Username", user.username, data.username))
     user.username = data.username
 
-  user.username = data.username
+  if data.timezone is not None and data.timezone != user.timezone:
+    changes.append(ChangedField("timezone", "Timezone", user.timezone, data.timezone))
+    user.timezone = data.timezone
+
+  if not changes:
+    return user, changes
+
   await db.commit()
   await db.refresh(user)
-
   return user, changes
 
 

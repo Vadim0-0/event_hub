@@ -86,6 +86,18 @@ class VerifyEmailOut(BaseModel):
 
 class UserUpdate(BaseModel):
   username: str | None = Field(default=None, min_length=3, max_length=100, pattern=r"^[a-zA-Z0-9_ ]+$")
+  timezone: str | None = Field(default=None, max_length=64)
+  
+  @field_validator("timezone")
+  @classmethod
+  def validate_timezone(cls, v: str | None) -> str | None:
+    if v is None:
+      return v
+    try:
+      ZoneInfo(v)
+    except ZoneInfoNotFoundError:
+      raise ValueError("Invalid timezone")
+    return v
 
 
 class UserPasswordUpdate(BaseModel):

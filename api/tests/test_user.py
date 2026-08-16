@@ -54,6 +54,22 @@ async def test_update_username_unauthorized(client):
 
 
 @pytest.mark.asyncio
+async def test_update_timezone(client, user_data_factory):
+  user_data = user_data_factory(timezone="UTC")
+  auth = await helpers.register_and_verify(client, user_data)
+  token = auth["access_token"]
+
+  response = await client.patch(
+    UPDATE_ME_URL,
+    json={"timezone": "Europe/Moscow"},
+    headers={"Authorization": f"Bearer {token}"},
+  )
+
+  assert response.status_code == 200
+  assert response.json()["timezone"] == "Europe/Moscow"
+
+
+@pytest.mark.asyncio
 async def test_change_password_success(client, user_data_factory):
   user_data = user_data_factory()
   auth = await helpers.register_and_verify(client, user_data)
