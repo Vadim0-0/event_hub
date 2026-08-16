@@ -38,7 +38,7 @@ class NotificationStatus(StrEnum):
 
 @dataclass
 class ChangedField:
-  name: str          # "username", "title", "starts_at"
-  label: str         # "Username", "Start time"
+  name: str
+  label: str
   old: str | None
   new: str | None
