@@ -47,6 +47,9 @@ export type AuthPageRaw = {
       nameInput: { 
         placeholder: LocalizedScalar;
       };
+      timezoneInput: {
+        placeholder: LocalizedScalar;
+      };
       emailInput: { 
         placeholder: LocalizedScalar;
       };
@@ -58,6 +61,9 @@ export type AuthPageRaw = {
       errors: {
         nameField: { 
           valueError: LocalizedScalar; 
+        };
+        timezoneField: {
+          emptyError: LocalizedScalar;
         };
         emailField: { 
           emptyError: LocalizedScalar; 

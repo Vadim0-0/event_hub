@@ -8,33 +8,47 @@
     'switch-to-login': []
     'switch-to-verify': [email: string]
   }>();
+  const { detectedTimezone, timezoneOptions } = useTimezoneOptions();
   
   const props = defineProps<{
     content: AuthPageMapped['registration']
   }>();
+  
 
   const username = ref('');
   const email = ref('');
   const password = ref('');
+  const timezone = ref(detectedTimezone);
 
-  const fieldErrors = ref({ username: '', email: '', password: '' });
+  const fieldErrors = ref({ 
+    username: '',
+    email: '', 
+    password: '',
+    timezone: '',
+  });
   const formError = ref('');
   const isLoading = ref(false);
 
   const notifications = useNotificationsStore();
 
   async function onSubmit() {
-    fieldErrors.value = { username: '', email: '', password: '' };
+    fieldErrors.value = { username: '', email: '', password: '', timezone: '' };
     formError.value = '';
 
     if (username.value.length < 3) fieldErrors.value.username = props.content.errors.nameValue;
     if (!email.value) fieldErrors.value.email = props.content.errors.emailEmpty;
     if (password.value.length < 8) fieldErrors.value.password = props.content.errors.passwordValue;
-    if (Object.values(fieldErrors.value).some(Boolean)) return;
+    if (!timezone.value) fieldErrors.value.timezone = props.content.errors.timezoneEmpty;
 
     if (Object.values(fieldErrors.value).some(Boolean)) return;
+
     try {
-      await auth.register({ username: username.value, email: email.value, password: password.value });;
+      await auth.register({ 
+        username: username.value, 
+        email: email.value, 
+        password: password.value,
+        timezone: timezone.value,
+      });
 
       notifications.success(
         props.content.notifications.success.title,
@@ -72,6 +86,20 @@
         :placeholder="content.namePlaceholder"
         :error-message="fieldErrors.username"
         input-class="!bg-secondary"
+      />
+      <UiSelect
+        v-model="timezone"
+        :options="timezoneOptions"
+        :placeholder="content.timezonePlaceholder"
+        :error-message="fieldErrors.timezone"
+        list-layout="bottom"
+        button-style="!bg-secondary !border-0 !min-h-[61px]"
+        list-style="!bg-secondary !border-0"
+        list-button-style="!min-h-[61px]"
+
+        search-style="!min-h-[61px]"
+        search-visible
+        search-placeholder="Search timezone..."
       />
       <UiInput 
         v-model="email"

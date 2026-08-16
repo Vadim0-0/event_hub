@@ -10,7 +10,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => !!token.value);
 
-  async function register(payload: { username: string; email: string; password: string }) {
+  async function register(payload: { username: string; email: string; password: string; timezone: string }) {
     isLoading.value = true
     try {
       await api('/auth/register', {

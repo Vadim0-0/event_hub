@@ -59,6 +59,7 @@ export function mapAuthPage(data: AuthPageRaw, locale: string) {
     registration: {
       title: pickScalar(registration.title, locale),
       namePlaceholder: pickScalar(registration.nameInput.placeholder, locale),
+      timezonePlaceholder: pickScalar(registration.timezoneInput.placeholder, locale),
       emailPlaceholder: pickScalar(registration.emailInput.placeholder, locale),
       passwordPlaceholder: pickScalar(registration.passwordInput.placeholder, locale),
       cancelButton: pickScalar(registration.cancelButton, locale),
@@ -68,6 +69,7 @@ export function mapAuthPage(data: AuthPageRaw, locale: string) {
       },
       errors: {
         nameValue: pickScalar(registration.errors.nameField.valueError, locale),
+        timezoneEmpty: pickScalar(registration.errors.timezoneField.emptyError, locale),
         emailEmpty: pickScalar(registration.errors.emailField.emptyError, locale),
         passwordValue: pickScalar(registration.errors.passwordField.valueError, locale),
         general: pickScalar(registration.errors.generalError, locale),

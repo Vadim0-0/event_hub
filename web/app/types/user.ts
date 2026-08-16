@@ -2,6 +2,7 @@ export interface User {
   id: number
   username: string
   email: string
+  timezone?: string
   created_at?: string
 }
 

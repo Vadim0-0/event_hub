@@ -102,6 +102,12 @@
             "en": "Name"
           }
         },
+        "timezoneInput": {
+          "placeholder": {
+            "ru": "Часовой пояс",
+            "en": "Timezone"
+          }
+        },
         "emailInput": {
           "placeholder": {
             "ru": "Логин",
@@ -145,6 +151,12 @@
             "valueError": {
               "ru": "Не менее 8 символов",
               "en": "At least 8 characters"
+            }
+          },
+          "timezoneField": {
+            "emptyError": {
+              "ru": "Выберите часовой пояс",
+              "en": "Select a timezone"
             }
           },
           "generalError": {
