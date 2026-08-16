@@ -1,6 +1,10 @@
 <script setup lang="ts">
   import type { Conversation, Message } from '~/types/messaging';
 
+  useHead({
+    title: 'Chats',
+  });
+
   // --- Meta ---
   definePageMeta({
     layout: 'main',
