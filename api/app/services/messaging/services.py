@@ -1,11 +1,13 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import select, func, or_, and_, update
+from sqlalchemy import select, func, or_, and_, update, delete
 from sqlalchemy.orm import selectinload
 
 from ...models.conversation import Conversation
 from ...models.message import Message
 from ...models.conversation_read import ConversationRead
+from ...models.conversation_user_state import ConversationUserState
+from ...models.message_user_hide import MessageUserHide
 from ...models.user import User
 
 from ...schemas.messaging import ConversationOut, ConversationParticipantOut, MessageOut
@@ -37,6 +39,9 @@ async def get_or_create_conversation(db, current_user_id, recipient_id) -> Conve
     
     existing = await helpers.get_conversation_by_pair(db, current_user_id, recipient_id)
     if existing:
+      state = await helpers.get_or_create_conversation_user_state(db, existing.id, current_user_id)
+      state.hidden_at = None
+      await db.commit()
       return existing
     
     raise exceptions.ConversationCreationError("Failed to create conversation")
@@ -69,8 +74,6 @@ async def send_message(db, conversation_id, sender_id, body) -> Message:
     body=text,
   )
 
-  conversation = await get_conversation_for_user(db, conversation_id, sender_id)
-
   await db.execute(
     update(Conversation)
     .where(Conversation.id == conversation.id)
@@ -78,6 +81,12 @@ async def send_message(db, conversation_id, sender_id, body) -> Message:
   )
 
   db.add(message)
+  
+  for participant_id in (conversation.user1_id, conversation.user2_id):
+    state = await helpers.get_conversation_user_state(db, conversation.id, participant_id)
+    if state and state.hidden_at is not None:
+      state.hidden_at = None
+
   await db.commit()
   await db.refresh(message)
   return message
@@ -97,21 +106,82 @@ async def mark_as_read(db, conversation_id, user_id) -> None:
   await db.commit()
 
 
-async def soft_delete_message(
-  db, 
-  message_id, 
-  user_id, 
-  conversation_id=None,
+async def delete_conversation(
+  db,
+  conversation_id,
+  user_id: int,
+  *,
+  for_everyone: bool,
+) -> None:
+  conversation = await get_conversation_for_user(db, conversation_id, user_id)
+  now = datetime.now(timezone.utc)
+
+  if not for_everyone:
+    state = await helpers.get_or_create_conversation_user_state(db, conversation_id, user_id)
+    state.hidden_at = now
+    await db.commit()
+    return
+
+  await db.delete(conversation)
+  await db.commit()
+
+
+async def clear_conversation_history(
+  db,
+  conversation_id,
+  user_id: int,
+  *,
+  for_everyone: bool,
+) -> None:
+  await get_conversation_for_user(db, conversation_id, user_id)
+  now = datetime.now(timezone.utc)
+
+  if not for_everyone:
+    state = await helpers.get_or_create_conversation_user_state(db, conversation_id, user_id)
+    state.cleared_at = now
+    await db.commit()
+    return
+
+  await db.execute(delete(Message).where(Message.conversation_id == conversation_id))
+  await db.execute(
+    delete(ConversationUserState).where(ConversationUserState.conversation_id == conversation_id)
+  )
+  await db.execute(
+    delete(MessageUserHide).where(
+      MessageUserHide.message_id.in_(
+        select(Message.id).where(Message.conversation_id == conversation_id)
+      )
+    )
+  )
+  await db.commit()
+
+
+async def delete_message(
+  db,
+  conversation_id,
+  message_id,
+  user_id: int,
+  *,
+  for_everyone: bool,
 ) -> Message:
+  await get_conversation_for_user(db, conversation_id, user_id)
+
   message = await db.get(Message, message_id)
-  if not message:
+  if not message or message.conversation_id != conversation_id:
     raise exceptions.MessageNotFoundError()
-  if conversation_id is not None and message.conversation_id != conversation_id:
-    raise exceptions.MessageNotFoundError()
+
+  if not for_everyone:
+    existing = await db.get(MessageUserHide, {"message_id": message_id, "user_id": user_id})
+    if not existing:
+      db.add(MessageUserHide(message_id=message_id, user_id=user_id))
+    await db.commit()
+    return message
+
   if message.sender_id != user_id:
-    raise exceptions.ConversationAccessDeniedError()
+    raise exceptions.MessageDeleteForEveryoneDeniedError()
 
   message.is_deleted = True
+  message.body = ""
   await db.commit()
   await db.refresh(message)
   return message
@@ -119,7 +189,7 @@ async def soft_delete_message(
 
 async def build_conversation_out(db, conversation, current_user_id) -> ConversationOut:
   participant = helpers.conversation_participant(conversation, current_user_id)
-  last_message = await helpers.get_last_message(db, conversation.id)
+  last_message = await helpers.get_last_message(db, conversation.id, current_user_id)
   unread = await helpers.count_unread(db, conversation.id, current_user_id)
 
   return ConversationOut(
@@ -147,7 +217,20 @@ async def list_user_conversations(
   result = await db.execute(
     select(Conversation)
     .options(selectinload(Conversation.user1), selectinload(Conversation.user2))
-    .where(where_clause)
+    .outerjoin(
+      ConversationUserState,
+      and_(
+        ConversationUserState.conversation_id == Conversation.id,
+        ConversationUserState.user_id == user_id,
+      ),
+    )
+    .where(
+      where_clause,
+      or_(
+        ConversationUserState.hidden_at.is_(None),
+        ConversationUserState.user_id.is_(None),
+      ),
+    )
     .order_by(Conversation.updated_at.desc())
     .offset(skip)
     .limit(limit)
@@ -155,10 +238,24 @@ async def list_user_conversations(
   return result.scalars().all(), total
 
 
-async def list_messages(db, conversation_id, before_id=None, limit=50):
+async def list_messages(
+  db, 
+  conversation_id, 
+  user_id, 
+  before_id=None, 
+  limit=50
+):
+  state = await helpers.get_conversation_user_state(db, conversation_id, user_id)
+  hidden_ids = await helpers.get_hidden_message_ids(db, user_id)
+  
   query = (
     select(Message)
-    .where(Message.conversation_id == conversation_id, Message.is_deleted.is_(False))
+    .where(helpers.visible_messages_conditions(
+      conversation_id,
+      user_id,
+      state.cleared_at if state else None,
+      hidden_ids,
+    ))
     .order_by(Message.created_at.desc())
     .limit(limit)
   )
@@ -171,11 +268,22 @@ async def list_messages(db, conversation_id, before_id=None, limit=50):
 
 
 async def total_unread_count(db, user_id: int) -> int:
+  hidden_conversations = (
+    select(ConversationUserState.conversation_id)
+    .where(
+      ConversationUserState.user_id == user_id,
+      ConversationUserState.hidden_at.isnot(None),
+    )
+    .scalar_subquery()
+  )
+
   result = await db.execute(
     select(Conversation.id).where(
-      or_(Conversation.user1_id == user_id, Conversation.user2_id == user_id)
+      or_(Conversation.user1_id == user_id, Conversation.user2_id == user_id),
+      Conversation.id.not_in(hidden_conversations),
     )
   )
+
   total = 0
   for conversation_id in result.scalars():
     total += await helpers.count_unread(db, conversation_id, user_id)

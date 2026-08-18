@@ -46,3 +46,19 @@ class ConversationsListOut(BaseModel):
 
 class UnreadCountOut(BaseModel):
   total: int
+
+
+class DeleteForEveryoneFlag(BaseModel):
+  for_everyone: bool = False
+
+
+class ConversationDeleteIn(DeleteForEveryoneFlag):
+  pass
+
+
+class ConversationClearHistoryIn(DeleteForEveryoneFlag):
+  pass
+
+
+class MessageDeleteIn(DeleteForEveryoneFlag):
+  pass

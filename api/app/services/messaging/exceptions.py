@@ -28,3 +28,7 @@ class IntegrityError(Exception):
 
 class ConversationCreationError(Exception):
   pass
+
+
+class MessageDeleteForEveryoneDeniedError(Exception):
+  pass

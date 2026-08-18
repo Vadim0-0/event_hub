@@ -5,13 +5,17 @@ from .exceptions import (
   RecipientNotFoundError,
   MessageNotFoundError,
   EmptyMessageBodyError,
+  MessageDeleteForEveryoneDeniedError,
 )
 from .services import (
+  delete_conversation,
   get_or_create_conversation,
   get_conversation_for_user,
   send_message,
   mark_as_read,
-  soft_delete_message,
+  delete_conversation,
+  clear_conversation_history,
+  delete_message,
   build_conversation_out,
   list_messages,
   list_user_conversations,
@@ -19,6 +23,7 @@ from .services import (
 )
 from .helpers import (
   conversation_participant,
+  recipient_id,
 )
 from .cache import (
   invalidate_user_conversations,
@@ -36,17 +41,21 @@ __all__ = [
   "MessageNotFoundError",
   "EmptyMessageBodyError",
 
+  "delete_conversation",
   "get_or_create_conversation",
   "get_conversation_for_user",
   "send_message",
   "mark_as_read",
-  "soft_delete_message",
+  "delete_conversation",
+  "clear_conversation_history",
+  "delete_message",
   "build_conversation_out",
   "list_messages",
   "list_user_conversations",
   "total_unread_count",
 
   "conversation_participant",
+  "recipient_id",
 
   "invalidate_user_conversations",
   "invalidate_user_unread_count",

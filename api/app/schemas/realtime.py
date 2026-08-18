@@ -12,3 +12,19 @@ class MessageNewPayload(BaseModel):
   conversation_id: UUID
   sender_username: str
   message: MessageOut
+
+
+class ConversationDeletedPayload(BaseModel):
+  conversation_id: UUID
+  for_everyone: bool
+
+
+class ConversationClearedPayload(BaseModel):
+  conversation_id: UUID
+  for_everyone: bool
+
+  
+class MessageDeletedPayload(BaseModel):
+  conversation_id: UUID
+  message_id: UUID
+  for_everyone: bool

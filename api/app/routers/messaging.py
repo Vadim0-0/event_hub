@@ -10,7 +10,15 @@ from ..database import get_db
 from ..dependencies import get_current_user
 from ..models.user import User
 from ..schemas.messaging import (
-  ConversationOut, ConversationsListOut, UnreadCountOut, MessageCreate, MessageOut, ConversationCreate
+  ConversationOut, 
+  ConversationsListOut, 
+  UnreadCountOut, 
+  MessageCreate, 
+  MessageOut, 
+  ConversationCreate,
+  ConversationDeleteIn,
+  ConversationClearHistoryIn,
+  MessageDeleteIn,
 )
 from ..services import messaging as messaging_service
 from ..notifications import dispatch
@@ -148,7 +156,7 @@ async def get_messages(
 
   cache_key = (
     f"conversations:{conversation_id}:messages:"
-    f"before={before or ''}:limit={limit}"
+    f"user={current_user.id}:before={before or ''}:limit={limit}"
   )
 
   cached = await cache_get(redis, cache_key)
@@ -156,7 +164,11 @@ async def get_messages(
     return [MessageOut.model_validate(item) for item in cached]
 
   messages = await messaging_service.list_messages(
-    db, conversation_id, before, limit,
+    db,
+    conversation_id,
+    current_user.id,
+    before,
+    limit,
   )
   data = [MessageOut.model_validate(m).model_dump(mode="json") for m in messages]
   await cache_set(redis, cache_key, data, settings.cache_ttl_seconds)
@@ -256,10 +268,10 @@ async def mark_read(
     raise HTTPException(403, detail={"message": "Access denied"})
 
 
-@router.delete("/{conversation_id}/soft_delete_message", status_code=204, summary="soft_delete_message")
-async def soft_delete_message(
+@router.post("/{conversation_id}/clear", status_code=204)
+async def clear_conversation_history(
   conversation_id: UUID,
-  message_id: UUID,
+  data: ConversationClearHistoryIn,
   db: AsyncSession = Depends(get_db),
   current_user: User = Depends(get_current_user),
   redis: Redis = Depends(get_redis),
@@ -268,17 +280,150 @@ async def soft_delete_message(
     conversation = await messaging_service.get_conversation_for_user(
       db, conversation_id, current_user.id,
     )
+    other_id = messaging_service.conversation_participant(
+      conversation, current_user.id
+    ).id
 
-    await messaging_service.soft_delete_message(
-      db, message_id, current_user.id, conversation_id,
+    await messaging_service.clear_conversation_history(
+      db, conversation_id, current_user.id, for_everyone=data.for_everyone,
     )
 
     await messaging_service.invalidate_for_both_participants(
       redis, conversation.user1_id, conversation.user2_id, conversation_id,
     )
+
+    await publisher.publish_to_user(redis, current_user.id, {
+      "type": "conversation.cleared",
+      "payload": {
+        "conversation_id": str(conversation_id),
+        "for_everyone": data.for_everyone,
+      },
+    })
+
+    if data.for_everyone:
+      await publisher.publish_to_user(redis, other_id, {
+        "type": "conversation.cleared",
+        "payload": {
+          "conversation_id": str(conversation_id),
+          "for_everyone": True,
+        },
+      })
+
+    for uid in {current_user.id, other_id} if data.for_everyone else {current_user.id}:
+      await publisher.publish_to_user(redis, uid, {
+        "type": "unread.updated",
+        "payload": {"total": await messaging_service.total_unread_count(db, uid)},
+      })
+
+  except messaging_service.ConversationNotFoundError:
+    raise HTTPException(404, detail={"message": "Conversation not found"})
+  except messaging_service.ConversationAccessDeniedError:
+    raise HTTPException(403, detail={"message": "Access denied"})
+
+
+@router.delete("/{conversation_id}", status_code=204)
+async def delete_conversation(
+  conversation_id: UUID,
+  data: ConversationDeleteIn,
+  db: AsyncSession = Depends(get_db),
+  current_user: User = Depends(get_current_user),
+  redis: Redis = Depends(get_redis),
+):
+  try:
+    conversation = await messaging_service.get_conversation_for_user(
+      db, conversation_id, current_user.id,
+    )
+    other_id = messaging_service.recipient_id(conversation, current_user.id)
+
+    await messaging_service.delete_conversation(
+      db, conversation_id, current_user.id, for_everyone=data.for_everyone,
+    )
+
+    await messaging_service.invalidate_for_both_participants(
+      redis, conversation.user1_id, conversation.user2_id, conversation_id,
+    )
+
+    await publisher.publish_to_user(redis, current_user.id, {
+      "type": "conversation.deleted",
+      "payload": {
+        "conversation_id": str(conversation_id),
+        "for_everyone": data.for_everyone,
+      },
+    })
+
+    if data.for_everyone:
+      await publisher.publish_to_user(redis, other_id, {
+        "type": "conversation.deleted",
+        "payload": {
+          "conversation_id": str(conversation_id),
+          "for_everyone": True,
+        },
+      })
+
+    for uid in {current_user.id, other_id} if data.for_everyone else {current_user.id}:
+      await publisher.publish_to_user(redis, uid, {
+        "type": "unread.updated",
+        "payload": {"total": await messaging_service.total_unread_count(db, uid)},
+      })
+
+  except messaging_service.ConversationNotFoundError:
+    raise HTTPException(404, detail={"message": "Conversation not found"})
+  except messaging_service.ConversationAccessDeniedError:
+    raise HTTPException(403, detail={"message": "Access denied"})
+
+
+@router.delete("/{conversation_id}/messages/{message_id}", status_code=204)
+async def delete_message(
+  conversation_id: UUID,
+  message_id: UUID,
+  data: MessageDeleteIn,
+  db: AsyncSession = Depends(get_db),
+  current_user: User = Depends(get_current_user),
+  redis: Redis = Depends(get_redis),
+):
+  try:
+    conversation = await messaging_service.get_conversation_for_user(
+      db, conversation_id, current_user.id,
+    )
+    other_id = messaging_service.conversation_participant(
+      conversation, current_user.id
+    ).id
+
+    await messaging_service.delete_message(
+      db,
+      conversation_id,
+      message_id,
+      current_user.id,
+      for_everyone=data.for_everyone,
+    )
+
+    await messaging_service.invalidate_for_both_participants(
+      redis,
+      conversation.user1_id,
+      conversation.user2_id,
+      conversation_id,
+    )
+
+    await publisher.publish_to_user(redis, current_user.id, {
+      "type": "message.deleted",
+      "payload": {
+        "conversation_id": str(conversation_id),
+        "message_id": str(message_id),
+        "for_everyone": data.for_everyone,
+      },
+    })
+
+    for uid in {current_user.id, other_id} if data.for_everyone else {current_user.id}:
+      await publisher.publish_to_user(redis, uid, {
+        "type": "unread.updated",
+        "payload": {"total": await messaging_service.total_unread_count(db, uid)},
+      })
+
   except messaging_service.ConversationNotFoundError:
     raise HTTPException(404, detail={"message": "Conversation not found"})
   except messaging_service.ConversationAccessDeniedError:
     raise HTTPException(403, detail={"message": "Access denied"})
   except messaging_service.MessageNotFoundError:
     raise HTTPException(404, detail={"message": "Message not found"})
+  except messaging_service.MessageDeleteForEveryoneDeniedError:
+    raise HTTPException(403, detail={"message": "Cannot delete this message for everyone"})

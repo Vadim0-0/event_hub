@@ -8,7 +8,11 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 
 from app.database import Base
-from app.models import user, event, registration, notification, conversation, message, conversation_read
+from app.models import (
+  user, event, registration, notification,
+  conversation, message, conversation_read,
+  conversation_user_state, message_user_hide,
+)
 from app.config import settings
 
 # this is the Alembic Config object, which provides
