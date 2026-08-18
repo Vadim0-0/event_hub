@@ -1,36 +1,61 @@
-import type { Message } from '~/types/messaging';
+import type {
+  Message,
+  MessageNewPayload,
+  ConversationActionPayload,
+} from '~/types/messaging';
 
 export const useMessagingStore = defineStore('messaging', () => {
   const unreadTotal = ref(0);
-
-  const newMessageListeners = new Set<(payload: any) => void>();
   const activeConversationId = ref<string | null>(null);
 
-  function onNewMessage(listener: (payload: any) => void) {
+  const newMessageListeners = new Set<(payload: MessageNewPayload) => void>();
+  const clearedListeners = new Set<(payload: ConversationActionPayload) => void>();
+  const deletedListeners = new Set<(payload: ConversationActionPayload) => void>();
+
+  function onNewMessage(listener: (payload: MessageNewPayload) => void) {
     newMessageListeners.add(listener);
     return () => newMessageListeners.delete(listener);
-  };
+  }
 
-  function handleNewMessage(payload: {
-    conversation_id: string
-    message: Message
-  }) {
-    newMessageListeners.forEach((listener) => listener(payload))
-  };
+  function onConversationCleared(listener: (payload: ConversationActionPayload) => void) {
+    clearedListeners.add(listener);
+    return () => clearedListeners.delete(listener);
+  }
+
+  function onConversationDeleted(listener: (payload: ConversationActionPayload) => void) {
+    deletedListeners.add(listener);
+    return () => deletedListeners.delete(listener);
+  }
+
+  function handleNewMessage(payload: MessageNewPayload) {
+    newMessageListeners.forEach((listener) => listener(payload));
+  }
+
+  function handleConversationCleared(payload: ConversationActionPayload) {
+    clearedListeners.forEach((listener) => listener(payload));
+  }
+
+  function handleConversationDeleted(payload: ConversationActionPayload) {
+    deletedListeners.forEach((listener) => listener(payload));
+  }
 
   function setUnreadTotal(total: number) {
-    unreadTotal.value = total
-  };
+    unreadTotal.value = total;
+  }
 
   function setActiveConversation(id: string | null) {
-    activeConversationId.value = id
-  };
+    activeConversationId.value = id;
+  }
 
-  return { 
+  return {
     unreadTotal,
     activeConversationId,
     onNewMessage,
+    onConversationCleared,
+    onConversationDeleted,
     handleNewMessage,
+    handleConversationCleared,
+    handleConversationDeleted,
     setUnreadTotal,
     setActiveConversation,
   };

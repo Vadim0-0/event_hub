@@ -11,6 +11,7 @@
   const messagingStore = useMessagingStore();
   const authStore = useAuthStore();
   const { onEvent } = useRealtime();
+  const confirmStore = useConfirmStore();
 
 
   // --- Layout ---
@@ -74,6 +75,16 @@
       if (messagingStore.activeConversationId === conversation_id) return;
 
       notifications.info(sender_username ?? 'New message', message.body);
+      return;
+    }
+
+    if (event.type === 'conversation.cleared') {
+      messagingStore.handleConversationCleared(event.payload);
+      return;
+    }
+
+    if (event.type === 'conversation.deleted') {
+      messagingStore.handleConversationDeleted(event.payload);
       return;
     }
 
@@ -146,6 +157,10 @@
       v-if="editProfilerStore.isOpen"
       @close="editProfilerStore.close()"
     />
+  </Transition>
+
+  <Transition name="smooth-appearance">
+    <LayoutConfirm v-if="confirmStore.isOpen" />
   </Transition>
 </template>
 

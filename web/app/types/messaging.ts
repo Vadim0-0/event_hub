@@ -30,3 +30,8 @@ export type MessageNewPayload = {
   sender_username: string
   message: Message
 };
+
+export type ConversationActionPayload = {
+  conversation_id: string
+  for_everyone: boolean
+};

@@ -1,5 +1,6 @@
 <script setup lang="ts">
   import type { Conversation, Message } from '~/types/messaging';
+  import { onClickOutside } from '@vueuse/core';
 
   useHead({
     title: 'Chats',
@@ -16,20 +17,19 @@
   const api = useApi();
   const authStore = useAuthStore();
   const messagingStore = useMessagingStore();
+  const confirmStore = useConfirmStore();
+  const notifications = useNotificationsStore();
 
 
   // --- State ---
   const search = ref('');
   const draft = ref('');
   const isSending = ref(false);
-  const isMessagesLoading = ref(false);
   const selectedConversationId = ref<string | null>(null);
-  const messages = ref<Message[]>([]);
-  const isLoadingOlder = ref(false);
-  const hasMoreMessages = ref(true);
-  const MESSAGES_PAGE_SIZE = 50;
   const messagesContainer = ref<HTMLElement | null>(null);
   const messagesContent = ref<HTMLElement | null>(null);
+  const isChatSettingsOpen = ref(false);
+  const chatSettingsRef = ref<HTMLElement | null>(null);
 
 
   // --- Conversations list ---
@@ -39,6 +39,20 @@
     refresh: refreshConversations,
   } = useConversationsList(search);
 
+  const {
+    messages,
+    isLoading: isMessagesLoading,
+    isLoadingOlder,
+    hasMore: hasMoreMessages,
+    shouldStickToBottom,
+    loadMessages,
+    scrollToBottom,
+    onMessagesScroll,
+    reset: resetMessages,
+    clearMessages,
+    appendMessage,
+  } = useConversationMessages(selectedConversationId, messagesContainer, messagesContent);
+
 
   // --- UI flags ---
   const isChat = computed(() => selectedConversationId.value !== null);
@@ -47,142 +61,18 @@
   );
 
 
-  // --- Messages ---
-  async function loadMessages(conversationId: string) {
-    isMessagesLoading.value = true;
-    hasMoreMessages.value = true;
-
-    try {
-      messages.value = await api<Message[]>(
-        `/conversations/${conversationId}/messages?limit=${MESSAGES_PAGE_SIZE}`,
-      );
-
-      hasMoreMessages.value = messages.value.length === MESSAGES_PAGE_SIZE;
-    } finally {
-      isMessagesLoading.value = false;
-      await nextTick();
-      scrollToBottom();
-    }
-  };
-
-  async function loadOlderMessages() {
-    if (
-      !selectedConversationId.value ||
-      isLoadingOlder.value ||
-      !hasMoreMessages.value ||
-      !messages.value.length
-    ) {
-      return;
-    }
-
-    isLoadingOlder.value = true;
-    shouldStickToBottom.value = false;
-    suppressAutoScroll.value = true;
-
-    const container = messagesContainer.value;
-    const prevScrollHeight = container?.scrollHeight ?? 0;
-    const prevScrollTop = container?.scrollTop ?? 0;
-
-    const finishPrepend = () => {
-      suppressAutoScroll.value = false;
-      isLoadingOlder.value = false;
-    };
-
-    try {
-      const oldestMessage = messages.value[0];
-      if (!oldestMessage) {
-        finishPrepend();
-        return;
-      }
-
-      const older = await api<Message[]>(
-        `/conversations/${selectedConversationId.value}/messages`
-        + `?before=${oldestMessage.id}&limit=${MESSAGES_PAGE_SIZE}`,
-      );
-
-      if (!older.length) {
-        hasMoreMessages.value = false;
-        finishPrepend();
-        return;
-      }
-
-      const existingIds = new Set(messages.value.map((m) => m.id));
-      const uniqueOlder = older.filter((m) => !existingIds.has(m.id));
-
-      if (!uniqueOlder.length) {
-        hasMoreMessages.value = false;
-        finishPrepend();
-        return;
-      }
-
-      messages.value = [...uniqueOlder, ...messages.value];
-      hasMoreMessages.value = older.length === MESSAGES_PAGE_SIZE;
-
-      await nextTick();
-      requestAnimationFrame(() => {
-        if (container) {
-          container.scrollTop = prevScrollTop + (container.scrollHeight - prevScrollHeight);
-        }
-        finishPrepend();
-      });
-    } catch {
-      finishPrepend();
-    }
-  };
-
   async function markAsRead(conversationId: string) {
     await api(`/conversations/${conversationId}/read`, { method: 'POST' });
     const data = await api<{ total: number }>('/conversations/unread-count');
     messagingStore.setUnreadTotal(data.total);
   };
 
-  async function scrollToBottom() {
-    await nextTick();
-    requestAnimationFrame(() => {
-      const container = messagesContainer.value;
-      const content = messagesContent.value;
-      if (!container) return;
-      const maxScroll = container.scrollHeight - container.clientHeight;
-      container.scrollTop = maxScroll > 0 ? maxScroll : 0;
-      if (content && maxScroll <= 0) {
-        container.scrollTop = Math.max(0, content.offsetHeight - container.clientHeight);
-      }
-    });
-  };
-  
-  const shouldStickToBottom = ref(true);
-  const suppressAutoScroll = ref(false);
 
-  function onMessagesScroll() {
-    const container = messagesContainer.value;
-    if (!container || isLoadingOlder.value || suppressAutoScroll.value) return;
-
-    const distanceFromBottom =
-      container.scrollHeight - container.scrollTop - container.clientHeight;
-
-    shouldStickToBottom.value = distanceFromBottom < 80;
-
-    if (container.scrollTop <= 80) {
-      void loadOlderMessages();
-    }
-  };
-
-  watch(
-    () => messages.value.at(-1)?.id,
-    () => {
-      if (suppressAutoScroll.value || isLoadingOlder.value || !shouldStickToBottom.value) {
-        return;
-      }
-      scrollToBottom();
-    },
-  );
-
-  
   // --- Handlers ---
   async function selectConversation(conversation: Conversation) {
     messagingStore.setActiveConversation(conversation.id);
     selectedConversationId.value = conversation.id;
-    await loadMessages(conversation.id);
+    await loadMessages();
     await markAsRead(conversation.id);
     await refreshConversations();
   };
@@ -190,9 +80,8 @@
   function closeChat() {
     messagingStore.setActiveConversation(null);
     selectedConversationId.value = null;
-    messages.value = [];
+    resetMessages();
     draft.value = '';
-    hasMoreMessages.value = true;
   };
 
   async function sendMessage() {
@@ -204,9 +93,7 @@
         `/conversations/${selectedConversationId.value}/messages`,
         { method: 'POST', body: { body } },
       );
-      if (!messages.value.some((m) => m.id === sent.id)) {
-        messages.value.push(sent);
-      }
+      appendMessage(sent);
       draft.value = '';
       await refreshConversations();
       await nextTick();
@@ -219,6 +106,8 @@
 
   // --- Realtime ---
   let unsubscribeNewMessage: (() => void) | undefined;
+  let unsubscribeCleared: (() => void) | undefined;
+  let unsubscribeDeleted: (() => void) | undefined;
 
   function handleIncomingMessage(payload: {
     conversation_id: string
@@ -232,12 +121,8 @@
     }
 
     if (selectedConversationId.value === conversation_id) {
-      const exists = messages.value.some((m) => m.id === message.id);
-      if (!exists) {
-        messages.value.push(message);
-        if (shouldStickToBottom.value) {
-          scrollToBottom();
-        }
+      if (appendMessage(message) && shouldStickToBottom.value) {
+        scrollToBottom();
       }
       void markAsRead(conversation_id);
       return;
@@ -246,17 +131,120 @@
     refreshConversations();
   };
 
+  function handleConversationCleared(payload: {
+    conversation_id: string
+    for_everyone: boolean
+  }) {
+    if (selectedConversationId.value === payload.conversation_id) {
+      clearMessages();
+    }
+    refreshConversations();
+  };
+
+  function handleConversationDeleted(payload: {
+    conversation_id: string
+    for_everyone: boolean
+  }) {
+    if (selectedConversationId.value === payload.conversation_id) {
+      closeChat();
+    }
+    refreshConversations();
+  };
+
+
+  // --- Change Chats ---
+  function openClearConfirm() {
+    if (!selectedConversationId.value) return;
+    isChatSettingsOpen.value = false;
+
+    confirmStore.open({
+      variant: 'default',
+      title: 'Clear chat history?',
+      description: 'Messages will be removed from this chat.',
+      confirmLabel: 'Clear',
+      showCheckbox: true,
+      checkboxLabel: 'Clear for everyone',
+      onConfirm: async ({ forEveryone }) => {
+        await clearChatHistory(selectedConversationId.value!, forEveryone);
+      },
+    });
+  };
+
+  function openDeleteConfirm() {
+    if (!selectedConversationId.value) return;
+    isChatSettingsOpen.value = false;
+
+    confirmStore.open({
+      variant: 'delete',
+      title: 'Delete chat?',
+      description: 'You will lose access to this conversation.',
+      confirmLabel: 'Delete',
+      showCheckbox: true,
+      checkboxLabel: 'Delete for everyone',
+      onConfirm: async ({ forEveryone }) => {
+        await deleteChat(selectedConversationId.value!, forEveryone);
+      },
+    });
+  };
+
+  async function refreshUnreadTotal() {
+    const data = await api<{ total: number }>('/conversations/unread-count');
+    messagingStore.setUnreadTotal(data.total);
+  };
+
+  async function clearChatHistory(conversationId: string, forEveryone = false) {
+    try {
+      await api(`/conversations/${conversationId}/clear`, {
+        method: 'POST',
+        body: { for_everyone: forEveryone },
+      });
+
+      clearMessages();
+      await refreshConversations();
+      await refreshUnreadTotal();
+    } catch (e) {
+      const parsed = parseApiError(e);
+      notifications.error('Error', parsed.formError || 'Failed to clear chat history');
+      throw e;
+    }
+  };
+
+  async function deleteChat(conversationId: string, forEveryone = false) {
+    try {
+      await api(`/conversations/${conversationId}`, {
+        method: 'DELETE',
+        body: { for_everyone: forEveryone },
+      });
+
+      closeChat();
+      await refreshConversations();
+      await refreshUnreadTotal();
+    } catch (e) {
+      const parsed = parseApiError(e);
+      notifications.error('Error', parsed.formError || 'Failed to delete chat');
+      throw e;
+    }
+  };
+
 
   // --- Lifecycle ---
   onMounted(async () => {
     await authStore.fetchMe();
     await refreshConversations();
     unsubscribeNewMessage = messagingStore.onNewMessage(handleIncomingMessage);
+    unsubscribeCleared = messagingStore.onConversationCleared(handleConversationCleared);
+    unsubscribeDeleted = messagingStore.onConversationDeleted(handleConversationDeleted);
   });
 
   onUnmounted(() => {
     messagingStore.setActiveConversation(null);
     unsubscribeNewMessage?.();
+    unsubscribeCleared?.();
+    unsubscribeDeleted?.();
+  });
+
+  onClickOutside(chatSettingsRef, () => {
+    isChatSettingsOpen.value = false;
   });
   
 </script>
@@ -392,9 +380,21 @@
                 </div>
               </div>
 
-              <button class="ml-auto">
-                <Icon name="mage:dots" mode="svg" class="size-5 text-text-main"/>
-              </button>
+              <div ref="chatSettingsRef" class="relative ml-auto">
+                <button class="py-1 rounded-sm hover:bg-primary-light" @click="isChatSettingsOpen = !isChatSettingsOpen">
+                  <Icon name="mage:dots" mode="svg" class="size-5 text-text-main"/>
+                </button>
+
+                <Transition >
+                  <div v-if="isChatSettingsOpen" class="absolute top-full right-0 z-10">
+                    <LayoutChatSettings 
+                      @clear-history="openClearConfirm"
+                      @delete-chat="openDeleteConfirm"
+                    />
+                  </div>
+                </Transition>
+              </div>
+
             </div>
 
             <div 
