@@ -359,7 +359,7 @@
           <div 
             v-if="verifyVisible"
             class="
-              absolute top-0 left-0 w-full h-full
+              absolute top-0 left-0 w-full h-full z-10
               flex flex-col items-center justify-center p-3
               bg-overlay
             "
