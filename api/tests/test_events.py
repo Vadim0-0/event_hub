@@ -22,6 +22,8 @@ def event_data_factory():
       "description": f"about the event{counter}",
       "starts_at": (datetime.now(timezone.utc) + timedelta(days=days_ahead)).isoformat(),
       "location": f"Location {counter}",
+      "latitude": 55.7558,
+      "longitude": 37.6173,
       "max_participants": max_participants,
     }
 
@@ -51,8 +53,95 @@ async def test_creating_event(client: AsyncClient, user_data_factory, event_data
   assert "id" in created_event
   assert created_event["title"] == event_data["title"]
   assert created_event["location"] == event_data["location"]
+  assert created_event["latitude"] == event_data["latitude"]
+  assert created_event["longitude"] == event_data["longitude"]
   assert created_event["creator"]["id"] == 1
   assert "username" in created_event["creator"]
+
+
+@pytest.mark.asyncio
+async def test_create_event_coordinates_only_one_fails(client: AsyncClient, user_data_factory, event_data_factory):
+  """ Create event coordinates only one fails """
+  user_data = user_data_factory()
+  auth = await helpers.register_and_verify(client, user_data)
+
+  user_headers = {"Authorization": f"Bearer {auth['access_token']}"}
+
+  event_data = event_data_factory()
+
+  del event_data["longitude"]
+
+  response = await client.post(
+    EVENTS_URL,
+    json = event_data,
+    headers=user_headers
+  )
+
+  assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_create_event_invalid_latitude(client: AsyncClient, user_data_factory, event_data_factory):
+  """ Create event invalid latitude """
+  user_data = user_data_factory()
+  auth = await helpers.register_and_verify(client, user_data)
+
+  user_headers = {"Authorization": f"Bearer {auth['access_token']}"}
+
+  event_data = event_data_factory()
+
+  event_data["latitude"] = 91
+
+  response = await client.post(
+    EVENTS_URL,
+    json = event_data,
+    headers=user_headers
+  )
+
+  assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_create_event_invalid_longitude(client: AsyncClient, user_data_factory, event_data_factory):
+  """ create event invalid longitude """
+  user_data = user_data_factory()
+  auth = await helpers.register_and_verify(client, user_data)
+
+  user_headers = {"Authorization": f"Bearer {auth['access_token']}"}
+
+  event_data = event_data_factory()
+
+  event_data["longitude"] = 181
+
+  response = await client.post(
+    EVENTS_URL,
+    json = event_data,
+    headers=user_headers
+  )
+
+  assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_create_event_without_coordinates(client: AsyncClient, user_data_factory, event_data_factory):
+  """ Create event without coordinates """
+  user_data = user_data_factory()
+  auth = await helpers.register_and_verify(client, user_data)
+
+  user_headers = {"Authorization": f"Bearer {auth['access_token']}"}
+
+  event_data = event_data_factory()
+
+  del event_data["longitude"]
+  del event_data["longitude"]
+
+  response = await client.post(
+    EVENTS_URL,
+    json = event_data,
+    headers=user_headers
+  )
+
+  assert response.status_code == 201
 
 
 @pytest.mark.asyncio

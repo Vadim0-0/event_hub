@@ -121,6 +121,8 @@ EVENT_FIELD_LABELS = {
   "description": "Description",
   "starts_at": "Start time",
   "max_participants": "Max participants",
+  "latitude": "Latitude",
+  "longitude": "Longitude",
 }
 
 PROFILE_FIELD_LABELS = {

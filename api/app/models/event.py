@@ -20,6 +20,8 @@ class Event(Base):
   description: Mapped[str | None] = mapped_column(Text, nullable=True)
   starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
   location: Mapped[str | None] = mapped_column(String(500), nullable=True)
+  latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
+  longitude: Mapped[float | None] = mapped_column(Float, nullable=True)
   max_participants: Mapped[int | None] = mapped_column(nullable=True)
   created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 

@@ -34,6 +34,8 @@ async def build_event_out(
     description=event.description,
     starts_at=event.starts_at,
     location=event.location,
+    latitude=event.latitude,
+    longitude=event.longitude,
     max_participants=event.max_participants,
     participants_count=participants_count,
     created_at=event.created_at,
@@ -81,6 +83,8 @@ async def create_event(
     description = data.description,
     starts_at=data.starts_at,
     location=data.location,
+    latitude=data.latitude,
+    longitude=data.longitude,
     max_participants=data.max_participants,
     creator_id = creator_id
   )
