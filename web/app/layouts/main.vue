@@ -17,6 +17,7 @@
   // --- Layout ---
   const headerRef = ref<{ el: HTMLElement | null } | null>(null);
   const marginLeftStyle = ref({ marginLeft: '0px' });
+  const mapIsVisible = false;
 
   let resizeObserver: ResizeObserver | null = null;
 
@@ -162,6 +163,12 @@
   <Transition name="smooth-appearance">
     <LayoutConfirm v-if="confirmStore.isOpen" />
   </Transition>
+
+  <ClientOnly>
+    <Transition name="smooth-appearance">
+      <LayoutMap v-if="mapIsVisible"/>
+    </Transition>
+  </ClientOnly>
 </template>
 
 <style scoped lang="scss">

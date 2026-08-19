@@ -10,6 +10,8 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@geoapify/geocoder-autocomplete": "^3.1.0",
+    "@googlemaps/js-api-loader": "^2.1.1",
     "@iconify-json/lucide": "^1.2.114",
     "@iconify/json": "^2.2.492",
     "@nuxt/image": "2.0.0",
@@ -41,6 +43,7 @@
     "@vueuse/nuxt": "14.3.0",
     "dayjs-nuxt": "2.1.11",
     "eslint": ">=7",
+    "leaflet": "^1.9.4",
     "lenis": "^1.3.25",
     "nuxt": "^4.2.2",
     "pinia": "^3.0.4",
@@ -50,6 +53,8 @@
     "vue-router": "^4.6.4"
   },
   "devDependencies": {
+    "@types/google.maps": "^3.65.5",
+    "@types/leaflet": "^1.9.22",
     "sass": "^1.101.0"
   }
 }
