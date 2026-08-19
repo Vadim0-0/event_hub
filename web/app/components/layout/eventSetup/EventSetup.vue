@@ -265,7 +265,7 @@
     </div>
 
     <div
-      class="flex flex-col flex-1 min-h-0 overflow-y-auto"
+      class="flex flex-col flex-1 gap-5 min-h-0 overflow-y-auto"
       data-lenis-prevent
     >
       <div 
