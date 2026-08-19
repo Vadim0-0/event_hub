@@ -105,11 +105,12 @@ services:
       context: ./web
       target: production
       args:
-        NUXT_PUBLIC_API_BASE: "" 
+        NUXT_PUBLIC_API_BASE: ${NUXT_PUBLIC_API_BASE} 
     container_name: event_hub_web
     restart: unless-stopped
     environment:
-      NUXT_PUBLIC_API_BASE: ""
+      NUXT_PUBLIC_API_BASE: ${NUXT_PUBLIC_API_BASE}
+      NUXT_PUBLIC_GEOAPIFY_API_KEY: ${NUXT_PUBLIC_GEOAPIFY_API_KEY}
       HOST: 0.0.0.0
       PORT: 3000
     expose:
