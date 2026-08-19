@@ -21,6 +21,7 @@ def event_data_factory():
       "title": f"{title_prefix}{counter}",
       "description": f"about the event{counter}",
       "starts_at": (datetime.now(timezone.utc) + timedelta(days=days_ahead)).isoformat(),
+      "location": f"Location {counter}",
       "max_participants": max_participants,
     }
 
@@ -49,6 +50,7 @@ async def test_creating_event(client: AsyncClient, user_data_factory, event_data
 
   assert "id" in created_event
   assert created_event["title"] == event_data["title"]
+  assert created_event["location"] == event_data["location"]
   assert created_event["creator"]["id"] == 1
   assert "username" in created_event["creator"]
 

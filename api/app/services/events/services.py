@@ -33,6 +33,7 @@ async def build_event_out(
     title=event.title,
     description=event.description,
     starts_at=event.starts_at,
+    location=event.location,
     max_participants=event.max_participants,
     participants_count=participants_count,
     created_at=event.created_at,
@@ -79,6 +80,7 @@ async def create_event(
     title = data.title,
     description = data.description,
     starts_at=data.starts_at,
+    location=data.location,
     max_participants=data.max_participants,
     creator_id = creator_id
   )
@@ -113,6 +115,7 @@ async def list_events(
       or_(
         Event.title.ilike(pattern),
         Event.description.ilike(pattern),
+        Event.location.ilike(pattern),
       )
     )
 
@@ -139,6 +142,7 @@ async def count_events(
       or_(
         Event.title.ilike(pattern),
         Event.description.ilike(pattern),
+        Event.location.ilike(pattern),
       )
     )
     
@@ -166,6 +170,7 @@ async def list_past_events(
       or_(
         Event.title.ilike(pattern),
         Event.description.ilike(pattern),
+        Event.location.ilike(pattern),
       )
     )
 
@@ -192,6 +197,7 @@ async def count_past_events(
       or_(
         Event.title.ilike(pattern),
         Event.description.ilike(pattern),
+        Event.location.ilike(pattern),
       )
     )
     

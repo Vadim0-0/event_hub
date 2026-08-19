@@ -1,7 +1,8 @@
 from datetime import datetime
 import uuid
+
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy import String, Text, DateTime, ForeignKey, func
+from sqlalchemy import String, Text, DateTime, ForeignKey, Float, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database import Base
@@ -18,6 +19,7 @@ class Event(Base):
   title: Mapped[str] = mapped_column(String(200))
   description: Mapped[str | None] = mapped_column(Text, nullable=True)
   starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+  location: Mapped[str | None] = mapped_column(String(500), nullable=True)
   max_participants: Mapped[int | None] = mapped_column(nullable=True)
   created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 

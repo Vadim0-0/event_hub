@@ -6,6 +6,7 @@ class EventCreate(BaseModel):
   title: str = Field(max_length=200)
   description: str | None = None
   starts_at: datetime
+  location: str | None = Field(default=None, max_length=500)
   max_participants: int | None = None
 
 
@@ -13,6 +14,7 @@ class EventUpdate(BaseModel):
   title: str | None = None
   description: str | None = None
   starts_at: datetime | None = None
+  location: str | None = Field(default=None, max_length=500)
   max_participants: int | None = Field(default=None, ge=1)
 
 
@@ -27,6 +29,7 @@ class EventOut(BaseModel):
   title: str
   description: str | None
   starts_at: datetime
+  location: str | None
   max_participants: int | None
   participants_count: int
   created_at: datetime
