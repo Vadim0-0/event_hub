@@ -1,11 +1,15 @@
 <script setup lang="ts">
-
   import type { Conversation } from '~/types/messaging';
 
-  const props = defineProps<{
+  const props = withDefaults(defineProps<{
     conversation: Conversation
     isActive?: boolean
-  }>();
+    showMeta?: boolean
+    previewText?: string
+  }>(), {
+    isActive: false,
+    showMeta: true,
+  });
 
   const emit = defineEmits<{
     select: []
@@ -14,7 +18,9 @@
   const dayjs = useDayjs();
 
   const preview = computed(() =>
-    props.conversation.last_message?.body ?? 'No messages yet',
+    props.previewText
+    ?? props.conversation.last_message?.body
+    ?? 'No messages yet',
   );
 
   const timeLabel = computed(() => {
@@ -22,7 +28,6 @@
       ?? props.conversation.updated_at
     return dayjs(date).format('HH:mm')
   });
-
 </script>
 
 <template>
@@ -64,15 +69,14 @@
       </p>
     </div>
 
-    <div class="absolute top-1 right-2 flex flex-col items-center">
+    <div v-if="showMeta" class="absolute top-1 right-2 flex flex-col items-center">
       <p class="text-text-secondary text-sm font-medium">
         {{ timeLabel }}
       </p>
-
     </div>
     
     <div 
-      v-if="conversation.unread_count"
+      v-if="showMeta && conversation.unread_count"
       class="
         absolute bottom-2 right-2
         flex items-center justify-center min-w-5 h-5 p-1 bg-primary rounded-sm

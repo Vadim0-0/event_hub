@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import type { Conversation, Message } from '~/types/messaging';
   import { onClickOutside } from '@vueuse/core';
+  import type { UserListItem } from '~/types/user';
 
   useHead({
     title: 'Chats',
@@ -30,9 +31,21 @@
   const messagesContent = ref<HTMLElement | null>(null);
   const isChatSettingsOpen = ref(false);
   const chatSettingsRef = ref<HTMLElement | null>(null);
+  const isNewChatMode = ref(false);
+  const sidebarListRef = ref<HTMLElement | null>(null);
+  const isStartingChat = ref(false);
 
 
   // --- Conversations list ---
+  const {
+    users,
+    pending: usersPending,
+    isLoadingMore: isLoadingMoreUsers,
+    hasMore: hasMoreUsers,
+    loadMore: loadMoreAvailableUsers,
+    refresh: refreshAvailableUsers,
+  } = useAvailableUsersList(isNewChatMode, search);
+
   const {
     conversations,
     pending: conversationsPending,
@@ -151,8 +164,50 @@
     refreshConversations();
   };
 
+  function mapUserToListItem(user: UserListItem): Conversation {
+    return {
+      id: `user-${user.id}`,
+      participant: {
+        id: user.id,
+        username: user.username,
+      },
+      last_message: null,
+      unread_count: 0,
+      updated_at: user.created_at,
+    };
+  };
+
 
   // --- Change Chats ---
+  function toggleNewChatMode() {
+    isNewChatMode.value = !isNewChatMode.value;
+    
+    if (isNewChatMode.value) {
+      void refreshAvailableUsers();
+    }
+  };
+
+  async function startChatWithUser(recipientId: number) {
+    if (isStartingChat.value) return;
+
+    isStartingChat.value = true;
+    try {
+      const conversation = await api<Conversation>('/conversations/', {
+        method: 'POST',
+        body: { recipient_id: recipientId },
+      });
+
+      isNewChatMode.value = false;
+      await refreshConversations();
+      await selectConversation(conversation);
+    } catch (e) {
+      const parsed = parseApiError(e);
+      notifications.error('Error', parsed.formError || 'Failed to start chat');
+    } finally {
+      isStartingChat.value = false;
+    }
+  };
+
   function openClearConfirm() {
     if (!selectedConversationId.value) return;
     isChatSettingsOpen.value = false;
@@ -246,6 +301,22 @@
   onClickOutside(chatSettingsRef, () => {
     isChatSettingsOpen.value = false;
   });
+
+  function onSidebarListScroll() {
+    if (!isNewChatMode.value || !hasMoreUsers.value || isLoadingMoreUsers.value) {
+      return;
+    }
+
+    const container = sidebarListRef.value;
+    if (!container) return;
+
+    const distanceFromBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight;
+
+    if (distanceFromBottom < 80) {
+      void loadMoreAvailableUsers();
+    }
+  }
   
 </script>
 
@@ -269,10 +340,10 @@
 
         <div 
           class="
+            relative
             flex flex-col flex-1 max-w-90 p-2.5
             border border-fifth rounded-sm
           "
-        
           >
 
           <div
@@ -296,24 +367,49 @@
             />
           </div>
 
-          <div class="relative flex flex-col gap-1 flex-1 overflow-y-auto">
+          <div 
+            ref="sidebarListRef" 
+            class="relative flex flex-col gap-1 flex-1 overflow-y-auto"
+            data-lenis-prevent
+            @scroll="onSidebarListScroll"
+          >
             <div 
-              v-if="conversationsPending"
+              v-if="isNewChatMode ? usersPending : conversationsPending"
               class="px-3 py-2 bg-primary-light rounded-sm">
               <p class="text-body-sm text-text-main">
                 Loading...
               </p>
             </div>
             <div 
-              v-else-if="!conversations.length"
+              v-else-if="isNewChatMode ? !users.length : !conversations.length"
               class="px-3 py-2 bg-primary-light rounded-sm">
               <p class="text-body-sm text-text-main">
-                No conversations yet
+                {{ isNewChatMode ? 'No users found' : 'No conversations yet' }}
               </p>
             </div>
+
+            <!-- Users -->
             <TransitionGroup
+              v-else-if="isNewChatMode"
               tag="ul"
-              name="conversation-item"
+              name="conversation-list"
+              class="absolute top-0 left-0 flex flex-col gap-2.5 w-full bg-fourth"
+            >
+              <ConversationItem
+                v-for="user in users"
+                :key="user.id"
+                :conversation="mapUserToListItem(user)"
+                :show-meta="false"
+                preview-text="Start chat"
+                @select="startChatWithUser(user.id)"
+              />
+            </TransitionGroup>
+
+            <!-- Conversations -->
+            <TransitionGroup
+              v-else
+              tag="ul"
+              name="conversation-list"
               class="absolute top-0 left-0 flex flex-col gap-2.5 w-full bg-fourth"
             >
               <ConversationItem
@@ -325,6 +421,18 @@
               />
             </TransitionGroup>
           </div>
+
+          <button
+            class="group absolute bottom-2.5 left-2.5"
+            @click="toggleNewChatMode"
+          >
+            <Icon
+              :name="isNewChatMode ? 'weui:arrow-outlined' : 'ri:chat-new-fill'"
+              mode="svg"
+              class="size-8 text-primary transition-color duration-300 ease-in-out group-hover:text-primary-hover"
+              :class="isNewChatMode ? 'rotate-180' : ''"
+            />
+          </button>
 
         </div>
 
@@ -452,7 +560,6 @@
             </p>
           </div>
         </div>
-
       </div>
     </div>
   </section>

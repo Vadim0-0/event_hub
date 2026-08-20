@@ -1,3 +1,5 @@
+import type { UserListItem } from '~/types/user';
+
 export type Message = {
   id: string
   conversation_id: string
@@ -34,4 +36,9 @@ export type MessageNewPayload = {
 export type ConversationActionPayload = {
   conversation_id: string
   for_everyone: boolean
+};
+
+export type AvailableUsersListResponse = {
+  items: UserListItem[]
+  total: number
 };
