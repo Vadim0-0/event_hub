@@ -22,7 +22,9 @@
   });
 
   const emit = defineEmits<{
-    select: [MapLocation]
+    update: [MapLocation]
+    confirm: []
+    cancel: []
   }>();
 
   const { reverseGeocode, tileUrl } = useGeoapify();
@@ -52,13 +54,13 @@
       return [props.latitude, props.longitude];
     }
     return defaultCenter;
-  }
+  };
 
   async function emitLocation(lat: number, lng: number) {
     const location = await reverseGeocode(lat, lng);
     autocomplete?.setValue(location);
-    emit('select', { location, latitude: lat, longitude: lng });
-  }
+    emit('update', { location, latitude: lat, longitude: lng });
+  };
 
   function setMarker(lat: number, lng: number) {
     if (!map || !L) return;
@@ -78,7 +80,7 @@
     }
 
     map.panTo([lat, lng]);
-  }
+  };
 
   async function initMap() {
     if (!import.meta.client || !mapContainer.value) return;
@@ -125,7 +127,7 @@
         autocomplete.on('select', (value: { properties: { lat: number; lon: number; formatted?: string } }) => {
           const { lat, lon, formatted } = value.properties;
           setMarker(lat, lon);
-          emit('select', {
+          emit('update', {
             location: formatted ?? `${lat}, ${lon}`,
             latitude: lat,
             longitude: lon,
@@ -137,7 +139,7 @@
     } finally {
       isLoading.value = false;
     }
-  }
+  };
 
   watch(
     () => [props.latitude, props.longitude] as const,
@@ -171,6 +173,7 @@
       <button 
         type="button"
         class="group ml-auto mr-2 mb-1"
+        @click="emit('confirm')"
       >
         <Icon name="akar-icons:cross" 
           class="
@@ -204,10 +207,14 @@
       </div>
 
       <div class="flex justify-end gap-2">
-        <UiButton style-type="cancel">
+        <UiButton style-type="cancel" @click="emit('cancel')">
           Cancel
         </UiButton>
-        <UiButton>
+        <UiButton
+          style-type="primary"
+          :disabled="!props.latitude || !props.longitude"
+          @click="emit('confirm')"
+        >
           Confirm
         </UiButton>
       </div>

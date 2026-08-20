@@ -17,7 +17,7 @@
   // --- Layout ---
   const headerRef = ref<{ el: HTMLElement | null } | null>(null);
   const marginLeftStyle = ref({ marginLeft: '0px' });
-  const mapIsVisible = false;
+  const mapStore = useMapStore();
 
   let resizeObserver: ResizeObserver | null = null;
 
@@ -166,7 +166,14 @@
 
   <ClientOnly>
     <Transition name="smooth-appearance">
-      <LayoutMap v-if="mapIsVisible"/>
+      <LayoutMap
+        v-if="mapStore.isOpen"
+        :latitude="mapStore.draft?.latitude ?? null"
+        :longitude="mapStore.draft?.longitude ?? null"
+        @update="mapStore.updateDraft"
+        @confirm="mapStore.confirm"
+        @cancel="mapStore.cancel"
+      />
     </Transition>
   </ClientOnly>
 </template>

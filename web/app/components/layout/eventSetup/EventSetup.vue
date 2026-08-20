@@ -25,6 +25,7 @@
   const dayjs = useDayjs();
   const api = useApi();
   const notifications = useNotificationsStore();
+  const mapStore = useMapStore();
 
 
   // === 3. FORM STATE ===
@@ -33,6 +34,9 @@
   const maxParticipants = ref<number | string>('');
   const startDate = ref('');
   const startTime = ref('');
+  const location = ref('');
+  const latitude = ref<number | null>(null);
+  const longitude = ref<number | null>(null);
 
 
   // === 4. UI STATE ===
@@ -65,6 +69,9 @@
     maxParticipants.value = '';
     startDate.value = '';
     startTime.value = '';
+    location.value = '';
+    latitude.value = null;
+    longitude.value = null;
   };
 
   function resetErrors() {
@@ -79,6 +86,9 @@
     maxParticipants.value = event.max_participants ?? '';
     startDate.value = eventStartsAt.format('YYYY-MM-DD');
     startTime.value = eventStartsAt.format('HH:mm');
+    location.value = event.location ?? '';
+    latitude.value = event.latitude ?? null;
+    longitude.value = event.longitude ?? null;
   };
 
   function validateForm() {
@@ -105,7 +115,23 @@
       description: description.value.trim() || null,
       max_participants: Number(maxParticipants.value) || null,
       starts_at: startsAt.value!.toISOString(),
+      location: location.value.trim() || null,
+      latitude: latitude.value,
+      longitude: longitude.value,
     }
+  };
+
+  function openMapPicker() {
+    mapStore.open({
+      location: location.value || null,
+      latitude: latitude.value,
+      longitude: longitude.value,
+      onConfirm: (value) => {
+        location.value = value.location;
+        latitude.value = value.latitude;
+        longitude.value = value.longitude;
+      },
+    });
   };
 
 
@@ -299,9 +325,32 @@
           placeholder="Value"
           :error-message="fieldErrors.maxParticipants"
         />
+        <UiInput
+          :model-value="location"
+          readonly
+          label="Location"
+          placeholder="Click to pick on map"
+          input-class="cursor-pointer"
+          @click="openMapPicker"
+        />
+        <div class="grid grid-cols-2 gap-2">
+          <UiInput
+            :model-value="latitude ?? ''"
+            readonly
+            label="Latitude"
+            placeholder="-90"
+          />
+          <UiInput
+            :model-value="longitude ?? ''"
+            readonly
+            label="Longitude"
+            placeholder="-180"
+          />
+        </div>
         <UiDate 
           v-model="startDate"
           label="Start date"
+          placeholder="Start date"
           :error-message="fieldErrors.startDate"
         />
         <UiTime

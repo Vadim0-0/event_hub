@@ -9,6 +9,9 @@ export interface Event {
   title: string
   description: string | null
   starts_at: string
+  location?: string | null
+  latitude?: number | null
+  longitude?: number | null
   max_participants: number | null
   participants_count: number
   created_at: string
