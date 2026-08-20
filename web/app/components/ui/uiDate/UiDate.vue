@@ -258,8 +258,8 @@
 
 <template>
   <label for="" class="ui-date" :class="[{ error: hasInputError }, props.class]">
-    <span class="ui-date__label">
-      Название
+    <span v-if="props.label" class="ui-date__label">
+      {{ props.label }}
     </span>
 
     <div ref="fieldRef" class="ui-date__body">
