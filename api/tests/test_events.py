@@ -132,7 +132,7 @@ async def test_create_event_without_coordinates(client: AsyncClient, user_data_f
 
   event_data = event_data_factory()
 
-  del event_data["longitude"]
+  del event_data["latitude"]
   del event_data["longitude"]
 
   response = await client.post(
