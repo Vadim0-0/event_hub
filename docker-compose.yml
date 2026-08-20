@@ -55,11 +55,19 @@ services:
 
       # Web UI
       WEB_APP_BASE_URL: ${WEB_APP_BASE_URL:-}
+
+      # AI
+      AI_ENABLED: ${AI_ENABLED:-true}
+      AI_BASE_URL: http://ollama:11434
+      AI_MODEL: ${AI_MODEL:-gemma2:2b}
+      AI_TIMEOUT_SECONDS: ${AI_TIMEOUT_SECONDS:-120}
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
+      ollama:
+        condition: service_started
     expose:
       - "8000" 
 
@@ -131,5 +139,15 @@ services:
       - api
       - web
 
+  ollama:
+    image: ollama/ollama:latest
+    container_name: event_hub_ollama
+    restart: unless-stopped
+    volumes:
+      - ollama_data:/root/.ollama
+    expose:
+      - "11434"
+
 volumes:
   postgres_data:
+  ollama_data:

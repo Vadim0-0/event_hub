@@ -61,6 +61,10 @@ services:
       - "1025:1025"   # SMTP
       - "8025:8025"   # Web UI
 
+  ollama:
+    ports:
+      - "11434:11434"
+
 volumes:
   pgadmin_data:
   web_node_modules:
