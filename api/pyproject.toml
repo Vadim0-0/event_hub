@@ -36,6 +36,9 @@ dependencies = [
   "redis==5.3.1",
   "aiocache==0.12.3",
   "arq==0.28.0",
+
+  # HTTP client (Ollama)
+  "httpx==0.28.1",
 ]
 
 # Optional: test and dev tools

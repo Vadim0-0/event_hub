@@ -78,6 +78,12 @@ class Settings(BaseSettings):
   email_verification_code_length: int = 6
   email_verification_resend_cooldown_seconds: int = 60
 
+  # --- AI (Ollama) ---
+  ai_enabled: bool = False
+  ai_base_url: str = "http://ollama:11434"
+  ai_model: str = "qwen2.5:3b"
+  ai_timeout_seconds: float = 120.0
+
 # Caching result
 @lru_cache
 def get_settings() -> Settings:
