@@ -19,7 +19,9 @@ from ..schemas.messaging import (
   ConversationDeleteIn,
   ConversationClearHistoryIn,
   MessageDeleteIn,
+  AvailableUsersListOut,
 )
+from ..schemas.user import UserListItemOut
 from ..services import messaging as messaging_service
 from ..notifications import dispatch
 from ..realtime import publisher
@@ -60,6 +62,36 @@ async def list_conversations(
   data = ConversationsListOut(items=items, total=total).model_dump(mode="json")
   await cache_set(redis, cache_key, data, settings.cache_ttl_seconds)
   return ConversationsListOut.model_validate(data)
+
+
+@router.get("/available-users", response_model=AvailableUsersListOut)
+async def list_available_users(
+  skip: int = 0,
+  limit: int = 30,
+  search: str | None = None,
+  db: AsyncSession = Depends(get_db),
+  current_user: User = Depends(get_current_user),
+):
+  users, total = await messaging_service.list_users_without_conversation(
+    db,
+    current_user.id,
+    skip,
+    limit,
+    search=search,
+  )
+
+  items = [
+    UserListItemOut(
+      id=user.id,
+      username=user.username,
+      email=user.email,
+      created_at=user.created_at,
+      is_me=False,
+    )
+    for user in users
+  ]
+
+  return AvailableUsersListOut(items=items, total=total)
 
 
 @router.post("/", response_model=ConversationOut, status_code=201)

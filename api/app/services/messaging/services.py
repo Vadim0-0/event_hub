@@ -26,6 +26,12 @@ async def get_or_create_conversation(db, current_user_id, recipient_id) -> Conve
 
   existing = await helpers.get_conversation_by_pair(db, current_user_id, recipient_id)
   if existing:
+    state = await helpers.get_conversation_user_state(db, existing.id, current_user_id)
+    if state and state.hidden_at is not None:
+      state.hidden_at = None
+      if state.cleared_at is None:
+        state.cleared_at = datetime.now(timezone.utc)
+      await db.commit()
     return existing
     
   u1, u2 = helpers.normalize_user_pair(current_user_id, recipient_id)
@@ -41,6 +47,7 @@ async def get_or_create_conversation(db, current_user_id, recipient_id) -> Conve
     if existing:
       state = await helpers.get_or_create_conversation_user_state(db, existing.id, current_user_id)
       state.hidden_at = None
+      state.cleared_at = None
       await db.commit()
       return existing
     
@@ -86,6 +93,8 @@ async def send_message(db, conversation_id, sender_id, body) -> Message:
     state = await helpers.get_conversation_user_state(db, conversation.id, participant_id)
     if state and state.hidden_at is not None:
       state.hidden_at = None
+      if state.cleared_at is None:
+        state.cleared_at = datetime.now(timezone.utc)
 
   await db.commit()
   await db.refresh(message)
@@ -119,6 +128,7 @@ async def delete_conversation(
   if not for_everyone:
     state = await helpers.get_or_create_conversation_user_state(db, conversation_id, user_id)
     state.hidden_at = now
+    state.cleared_at = now
     await db.commit()
     return
 
@@ -236,6 +246,40 @@ async def list_user_conversations(
     .limit(limit)
   )
   return result.scalars().all(), total
+
+
+async def list_users_without_conversation(
+  db,
+  user_id: int,
+  skip: int,
+  limit: int,
+  search: str | None = None,
+) -> tuple[list[User], int]:
+  where_clause = helpers.users_without_visible_conversation_filter(user_id)
+
+  if search and search.strip():
+    pattern = f"%{search.strip()}%"
+    where_clause = and_(
+      where_clause,
+      or_(
+        User.username.ilike(pattern),
+        User.email.ilike(pattern),
+      ),
+    )
+
+  total = await db.scalar(
+    select(func.count()).select_from(User).where(where_clause)
+  ) or 0
+
+  result = await db.execute(
+    select(User)
+    .where(where_clause)
+    .order_by(User.username.asc())
+    .offset(skip)
+    .limit(limit)
+  )
+
+  return list(result.scalars().all()), total
 
 
 async def list_messages(

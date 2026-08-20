@@ -5,6 +5,11 @@ from pydantic import BaseModel, ConfigDict, Field
 from .user import UserListItemOut
 
 
+class AvailableUsersListOut(BaseModel):
+  items: list[UserListItemOut]
+  total: int
+
+
 class MessageCreate(BaseModel):
   body: str = Field(min_length=1, max_length=4000)
 

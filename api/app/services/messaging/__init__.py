@@ -20,6 +20,7 @@ from .services import (
   list_messages,
   list_user_conversations,
   total_unread_count,
+  list_users_without_conversation,
 )
 from .helpers import (
   conversation_participant,
@@ -53,6 +54,7 @@ __all__ = [
   "list_messages",
   "list_user_conversations",
   "total_unread_count",
+  "list_users_without_conversation",
 
   "conversation_participant",
   "recipient_id",

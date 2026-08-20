@@ -175,3 +175,38 @@ def build_conversation_list_where(user_id: int, search: str | None):
       ),
     ),
   )
+
+
+def users_without_visible_conversation_filter(current_user_id: int):
+  visible_conversations = (
+    select(
+      func.coalesce(
+        func.nullif(Conversation.user1_id, current_user_id),
+        Conversation.user2_id,
+      )
+    )
+    .outerjoin(
+      ConversationUserState,
+      and_(
+        ConversationUserState.conversation_id == Conversation.id,
+        ConversationUserState.user_id == current_user_id,
+      ),
+    )
+    .where(
+      or_(
+        Conversation.user1_id == current_user_id,
+        Conversation.user2_id == current_user_id,
+      ),
+      or_(
+        ConversationUserState.hidden_at.is_(None),
+        ConversationUserState.user_id.is_(None),
+      ),
+    )
+    .scalar_subquery()
+  )
+
+  return and_(
+    User.id != current_user_id,
+    User.is_email_verified.is_(True),
+    User.id.not_in(visible_conversations),
+  )
