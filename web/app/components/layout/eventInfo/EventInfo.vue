@@ -58,6 +58,26 @@
     currentEvent.value.max_participants ?? '∞',
   );
 
+  const hasLocation = computed(() =>
+    Boolean(currentEvent.value.location?.trim()),
+  );
+
+  const locationLabel = computed(() =>
+    currentEvent.value.location?.trim() || '—',
+  );
+
+  const latitudeLabel = computed(() =>
+    currentEvent.value.latitude != null
+      ? currentEvent.value.latitude.toFixed(6)
+      : '—',
+  );
+
+  const longitudeLabel = computed(() =>
+    currentEvent.value.longitude != null
+      ? currentEvent.value.longitude.toFixed(6)
+      : '—',
+  );
+
 
   // --- User role & event status ---
   const isCreator = computed(() => eventDetails.value?.is_creator === true);
@@ -85,6 +105,12 @@
   );
 
   const isEventReadOnly = computed(() => isStarted.value);
+
+  const mapsUrl = computed(() => {
+    const { latitude, longitude } = currentEvent.value;
+    if (latitude == null || longitude == null) return null;
+    return `https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=17/${latitude}/${longitude}`;
+  });
 
   // --- Participants panel ---
   function openParticipantsUsers() {
@@ -189,6 +215,25 @@
           </p>
           <p>
             Start: <span>{{ formattedStart }}</span>
+          </p>
+          <p>
+            Location:
+            <a
+              v-if="mapsUrl"
+              :href="mapsUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="pl-2 text-primary hover:text-primary-hover underline"
+            >
+              {{ locationLabel }}
+            </a>
+            <span v-else class="pl-2">{{ locationLabel }}</span>
+          </p>
+          <p>
+            Latitude: <span>{{ latitudeLabel }}</span>
+          </p>
+          <p>
+            Longitude: <span>{{ longitudeLabel }}</span>
           </p>
           <p>
             Create: <span>{{ formattedCreatedAt }}</span>
