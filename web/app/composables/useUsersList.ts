@@ -1,6 +1,6 @@
 import type { UserListItem, UsersCount } from '~/types/user';
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 30;
 
 export function useUsersList(
   page: Ref<number>,

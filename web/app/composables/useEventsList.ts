@@ -1,6 +1,6 @@
 import type { Event, EventsCount } from '~/types/event';
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 30;
 type SortOrder = 'asc' | 'desc';
 
 export function useEventsList(
