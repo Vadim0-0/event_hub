@@ -53,7 +53,7 @@ test = [
 
 # Linting
 dev = [
-  "ruff==0.15.18",
+  "ruff==0.16.3",
 ]
 
 # Everything for local development
