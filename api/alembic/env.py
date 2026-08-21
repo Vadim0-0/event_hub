@@ -11,7 +11,7 @@ from app.database import Base
 from app.models import (
   user, event, registration, notification,
   conversation, message, conversation_read,
-  conversation_user_state, message_user_hide,
+  conversation_user_state, message_user_hide, ai_message,
 )
 from app.config import settings
 

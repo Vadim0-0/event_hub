@@ -37,6 +37,11 @@ class User(Base):
     foreign_keys="Message.sender_id",
   )
 
+  ai_messages: Mapped[list["AiMessage"]] = relationship(
+    back_populates="user",
+    cascade="all, delete-orphan",
+  )
+
   @property
   def conversations(self) -> list["Conversation"]:
     return self.conversations_as_user1 + self.conversations_as_user2
