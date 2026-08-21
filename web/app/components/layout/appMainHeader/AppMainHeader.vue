@@ -1,4 +1,5 @@
 <script setup lang="ts">
+  // --- Imports ---
   import { HeaderNavigation, HeaderProfileHover } from './components';
   import mainHeaderRaw from '~~/data/components/mainHeader.json';
   import { mapMainHeader } from '~/mappers/mainHeader';

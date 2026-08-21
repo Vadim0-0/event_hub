@@ -103,6 +103,7 @@
       {
         startsAt: startsAt.value,
         isStartInPast: isStartInPast.value,
+        mode: props.mode,
       },
     );
 

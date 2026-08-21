@@ -29,6 +29,7 @@ export function createEmptyEventSetupErrors(): EventSetupFieldErrors {
 type ValidateOptions = {
   startsAt: Dayjs | null;
   isStartInPast: boolean;
+  mode?: 'create' | 'edit';
 };
 
 export function validateEventSetupForm(
@@ -36,17 +37,20 @@ export function validateEventSetupForm(
   options: ValidateOptions,
 ): EventSetupFieldErrors {
   const errors = createEmptyEventSetupErrors();
+  const isCreateMode = options.mode !== 'edit';
 
   if (!values.title.trim()) {
     errors.title = 'Enter event name';
   };
 
-  if (!values.description.trim()) {
+  if (isCreateMode && !values.description.trim()) {
     errors.description = 'Enter description';
   };
 
   if (values.maxParticipants === '' || values.maxParticipants === null) {
-    errors.maxParticipants = 'Enter max participants';
+    if (isCreateMode) {
+      errors.maxParticipants = 'Enter max participants';
+    }
   } else if (Number(values.maxParticipants) < 1) {
     errors.maxParticipants = 'Minimum value is 1';
   };
