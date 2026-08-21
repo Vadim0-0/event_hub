@@ -1,5 +1,8 @@
 import type {
   AiChatResponse,
+  AiEventCreateResponse,
+  AiEventDraft,
+  AiEventDraftResponse,
   AiHealthResponse,
   AiMessagesListOut,
 } from '~/types/ai';
@@ -30,10 +33,26 @@ export function useAiApi() {
     return api<void>('/ai/messages', { method: 'DELETE' });
   };
 
+  function extractEventDraft(message: string) {
+    return api<AiEventDraftResponse>('/ai/events/draft', {
+      method: 'POST',
+      body: { message },
+    });
+  };
+  
+  function createEventFromDraft(draft: AiEventDraft) {
+    return api<AiEventCreateResponse>('/ai/events/create', {
+      method: 'POST',
+      body: draft,
+    });
+  };
+
   return {
     getHealth,
     listMessages,
     sendChatMessage,
     clearMessages,
+    extractEventDraft,
+    createEventFromDraft,
   };
 };

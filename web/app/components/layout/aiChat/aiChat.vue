@@ -52,6 +52,10 @@
     sendMessage: sendAiMessage,
     clearChat,
     scrollToBottom,
+    pendingEventAction,
+    isCreatingEvent,
+    confirmEventCreate,
+    cancelEventCreate,
   } = useAiChat(messagesContainer, messagesContent);
 
 
@@ -397,13 +401,35 @@
               Ask something about Event Hub
             </p>
 
-            <AiChatMessage
-              v-for="message in messages"
-              :key="message.id"
-              :body="message.body"
-              :is-mine="message.role === 'user'"
-              :time="formatMessageTime(message.created_at)"
-            />
+            <template v-for="message in messages" :key="message.id">
+              <AiChatMessage
+                :body="message.body"
+                :is-mine="message.role === 'user'"
+                :time="formatMessageTime(message.created_at)"
+              />
+
+              <div
+                v-if="pendingEventAction && String(pendingEventAction.assistantMessageId) === String(message.id)"
+                class="flex justify-start px-2 -mt-2 mb-2"
+              >
+                <div class="flex gap-2 max-w-3/5 min-w-52">
+                  <UiButton
+                    style-type="cancel"
+                    :disabled="isCreatingEvent"
+                    @click="cancelEventCreate"
+                  >
+                    Cancel
+                  </UiButton>
+                  <UiButton
+                    style-type="primary"
+                    :disabled="isCreatingEvent"
+                    @click="confirmEventCreate"
+                  >
+                    Confirm
+                  </UiButton>
+                </div>
+              </div>
+            </template>
 
             <p v-if="isSending" class="text-center text-sm text-text-secondary">
               AI is typing...

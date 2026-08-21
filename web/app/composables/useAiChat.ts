@@ -1,4 +1,4 @@
-import type { AiMessage, AiMessageOut } from '~/types/ai';
+import type { AiChatResponse, AiMessage, AiMessageOut, AiPendingEventAction } from '~/types/ai';
 
 const PAGE_SIZE = 50;
 
@@ -15,7 +15,7 @@ export function useAiChat(
   messagesContainer: Ref<HTMLElement | null>,
   messagesContent: Ref<HTMLElement | null>,
 ) {
-  const { listMessages, sendChatMessage, clearMessages: clearMessagesApi } = useAiApi();
+  const { listMessages, sendChatMessage, clearMessages: clearMessagesApi, createEventFromDraft } = useAiApi();
   const notifications = useNotificationsStore();
 
   const messages = ref<AiMessage[]>([]);
@@ -29,6 +29,9 @@ export function useAiChat(
   const hasMore = ref(false);
   const shouldStickToBottom = ref(true);
   const suppressAutoScroll = ref(false);
+
+  const pendingEventAction = ref<AiPendingEventAction | null>(null);
+  const isCreatingEvent = ref(false);
 
   async function scrollToBottom() {
     shouldStickToBottom.value = true;
@@ -160,6 +163,7 @@ export function useAiChat(
       loadedSkip.value = 0;
       hasMore.value = false;
       shouldStickToBottom.value = true;
+      pendingEventAction.value = null;
     } catch (e) {
       const parsed = parseApiError(e);
       notifications.error('AI error', parsed.formError || 'Failed to clear chat');
@@ -214,13 +218,25 @@ export function useAiChat(
 
     await scrollToBottom();
 
+    let chatData: AiChatResponse | null = null;
+
     try {
-      const data = await sendChatMessage(text);
+      chatData = await sendChatMessage(text);
       messages.value = messages.value.filter((message) => message.id !== pendingId);
-      appendFromChatResponse(text, data);
+      appendFromChatResponse(text, chatData);
       await scrollToBottom();
+
+      if (chatData.ready_to_create && chatData.draft) {
+        pendingEventAction.value = {
+          assistantMessageId: String(chatData.assistant_message_id),
+          draft: chatData.draft,
+        };
+      } else {
+        pendingEventAction.value = null;
+      }
     } catch (e) {
       messages.value = messages.value.filter((message) => message.id !== pendingId);
+      pendingEventAction.value = null;
       const parsed = parseApiError(e);
       notifications.error('AI error', parsed.formError || 'Failed to get AI response');
       throw e;
@@ -228,6 +244,39 @@ export function useAiChat(
       isSending.value = false;
     }
   }
+
+  async function confirmEventCreate() {
+    if (!pendingEventAction.value || isCreatingEvent.value) return;
+
+    isCreatingEvent.value = true;
+
+    try {
+      const result = await createEventFromDraft(pendingEventAction.value.draft);
+
+      messages.value.push({
+        id: `system-${crypto.randomUUID()}`,
+        role: 'assistant',
+        body: result.reply,
+        created_at: new Date().toISOString(),
+      });
+
+      pendingEventAction.value = null;
+
+      useEventsListRefreshStore().request();
+      useEventsStore().fetchStats();
+      notifications.success('Event created', result.event.title);
+      await scrollToBottom();
+    } catch (e) {
+      const parsed = parseApiError(e);
+      notifications.error('Error', parsed.formError || 'Failed to create event');
+    } finally {
+      isCreatingEvent.value = false;
+    }
+  };
+
+  function cancelEventCreate() {
+    pendingEventAction.value = null;
+  };
 
   watch(
     () => messages.value.at(-1)?.id,
@@ -254,5 +303,9 @@ export function useAiChat(
     sendMessage,
     scrollToBottom,
     PAGE_SIZE,
+    pendingEventAction,
+    isCreatingEvent,
+    confirmEventCreate,
+    cancelEventCreate,
   };
 }

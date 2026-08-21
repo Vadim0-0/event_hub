@@ -1,3 +1,4 @@
+import type { Event } from '~/types/event';
 export type AiMessageRole = 'user' | 'assistant';
 
 export type AiMessage = {
@@ -5,6 +6,7 @@ export type AiMessage = {
   role: AiMessageRole
   body: string
   created_at: string
+  pendingEventAction?: AiEventDraft | null
 };
 
 export type AiMessageOut = {
@@ -24,6 +26,8 @@ export type AiChatResponse = {
   model: string
   user_message_id: string
   assistant_message_id: string
+  draft?: AiEventDraft | null
+  ready_to_create?: boolean
 };
 
 export type AiHealthResponse = {
@@ -31,3 +35,33 @@ export type AiHealthResponse = {
   available: boolean
   model: string
 };
+
+
+export type AiEventDraft = {
+  title: string
+  description?: string | null
+  starts_at: string
+  location?: string | null
+  latitude?: number | null
+  longitude?: number | null
+  max_participants?: number | null
+};
+
+
+export type AiEventDraftResponse = {
+  reply: string
+  draft: AiEventDraft | null
+  ready_to_create: boolean
+};
+
+
+export type AiEventCreateResponse = {
+  reply: string
+  event: Event
+};
+
+
+export type AiPendingEventAction = {
+  assistantMessageId: string
+  draft: AiEventDraft
+}
