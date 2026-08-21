@@ -2,23 +2,26 @@
 
 > [English version](README.md)
 
-Платформа для управления мероприятиями: регистрация пользователей, создание событий, запись участников, личные сообщения и уведомления.
+Платформа для управления мероприятиями: регистрация пользователей, создание событий с картой, запись участников, личные сообщения, AI-ассистент и realtime-уведомления.
 
-Учебный pet-проект, демонстрирующий асинхронный Python, SQLAlchemy 2.0, фоновые задачи и полный стек с Docker.
+Учебный pet-проект, демонстрирующий асинхронный Python, SQLAlchemy 2.0, фоновые задачи, WebSockets и полный стек с Docker.
 
 ## Features
 
-- **Аутентификация** — подтверждение email, регистрация и вход через JWT (python-jose + bcrypt)
+- **Аутентификация** — подтверждение email через SMTP, регистрация и вход через JWT (python-jose + bcrypt)
 - **Профиль пользователя** — смена username, пароля и email с подтверждением
 - **Часовые пояса** — IANA timezone для каждого пользователя (например, `Europe/Moscow`), валидация при регистрации
-- **События** — CRUD, фильтрация, пагинация, лимиты участников, история прошедших событий
+- **События** — CRUD, фильтрация, пагинация, лимиты участников, история, локация с координатами
+- **Карты** — интерактивный выбор места на фронтенде (Geoapify + Leaflet)
 - **Регистрации** — запись и отмена участия с валидацией
-- **Сообщения** — личные чаты 1-на-1: диалоги, история, статус прочтения, счётчик непрочитанных
+- **Сообщения** — личные чаты 1-на-1: диалоги, история, unread, очистка и удаление
+- **Realtime** — WebSocket-обновления новых сообщений и счётчика unread (Redis pub/sub)
+- **AI-ассистент** — личный чат на базе Ollama с памятью диалога в PostgreSQL
 - **Уведомления** — фоновая обработка через ARQ worker и Redis (в том числе о новых сообщениях)
 - **Кэширование** — Redis для часто запрашиваемых данных (события, диалоги, unread)
-- **Frontend** — Nuxt 4 SPA с Pinia и i18n
+- **Frontend** — Nuxt 4 SPA с Pinia и i18n (страница `/chats` для user- и AI-чата)
 - **Тестирование** — pytest + httpx для ключевой логики API
-- **Инфраструктура** — Docker Compose (PostgreSQL, Redis, Nginx)
+- **Инфраструктура** — Docker Compose (PostgreSQL, Redis, Nginx, Ollama)
 
 ### Часовые пояса
 
@@ -26,12 +29,26 @@
 - Валидация через Python `zoneinfo` (например, `Asia/Tokyo`, `America/New_York`).
 - Все даты в БД хранятся в UTC (`DateTime(timezone=True)`); timezone пользователя используется для отображения на клиенте.
 
-### Сообщения
+### Сообщения и Realtime
 
 - Приватные диалоги между двумя зарегистрированными пользователями.
-- Пагинация сообщений по курсору, мягкое удаление своих сообщений.
+- Пагинация по курсору, мягкое удаление, очистка истории, удаление диалога.
 - Отслеживание прочитанных/непрочитанных и общий счётчик unread.
-- Новые сообщения создают in-app уведомления и инвалидируют кэш в Redis.
+- Новые сообщения создают in-app уведомления, инвалидируют кэш и отправляют WebSocket-события (`message.new`, `unread.updated`).
+- Подключение клиента: `WebSocket /realtime/ws?token=<JWT>`.
+
+### AI-ассистент
+
+- Опциональный помощник для авторизованных пользователей на базе [Ollama](https://ollama.com/).
+- История чата сохраняется per user; контекст передаётся модели при каждом запросе.
+- Можно отключить через `AI_ENABLED=false`, если Ollama не нужен.
+- Модель по умолчанию: `llama3.2:3b` (настраивается через `AI_MODEL`).
+
+### Локации событий
+
+- У события есть текстовое поле `location` и опциональные `latitude` / `longitude`.
+- На фронтенде используется Geoapify для геокодинга, автодополнения и тайлов карты.
+- Для карт в UI нужен `NUXT_PUBLIC_GEOAPIFY_API_KEY`.
 
 ## Tech Stack
 
@@ -41,6 +58,10 @@
 | ORM & DB | SQLAlchemy 2.0 (async), PostgreSQL 16, Alembic |
 | Auth | JWT (python-jose), bcrypt |
 | Cache & Jobs | Redis, ARQ |
+| AI | Ollama, httpx |
+| Realtime | WebSockets, Redis pub/sub |
+| Maps | Geoapify, Leaflet (frontend) |
+| Email (dev) | MailHog |
 | Frontend | Nuxt 4, Vue 3, Pinia, Tailwind CSS |
 | Tests | pytest, pytest-asyncio, httpx |
 | Infra | Docker, Docker Compose, Nginx |
@@ -75,7 +96,13 @@
    make up
    ```
 
-4. **Проверка работоспособности:**
+4. **Скачайте AI-модель (только при первом запуске, если AI включён):**
+
+   ```bash
+   make ollama-pull
+   ```
+
+5. **Проверка работоспособности:**
 
    | Сервис | URL |
    |--------|-----|
@@ -100,6 +127,8 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 | Swagger | http://localhost:8000/docs |
 | Web | http://localhost:3000 |
 | pgAdmin | http://localhost:5050 |
+| MailHog (dev) | http://localhost:8025 |
+| Ollama (dev) | http://localhost:11434 |
 | PostgreSQL | localhost:`POSTGRES_PORT` (по умолчанию 5436) |
 
 ### Полезные команды (Makefile)
@@ -111,6 +140,7 @@ make logs          # логи API
 make migrate       # применить миграции
 make migration msg="описание"  # создать миграцию
 make test-docker   # запустить pytest в контейнере
+make ollama-pull   # скачать AI-модель в Ollama
 make shell-api     # shell внутри api-контейнера
 make shell-db      # psql в postgres
 ```
@@ -136,9 +166,16 @@ make migrate
 | `POSTGRES_PORT` | Порт PostgreSQL на хосте | `5436` |
 | `SECRET_KEY` | Ключ для JWT | случайная строка |
 | `REDIS_PORT` | Порт Redis на хосте | `6379` |
+| `AI_ENABLED` | Включить AI-ассистент | `true` |
+| `AI_MODEL` | Имя модели Ollama | `llama3.2:3b` |
+| `AI_TIMEOUT_SECONDS` | Таймаут AI-запроса | `120` |
+| `SMTP_HOST` | SMTP-сервер (MailHog в dev) | `mailhog` |
+| `SMTP_PORT` | Порт SMTP | `1025` |
+| `SMTP_FROM_EMAIL` | Email отправителя | `noreply@eventhub.local` |
 | `PGADMIN_DEFAULT_EMAIL` | Email pgAdmin (dev) | `admin@local.dev` |
 | `PGADMIN_DEFAULT_PASSWORD` | Пароль pgAdmin (dev) | `admin` |
 | `NUXT_PUBLIC_API_BASE` | Базовый URL API для фронтенда | `http://localhost/api` |
+| `NUXT_PUBLIC_GEOAPIFY_API_KEY` | API-ключ Geoapify для карт | `your-key` |
 
 ## API Overview
 
@@ -162,7 +199,7 @@ make migrate
 
 | Метод | Путь | Описание |
 |-------|------|----------|
-| POST | `/events/` | Создать событие |
+| POST | `/events/` | Создать событие (поля `location`, `latitude`, `longitude`) |
 | GET | `/events/` | Предстоящие события (фильтры, пагинация) |
 | GET | `/events/history` | Прошедшие события |
 | GET | `/events/{id}` | Детали события |
@@ -177,12 +214,30 @@ make migrate
 | Метод | Путь | Описание |
 |-------|------|----------|
 | GET | `/conversations/` | Список диалогов пользователя |
-| POST | `/conversations/` | Начать или получить диалог с пользователем |
+| GET | `/conversations/available-users` | Пользователи, с которыми можно начать чат |
+| POST | `/conversations/` | Начать или получить диалог |
 | GET | `/conversations/unread-count` | Общее число непрочитанных |
 | GET | `/conversations/{id}/messages` | История сообщений (cursor pagination) |
 | POST | `/conversations/{id}/messages` | Отправить сообщение |
 | POST | `/conversations/{id}/read` | Отметить диалог прочитанным |
-| DELETE | `/conversations/{id}/soft_delete_message` | Мягкое удаление своего сообщения |
+| POST | `/conversations/{id}/clear` | Очистить историю диалога |
+| DELETE | `/conversations/{id}` | Удалить диалог |
+| DELETE | `/conversations/{id}/messages/{message_id}` | Мягкое удаление своего сообщения |
+
+### AI
+
+| Метод | Путь | Описание |
+|-------|------|----------|
+| GET | `/ai/health` | Статус AI (`enabled`, `available`, `model`) |
+| GET | `/ai/messages` | История AI-чата пользователя |
+| POST | `/ai/chat` | Отправить сообщение ассистенту |
+| DELETE | `/ai/messages` | Очистить историю AI-чата |
+
+### Realtime
+
+| Протокол | Путь | Описание |
+|----------|------|----------|
+| WebSocket | `/realtime/ws?token=<JWT>` | Live-обновления: `message.new`, `unread.updated` |
 
 ### Прочее
 
@@ -195,9 +250,9 @@ make migrate
 
 ```
 event_hub/
-├── api/           # FastAPI backend, миграции, тесты, ARQ worker
-├── web/           # Nuxt frontend
-├── nginx/         # Reverse proxy (API + Web)
+├── api/           # FastAPI backend, миграции, тесты, ARQ worker, AI и realtime
+├── web/           # Nuxt frontend (события, чаты, карта, AI-виджет)
+├── nginx/         # Reverse proxy (API + Web + WebSocket upgrade)
 ├── docker/        # Init-скрипты для PostgreSQL
 ├── docker-compose.yml
 ├── docker-compose.dev.yml
