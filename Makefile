@@ -23,7 +23,7 @@ COMPOSE      = docker compose
 COMPOSE_DEV  = $(COMPOSE) -f docker-compose.yml -f docker-compose.dev.yml
 API_CONTAINER = event_hub_api
 DB_CONTAINER  = event_hub_postgres
-AI_MODEL     ?= llama3.2:3b
+AI_MODEL     ?= qwen2.5:3b
 
 help: ## Show available commands
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
