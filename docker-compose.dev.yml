@@ -40,7 +40,7 @@ services:
       - api
 
   pgadmin:
-    image: dpage/pgadmin4:8
+    image: dpage/pgadmin4:2026-07-30-1
     container_name: event_hub_pgadmin
     restart: unless-stopped
     environment:
