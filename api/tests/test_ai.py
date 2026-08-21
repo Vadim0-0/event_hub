@@ -31,7 +31,7 @@ async def test_ai_chat_success(client: AsyncClient, user_data_factory):
     patch("app.config.settings.ai_enabled", True),
     patch(
       "app.routers.ai.ai_service.chat",
-      new=AsyncMock(return_value=("Привет! Чем могу помочь?", "llama3.2:3b")),
+      new=AsyncMock(return_value=("Привет! Чем могу помочь?", "qwen2.5:3b")),
     )
   ):
     response = await client.post(
@@ -43,7 +43,7 @@ async def test_ai_chat_success(client: AsyncClient, user_data_factory):
   assert response.status_code == 200
   data = response.json()
   assert data["reply"] == "Привет! Чем могу помочь?"
-  assert data["model"] == "llama3.2:3b"
+  assert data["model"] == "qwen2.5:3b"
 
 
 @pytest.mark.asyncio

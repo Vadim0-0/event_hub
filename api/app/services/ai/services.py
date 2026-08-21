@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...config import settings
 from ...models.ai_message import AiMessage
+from ...schemas.ai import AiEventDraft
 from .exceptions import AiDisabledError, AiEmptyMessageError, AiRequestError, AiUnavailableError
 from . import helpers
 from . import prompts
@@ -145,7 +146,8 @@ async def chat_with_memory(
   db: AsyncSession,
   user_id: int,
   message: str,
-) -> tuple[str, str, AiMessage, AiMessage]:
+  user_timezone: str = "UTC",
+) -> tuple[str, str, AiMessage, AiMessage, AiEventDraft | None, bool]:
   if not settings.ai_enabled:
     raise AiDisabledError()
 
@@ -153,14 +155,27 @@ async def chat_with_memory(
   if not text:
     raise AiEmptyMessageError()
 
-
   history_rows = await get_recent_history(db, user_id)
   history = helpers.history_from_db_rows(history_rows)
 
   user_message = await save_message(db, user_id, "user", text)
 
-  ollama_messages = helpers.build_ollama_messages(history, text)
-  reply_text = await call_ollama(ollama_messages)
+  draft: AiEventDraft | None = None
+  ready_to_create = False
+
+  if helpers.is_event_creation_context(text, history):
+    from .event_actions import extract_event_draft
+
+    reply_language = helpers.detect_reply_language(text, history)
+    draft_context = helpers.build_event_draft_context(history, text)
+    reply_text, draft, ready_to_create = await extract_event_draft(
+      draft_context,
+      user_timezone,
+      reply_language,
+    )
+  else:
+    ollama_messages = helpers.build_ollama_messages(history, text, user_timezone)
+    reply_text = await call_ollama(ollama_messages)
 
   assistant_message = await save_message(db, user_id, "assistant", reply_text)
-  return reply_text, settings.ai_model, user_message, assistant_message
+  return reply_text, settings.ai_model, user_message, assistant_message, draft, ready_to_create

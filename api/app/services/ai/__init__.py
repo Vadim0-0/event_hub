@@ -11,6 +11,10 @@ from .services import (
   call_ollama,
   chat_with_memory,
 ) 
+from .event_actions import (
+  extract_event_draft,
+  create_event_from_draft,
+)
 
 __all__ = [
   "AiDisabledError",
@@ -26,4 +30,7 @@ __all__ = [
   "clear_user_messages",
   "call_ollama",
   "chat_with_memory",
+
+  "extract_event_draft",
+  "create_event_from_draft",
 ]
