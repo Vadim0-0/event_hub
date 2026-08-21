@@ -5,18 +5,25 @@
 # make logs
 # make migrate
 # make migration msg="add index to events"
+# make ollama-pull   # download AI model into Ollama
 # make test          # run locally
 # make shell-db
 
 
 .PHONY: help up dev down restart logs ps build clean \
         migrate migration shell-api shell-db test test-docker \
-        lint format
+        ollama-pull lint format
+
+ifneq (,$(wildcard .env))
+  include .env
+  export
+endif
 
 COMPOSE      = docker compose
 COMPOSE_DEV  = $(COMPOSE) -f docker-compose.yml -f docker-compose.dev.yml
 API_CONTAINER = event_hub_api
 DB_CONTAINER  = event_hub_postgres
+AI_MODEL     ?= llama3.2:3b
 
 help: ## Show available commands
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -74,6 +81,11 @@ test: ## Run pytest locally (requires postgres + api/tests/.env.test)
 
 test-docker: ## Run pytest inside api container
 	$(COMPOSE) exec api pytest -v
+
+# --- Ollama ---
+
+ollama-pull:
+	$(COMPOSE) exec ollama ollama pull $(AI_MODEL)
 
 # --- Ruff ---
 lint:
