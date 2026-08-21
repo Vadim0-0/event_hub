@@ -12,6 +12,7 @@
   const authStore = useAuthStore();
   const { onEvent } = useRealtime();
   const confirmStore = useConfirmStore();
+  const aiChatStore = useAiChatStore();
 
 
   // --- Layout ---
@@ -176,6 +177,8 @@
       />
     </Transition>
   </ClientOnly>
+
+  <LayoutAiChat v-if="aiChatStore.isOpen" />
 </template>
 
 <style scoped lang="scss">

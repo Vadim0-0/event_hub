@@ -263,6 +263,15 @@
     eventSetupStore.openCreate();
   };
 
+
+  // --- AI Chat ---
+  const aiChatStore = useAiChatStore();
+
+  function aiChatOpen(event: MouseEvent) {
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+    aiChatStore.open(rect)
+  };
+
 </script>
 
 <template>
@@ -388,16 +397,31 @@
           </TransitionGroup>
         </template>
 
-        <UiButton
-          v-if="isAllEventsPage || isMyEventsPage || isJoinedEventsPage"
-          @click="openCreateEvent"
-          class="
-            absolute z-3 bottom-0.5 right-0.5
-            w-11 h-11
-          "
-        >
-          <Icon name="line-md:plus" mode="svg" class="w-full h-full"/>
-        </UiButton>
+        <div class="
+          absolute z-3 bottom-0.5 right-0.5
+          flex gap-1
+        ">
+          <Transition name="ai-btn-hide">
+            <UiButton
+              v-if="!aiChatStore.isOpen"
+              key="ai-chat-trigger"
+              class="w-11 h-11"
+              @click="aiChatOpen"
+            >
+              <Icon name="mingcute:ai-fill" mode="svg" class="size-full" />
+            </UiButton>
+          </Transition>
+          <UiButton
+            v-if="isAllEventsPage || isMyEventsPage || isJoinedEventsPage"
+            @click="openCreateEvent"
+            class="
+              w-11 h-11
+            "
+          >
+            <Icon name="line-md:plus" mode="svg" class="w-full h-full"/>
+          </UiButton>
+        </div>
+
       </div>
       <div>
         <LayoutPagination
@@ -442,5 +466,17 @@
   .event-card-leave-to {
     opacity: 0;
     transform: scale(0.95);
+  }
+
+  /* AiChat Button */
+  .ai-btn-hide-enter-active,
+  .ai-btn-hide-leave-active {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  .ai-btn-hide-enter-from,
+  .ai-btn-hide-leave-to {
+    opacity: 0;
+    transform: scale(0.6);
   }
 </style>
