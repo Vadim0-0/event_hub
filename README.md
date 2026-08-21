@@ -16,7 +16,7 @@ A learning pet project showcasing async Python, SQLAlchemy 2.0, background jobs,
 - **Registrations** — join and leave events with validation
 - **Messaging** — 1-on-1 chats: conversations, history, read status, unread counter, clear/delete
 - **Realtime** — WebSocket updates for new messages and unread counts (Redis pub/sub)
-- **AI assistant** — personal chat powered by Ollama with conversation memory stored in PostgreSQL
+- **AI assistant** — personal chat powered by Ollama with conversation memory; can create events directly in chat
 - **Notifications** — background processing via ARQ worker and Redis (including new messages)
 - **Caching** — Redis for frequently accessed data (events, conversations, unread counts)
 - **Frontend** — Nuxt 4 SPA with Pinia and i18n (`/chats` page for user and AI chat)
@@ -42,7 +42,17 @@ A learning pet project showcasing async Python, SQLAlchemy 2.0, background jobs,
 - Optional assistant for authenticated users, backed by [Ollama](https://ollama.com/).
 - Chat history is persisted per user; context is sent to the model on each request.
 - Can be disabled with `AI_ENABLED=false` when Ollama is not needed.
-- Default model: `llama3.2:3b` (configurable via `AI_MODEL`).
+- Default model: `qwen2.5:3b` (configurable via `AI_MODEL`).
+
+**Creating events via AI chat**
+
+1. Open the AI widget on any events page (robot icon in the bottom-right corner).
+2. Ask to create an event — e.g. *"Create an event"* or *"Создай событие"*.
+3. The assistant collects missing fields in conversation: title, date/time (in the user's timezone), optional description, location, and max participants.
+4. When enough data is collected, the API returns a `draft` with `ready_to_create: true` and a **Confirm** button appears in the chat.
+5. After confirmation, the event is created via `POST /ai/events/create` and appears in **My Events**.
+
+The assistant also answers UI questions (*"how to create an event"*, *"куда нажать"*) with step-by-step navigation hints, without starting the in-chat creation flow.
 
 ### Event Locations
 
@@ -167,7 +177,7 @@ To run pytest locally without Docker, configure `api/tests/.env.test` using `api
 | `SECRET_KEY` | JWT signing key | random string |
 | `REDIS_PORT` | Redis port on the host | `6379` |
 | `AI_ENABLED` | Enable AI assistant | `true` |
-| `AI_MODEL` | Ollama model name | `llama3.2:3b` |
+| `AI_MODEL` | Ollama model name | `qwen2.5:3b` |
 | `AI_TIMEOUT_SECONDS` | AI request timeout | `120` |
 | `SMTP_HOST` | SMTP server (MailHog in dev) | `mailhog` |
 | `SMTP_PORT` | SMTP port | `1025` |
@@ -230,7 +240,8 @@ Full documentation is available in Swagger (`/docs`). Summary:
 |--------|------|-------------|
 | GET | `/ai/health` | AI service status (`enabled`, `available`, `model`) |
 | GET | `/ai/messages` | User's AI chat history |
-| POST | `/ai/chat` | Send a message to the assistant |
+| POST | `/ai/chat` | Send a message (may return `draft` + `ready_to_create`) |
+| POST | `/ai/events/create` | Create an event from a confirmed draft |
 | DELETE | `/ai/messages` | Clear AI chat history |
 
 ### Realtime
