@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-  import type { UserListItem } from '~/types/user';
+  import type { UserListItem } from '~/types/domain/user';
 
   const props = defineProps<{
     user: UserListItem

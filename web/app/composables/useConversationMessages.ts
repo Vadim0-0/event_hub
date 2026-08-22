@@ -1,4 +1,4 @@
-import type { Message } from '~/types/messaging';
+import type { Message } from '~/types/domain/messaging';
 
 const PAGE_SIZE = 50;
 

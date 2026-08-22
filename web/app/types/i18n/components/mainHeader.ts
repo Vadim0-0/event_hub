@@ -1,4 +1,4 @@
-import type { LocalizedScalar } from '~/types/localizedPage';
+import type { LocalizedScalar } from '~/types/i18n/localizedPage';
 
 export type StatisticCountKey = 'createdCount' | 'joinedCount';
 

@@ -1,7 +1,7 @@
 import { pickScalar } from '~/composables/useLocalization';
-import type { JoinedEventsPageRaw } from '~/types/joinedEventsPage';
+import type { AllEventsPageRaw } from '~/types/i18n/pages/events/allEventsPage';
 
-export function mapJoinedEventsPage(data: JoinedEventsPageRaw, locale: string) {
+export function mapAllEventsPage(data: AllEventsPageRaw, locale: string) {
   return {
     title: pickScalar(data.title, locale),
     infoText: pickScalar(data.infoText, locale),

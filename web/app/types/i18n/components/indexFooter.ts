@@ -1,4 +1,4 @@
-import type { LocalizedArray } from '~/types/localizedPage';
+import type { LocalizedArray } from '~/types/i18n/localizedPage';
 
 export type IndexFooterRaw = {
   email: {

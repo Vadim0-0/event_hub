@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import indexRaw from '~~/data/pages/index.json'
-  import { mapIndexPage } from '~/mappers/indexPage'
-  import type { IndexPageRaw } from '~/types/indexPage'
+  import { mapIndexPage } from '~/mappers/pages/indexPage'
+  import type { IndexPageRaw } from '~/types/i18n/pages/indexPage'
 
   const { content } = usePageContent(
     indexRaw as IndexPageRaw[],

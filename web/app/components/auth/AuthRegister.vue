@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { mapAuthPage } from '~/mappers/authPage';
+  import { mapAuthPage } from '~/mappers/pages/authPage';
 
   type AuthPageMapped = ReturnType<typeof mapAuthPage>;
 

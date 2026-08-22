@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import type { Event } from '~/types/event';
+import type { Event } from '~/types/domain/event';
 
 type EventSetupMode = 'create' | 'edit';
 

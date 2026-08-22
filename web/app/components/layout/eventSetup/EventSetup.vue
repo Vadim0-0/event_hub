@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import type { Event } from '~/types/event';
+  import type { Event } from '~/types/domain/event';
   import {
     createEmptyEventSetupErrors,
     validateEventSetupForm,

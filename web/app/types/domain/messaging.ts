@@ -1,4 +1,4 @@
-import type { UserListItem } from '~/types/user';
+import type { UserListItem } from '~/types/domain/user';
 
 export type Message = {
   id: string

@@ -1,10 +1,19 @@
 <script setup lang="ts">
-  import type { Conversation, Message } from '~/types/messaging';
+  import type { Conversation, Message } from '~/types/domain/messaging';
   import { onClickOutside } from '@vueuse/core';
-  import type { UserListItem } from '~/types/user';
+  import type { UserListItem } from '~/types/domain/user';
+  import chatsPageRaw from '~~/data/pages/chatsPage.json';
+  import { mapChatsPage } from '~/mappers/pages/chatsPage';
+  import type { ChatsPageRaw } from '~/types/i18n/pages/chatsPage';
+
+  const { locale } = useI18n();
+  
+  const content = computed(() =>
+    mapChatsPage((chatsPageRaw as ChatsPageRaw[])[0]!, locale.value),
+  );
 
   useHead({
-    title: 'Chats',
+    title: computed(() => content.value.title),
   });
 
   // --- Meta ---
@@ -15,7 +24,14 @@
 
 
   // --- Composables ---
-  const api = useApi();
+  const {
+    getUnreadCount,
+    markConversationRead,
+    sendConversationMessage,
+    createConversation,
+    clearConversation,
+    deleteConversation,
+  } = useMessagingApi();
   const authStore = useAuthStore();
   const messagingStore = useMessagingStore();
   const confirmStore = useConfirmStore();
@@ -75,8 +91,8 @@
 
 
   async function markAsRead(conversationId: string) {
-    await api(`/conversations/${conversationId}/read`, { method: 'POST' });
-    const data = await api<{ total: number }>('/conversations/unread-count');
+    await markConversationRead(conversationId);
+    const data = await getUnreadCount();
     messagingStore.setUnreadTotal(data.total);
   };
 
@@ -102,9 +118,9 @@
     if (!body || !selectedConversationId.value || isSending.value) return;
     isSending.value = true;
     try {
-      const sent = await api<Message>(
-        `/conversations/${selectedConversationId.value}/messages`,
-        { method: 'POST', body: { body } },
+      const sent = await sendConversationMessage(
+        selectedConversationId.value,
+        body,
       );
       appendMessage(sent);
       draft.value = '';
@@ -181,7 +197,7 @@
   // --- Change Chats ---
   function toggleNewChatMode() {
     isNewChatMode.value = !isNewChatMode.value;
-    
+
     if (isNewChatMode.value) {
       void refreshAvailableUsers();
     }
@@ -192,17 +208,14 @@
 
     isStartingChat.value = true;
     try {
-      const conversation = await api<Conversation>('/conversations/', {
-        method: 'POST',
-        body: { recipient_id: recipientId },
-      });
+      const conversation = await createConversation(recipientId);
 
       isNewChatMode.value = false;
       await refreshConversations();
       await selectConversation(conversation);
     } catch (e) {
       const parsed = parseApiError(e);
-      notifications.error('Error', parsed.formError || 'Failed to start chat');
+      notifications.error(content.value.errorTitle, content.value.startChatError)
     } finally {
       isStartingChat.value = false;
     }
@@ -214,11 +227,11 @@
 
     confirmStore.open({
       variant: 'default',
-      title: 'Clear chat history?',
-      description: 'Messages will be removed from this chat.',
-      confirmLabel: 'Clear',
+      title: content.value.confirmClearTitle,
+      description: content.value.confirmClearDescription,
+      confirmLabel: content.value.confirmClearButton,
       showCheckbox: true,
-      checkboxLabel: 'Clear for everyone',
+      checkboxLabel: content.value.confirmClearForEveryone,
       onConfirm: async ({ forEveryone }) => {
         await clearChatHistory(selectedConversationId.value!, forEveryone);
       },
@@ -231,11 +244,11 @@
 
     confirmStore.open({
       variant: 'delete',
-      title: 'Delete chat?',
-      description: 'You will lose access to this conversation.',
-      confirmLabel: 'Delete',
+      title: content.value.confirmDeleteTitle,
+      description: content.value.confirmDeleteDescription,
+      confirmLabel: content.value.confirmDeleteButton,
       showCheckbox: true,
-      checkboxLabel: 'Delete for everyone',
+      checkboxLabel: content.value.confirmDeleteForEveryone,
       onConfirm: async ({ forEveryone }) => {
         await deleteChat(selectedConversationId.value!, forEveryone);
       },
@@ -243,40 +256,34 @@
   };
 
   async function refreshUnreadTotal() {
-    const data = await api<{ total: number }>('/conversations/unread-count');
+    const data = await getUnreadCount();
     messagingStore.setUnreadTotal(data.total);
   };
 
   async function clearChatHistory(conversationId: string, forEveryone = false) {
     try {
-      await api(`/conversations/${conversationId}/clear`, {
-        method: 'POST',
-        body: { for_everyone: forEveryone },
-      });
+      await clearConversation(conversationId, forEveryone);
 
       clearMessages();
       await refreshConversations();
       await refreshUnreadTotal();
     } catch (e) {
       const parsed = parseApiError(e);
-      notifications.error('Error', parsed.formError || 'Failed to clear chat history');
+      notifications.error(content.value.errorTitle, parsed.formError || content.value.startChatError);
       throw e;
     }
   };
 
   async function deleteChat(conversationId: string, forEveryone = false) {
     try {
-      await api(`/conversations/${conversationId}`, {
-        method: 'DELETE',
-        body: { for_everyone: forEveryone },
-      });
+      await clearConversation(conversationId, forEveryone);
 
       closeChat();
       await refreshConversations();
       await refreshUnreadTotal();
     } catch (e) {
       const parsed = parseApiError(e);
-      notifications.error('Error', parsed.formError || 'Failed to delete chat');
+      notifications.error(content.value.errorTitle, parsed.formError || content.value.deleteChatError);
       throw e;
     }
   };
@@ -332,7 +339,7 @@
             text-4xl font-semibold text-text-main 
           "
         >
-          Chats
+          {{ content.title }}
         </h1>
       </div>
 
@@ -360,7 +367,7 @@
             <UiInput 
               v-model="search"
               type="search"
-              placeholder="Search..."
+              :placeholder="content.searchPlaceholder"
               input-class="
               !bg-transparent !py-2 !text-base
               "
@@ -377,14 +384,14 @@
               v-if="isNewChatMode ? usersPending : conversationsPending"
               class="px-3 py-2 bg-primary-light rounded-sm">
               <p class="text-body-sm text-text-main">
-                Loading...
+                {{ content.loading }}
               </p>
             </div>
             <div 
               v-else-if="isNewChatMode ? !users.length : !conversations.length"
               class="px-3 py-2 bg-primary-light rounded-sm">
               <p class="text-body-sm text-text-main">
-                {{ isNewChatMode ? 'No users found' : 'No conversations yet' }}
+                {{ isNewChatMode ? content.emptyUsers : content.emptyConversations }}
               </p>
             </div>
 
@@ -400,7 +407,7 @@
                 :key="user.id"
                 :conversation="mapUserToListItem(user)"
                 :show-meta="false"
-                preview-text="Start chat"
+                :preview-text="content.startChatPreview"
                 @select="startChatWithUser(user.id)"
               />
             </TransitionGroup>
@@ -483,7 +490,7 @@
                     {{ selectedConversation?.participant.username }}
                   </h3>
                   <p class="text-text-secondary text-sm whitespace-nowrap">
-                    Chat
+                    {{ content.chatSubtitle }}
                   </p>
                 </div>
               </div>
@@ -532,7 +539,7 @@
               <div class="w-full">
                 <UiInput
                   v-model="draft"
-                  placeholder="Type a message..."
+                  :placeholder="content.messagePlaceholder"
                   input-class="!bg-third !py-2 !text-base"
                   @keydown.enter.prevent="sendMessage"
                 />
@@ -556,7 +563,7 @@
             bg-primary-light"
           >
             <p class="text-center text-text-main text-xl font-semibold">
-              Select a chat to start chatting
+              {{ content.emptyState }}
             </p>
           </div>
         </div>

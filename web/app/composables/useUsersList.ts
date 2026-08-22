@@ -1,4 +1,4 @@
-import type { UserListItem, UsersCount } from '~/types/user';
+import type { UserListItem, UsersCount } from '~/types/domain/user';
 
 const PAGE_SIZE = 30;
 

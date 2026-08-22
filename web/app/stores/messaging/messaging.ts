@@ -2,7 +2,7 @@ import type {
   Message,
   MessageNewPayload,
   ConversationActionPayload,
-} from '~/types/messaging';
+} from '~/types/domain/messaging';
 
 export const useMessagingStore = defineStore('messaging', () => {
   const unreadTotal = ref(0);

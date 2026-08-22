@@ -1,5 +1,5 @@
 import { pickScalar, pickArray, expandItems } from '~/composables/useLocalization';
-import type { IndexPageRaw } from '~/types/indexPage';
+import type { IndexPageRaw } from '~/types/i18n/pages/indexPage';
 
 export function mapIndexPage(data: IndexPageRaw, locale: string) {
   const { hero, howWork, forWork, advantages } = data.sections;

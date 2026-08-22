@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-  import type { Event } from '~/types/event';
+  import type { Event } from '~/types/domain/event';
 
   const props = defineProps<{ 
     event: Event 

@@ -1,5 +1,5 @@
 import { resolveI18nLocaleCode } from '~~/i18n.options'
-import type { LocalizedScalar, LocalizedArray } from '~/types/localizedPage'
+import type { LocalizedScalar, LocalizedArray } from '~/types/i18n/localizedPage'
 
 export function pickScalar(field: LocalizedScalar, locale: string): string {
   const code = resolveI18nLocaleCode(locale)

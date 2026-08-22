@@ -1,4 +1,4 @@
-import type { Event } from '~/types/event';
+import type { Event } from '~/types/domain/event';
 export type AiMessageRole = 'user' | 'assistant';
 
 export type AiMessage = {

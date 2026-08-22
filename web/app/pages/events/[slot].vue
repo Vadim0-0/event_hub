@@ -6,17 +6,17 @@
   import historyEventsPageRaw from '~~/data/pages/events/historyEventsPage.json'
   import usersPageRaw from '~~/data/pages/events/usersPage.json'
   
-  import { mapAllEventsPage } from '~/mappers/allEventsPage';
-  import { mapMyEventsPage } from '~/mappers/myEventsPage';
-  import { mapJoinedEventsPage } from '~/mappers/joinedEventsPage';
-  import { mapHistoryEventsPage } from '~/mappers/historyEventsPage';
-  import { mapUsersPage } from '~/mappers/usersPage';
+  import { mapAllEventsPage } from '~/mappers/pages/events/allEventsPage';
+  import { mapMyEventsPage } from '~/mappers/pages/events/myEventsPage';
+  import { mapJoinedEventsPage } from '~/mappers/pages/events/joinedEventsPage';
+  import { mapHistoryEventsPage } from '~/mappers/pages/events/historyEventsPage';
+  import { mapUsersPage } from '~/mappers/pages/events/usersPage';
 
-  import type { AllEventsPageRaw } from '~/types/allEventsPage';
-  import type { MyEventsPageRaw } from '~/types/myEventsPage';
-  import type { JoinedEventsPageRaw } from '~/types/joinedEventsPage';
-  import type { HistoryEventsPageRaw } from '~/types/historyEventsPage';
-  import type { UsersPageRaw } from '~/types/usersPage';
+  import type { AllEventsPageRaw } from '~/types/i18n/pages/events/allEventsPage';
+  import type { MyEventsPageRaw } from '~/types/i18n/pages/events/myEventsPage';
+  import type { JoinedEventsPageRaw } from '~/types/i18n/pages/events/joinedEventsPage';
+  import type { HistoryEventsPageRaw } from '~/types/i18n/pages/events/historyEventsPage';
+  import type { UsersPageRaw } from '~/types/i18n/pages/events/usersPage';
 
 
   // --- Meta ---

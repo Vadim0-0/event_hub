@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import type { EventDetail, Event as AppEvent } from '~/types/event';
+  import type { EventDetail, Event as AppEvent } from '~/types/domain/event';
 
 
   // --- Composables ---

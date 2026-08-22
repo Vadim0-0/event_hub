@@ -1,23 +1,19 @@
 <script setup lang="ts">
+  import chatSettingsRaw from '~~/data/components/chatSettings.json';
+  import { mapChatSettings } from '~/mappers/components/chatSettings';
+  import type { ChatSettingsRaw } from '~/types/i18n/components/chatSettings';
+
+  const { locale } = useI18n();
+  const content = computed(() =>
+    mapChatSettings((chatSettingsRaw as ChatSettingsRaw[])[0]!, locale.value),
+  );
 
   const emit = defineEmits<{
     clearHistory: [];
     deleteChat: [];
   }>();
 
-  const chatSettingsButton = [
-    {
-      icon: 'icon-park-outline:clear',
-      text: 'Clear history',
-      type: 'clearHistory' as const,
-    },
-    {
-      icon: 'line-md:trash',
-      text: 'Delete chat',
-      type: 'deleteChat' as const,
-      isDelete: true,
-    }
-  ];
+  const chatSettingsButton = computed(() => content.value.chatSettingsButton);
 
   function onAction(type: 'clearHistory' | 'deleteChat') {
     if (type === 'clearHistory') {

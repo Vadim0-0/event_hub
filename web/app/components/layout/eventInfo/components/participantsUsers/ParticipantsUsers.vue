@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import type { Participant } from '~/types/event';
+  import type { Participant } from '~/types/domain/event';
 
 
   // --- Props & Emits ---

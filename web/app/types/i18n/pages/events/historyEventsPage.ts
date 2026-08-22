@@ -1,6 +1,6 @@
-import type { LocalizedScalar } from '~/types/localizedPage';
+import type { LocalizedScalar } from '~/types/i18n/localizedPage';
 
-export type JoinedEventsPageRaw = {
+export type HistoryEventsPageRaw = {
   title: LocalizedScalar
   infoText: LocalizedScalar
   sortingButtonText: LocalizedScalar
@@ -8,7 +8,7 @@ export type JoinedEventsPageRaw = {
   emptyText: LocalizedScalar
 };
 
-export type JoinedEventsPageMapped = {
+export type HistoryEventsPageMapped = {
   title: string
   infoText: string
   sortingButtonText: string

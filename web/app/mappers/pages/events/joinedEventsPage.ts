@@ -1,10 +1,11 @@
 import { pickScalar } from '~/composables/useLocalization';
-import type { UsersPageRaw } from '~/types/usersPage';
+import type { JoinedEventsPageRaw } from '~/types/i18n/pages/events/joinedEventsPage';
 
-export function mapUsersPage(data: UsersPageRaw, locale: string) {
+export function mapJoinedEventsPage(data: JoinedEventsPageRaw, locale: string) {
   return {
     title: pickScalar(data.title, locale),
     infoText: pickScalar(data.infoText, locale),
+    sortingButtonText: pickScalar(data.sortingButtonText, locale),
     loadingErrorText: pickScalar(data.loadingErrorText, locale),
     emptyText: pickScalar(data.emptyText, locale),
   }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import indexFooterRaw from '~~/data/components/indexFooter.json'
-  import { mapIndexFooter } from '~/mappers/indexFooter'
-  import type { IndexFooterRaw } from '~/types/indexFooter'
+  import { mapIndexFooter } from '~/mappers/components/indexFooter'
+  import type { IndexFooterRaw } from '~/types/i18n/components/indexFooter'
 
   const { locale } = useI18n()
   const footerData = (indexFooterRaw as IndexFooterRaw[])[0]!

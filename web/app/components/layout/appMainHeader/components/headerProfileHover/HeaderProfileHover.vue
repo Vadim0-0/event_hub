@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import type { HeaderProfileHoverProps } from '~/types/mainHeader';
+  import type { HeaderProfileHoverProps } from '~/types/i18n/components/mainHeader';
   
   defineProps<HeaderProfileHoverProps>();
 

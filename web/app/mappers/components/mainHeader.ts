@@ -1,5 +1,5 @@
 import { pickScalar } from '~/composables/useLocalization';
-import type { MainHeaderRaw } from '~/types/mainHeader';
+import type { MainHeaderRaw } from '~/types/i18n/components/mainHeader';
 
 export function mapMainHeader(data: MainHeaderRaw, locale: string) {
   return {

@@ -1,4 +1,4 @@
-import type { BasePageData } from '~/types/localizedPage'
+import type { BasePageData } from '~/types/i18n/localizedPage'
 import { pickScalar } from './useLocalization'
 
 function resolvePageData<T>(rawData: T | T[]): T {

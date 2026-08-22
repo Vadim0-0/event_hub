@@ -1,6 +1,6 @@
 import { pickScalar } from '~/composables/useLocalization';
-import type { AuthPageRaw } from '~/types/authPage';
-import type { LocalizedScalar } from '~/types/localizedPage';
+import type { AuthPageRaw } from '~/types/i18n/pages/authPage';
+import type { LocalizedScalar } from '~/types/i18n/localizedPage';
 
 function mapNotification(
   notification: { 

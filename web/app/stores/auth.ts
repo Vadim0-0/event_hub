@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import type { User } from '~/types/user';
+import type { User } from '~/types/domain/user';
 
 export const useAuthStore = defineStore('auth', () => {
   const token = useCookie<string | null>('auth_token', { maxAge: 60 * 60 * 24 * 7 });

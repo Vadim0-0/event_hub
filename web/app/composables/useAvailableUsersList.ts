@@ -1,5 +1,5 @@
-import type { AvailableUsersListResponse } from '~/types/messaging';
-import type { UserListItem } from '~/types/user';
+import type { AvailableUsersListResponse } from '~/types/domain/messaging';
+import type { UserListItem } from '~/types/domain/user';
 
 const PAGE_SIZE = 30;
 

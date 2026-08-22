@@ -1,4 +1,4 @@
-import type { AiChatResponse, AiMessage, AiMessageOut, AiPendingEventAction } from '~/types/ai';
+import type { AiChatResponse, AiMessage, AiMessageOut, AiPendingEventAction } from '~/types/domain/ai';
 
 const PAGE_SIZE = 50;
 

@@ -55,6 +55,9 @@ export default defineNuxtConfig({
     // '@nuxtjs/eslint-module',
     'lenis/nuxt',
   ],
+  pinia: {
+    storesDirs: ['stores/**'],
+  },
   ui: {
     input: {
       defaultVariants: {

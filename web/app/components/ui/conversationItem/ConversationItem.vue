@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import type { Conversation } from '~/types/messaging';
+  import type { Conversation } from '~/types/domain/messaging';
 
   const props = withDefaults(defineProps<{
     conversation: Conversation

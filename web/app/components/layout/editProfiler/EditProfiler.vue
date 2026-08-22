@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-  import type { User } from '~/types/user';
+  import type { User } from '~/types/domain/user';
 
   const emit = defineEmits<{
     close: [];

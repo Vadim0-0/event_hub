@@ -1,5 +1,5 @@
 import { pickScalar, pickArray, expandItems } from '~/composables/useLocalization';
-import type { IndexFooterRaw } from '~/types/indexFooter';
+import type { IndexFooterRaw } from '~/types/i18n/components/indexFooter';
 
 export function mapIndexFooter(data: IndexFooterRaw, locale: string) {
   const currentYear = new Date().getFullYear()

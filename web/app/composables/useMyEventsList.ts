@@ -1,4 +1,4 @@
-import type { Event, EventsCount } from '~/types/event';
+import type { Event, EventsCount } from '~/types/domain/event';
 
 const PAGE_SIZE = 20;
 type SortOrder = 'asc' | 'desc';

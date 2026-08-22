@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import authPageRaw from '~~/data/pages/authPage.json';
-  import { mapAuthPage } from '~/mappers/authPage';
-  import type { AuthPageRaw } from '~/types/authPage';
+  import { mapAuthPage } from '~/mappers/pages/authPage';
+  import type { AuthPageRaw } from '~/types/i18n/pages/authPage';
 
   const route = useRoute();
   const router = useRouter();

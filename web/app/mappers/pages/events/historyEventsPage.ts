@@ -1,7 +1,7 @@
 import { pickScalar } from '~/composables/useLocalization';
-import type { MyEventsPageRaw } from '~/types/myEventsPage';
+import type { HistoryEventsPageRaw } from '~/types/i18n/pages/events/historyEventsPage';
 
-export function mapMyEventsPage(data: MyEventsPageRaw, locale: string) {
+export function mapHistoryEventsPage(data: HistoryEventsPageRaw, locale: string) {
   return {
     title: pickScalar(data.title, locale),
     infoText: pickScalar(data.infoText, locale),

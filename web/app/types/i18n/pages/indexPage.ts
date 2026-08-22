@@ -1,4 +1,4 @@
-import type { LocalizedScalar, LocalizedArray } from '~/types/localizedPage';
+import type { LocalizedScalar, LocalizedArray } from '~/types/i18n/localizedPage';
 
 export type IndexPageRaw = {
   title: LocalizedScalar

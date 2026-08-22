@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-  import type { Event, EventDetail } from '~/types/event';
+  import type { Event, EventDetail } from '~/types/domain/event';
   import { ParticipantsUsers } from './components';
 
 

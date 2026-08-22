@@ -5,7 +5,7 @@ import type {
   AiEventDraftResponse,
   AiHealthResponse,
   AiMessagesListOut,
-} from '~/types/ai';
+} from '~/types/domain/ai';
 
 export function useAiApi() {
   const api = useApi();

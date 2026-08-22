@@ -1,4 +1,4 @@
-import type { Participant } from '~/types/event';
+import type { Participant } from '~/types/domain/event';
 
 const PAGE_SIZE = 20;
 

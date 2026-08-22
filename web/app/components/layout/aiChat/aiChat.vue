@@ -1,7 +1,15 @@
 <script setup lang="ts">
   // --- Imports ---
   import type { CSSProperties } from 'vue';
+  import aiChatRaw from '~~/data/components/aiChat.json';
+  import { mapAiChat} from '~/mappers/components/aiChat';
+  import type { AiChatRaw } from '~/types/i18n/components/aiChat';
 
+  const { locale } = useI18n();
+  
+  const content = computed(() =>
+    mapAiChat((aiChatRaw as AiChatRaw[])[0]!, locale.value),
+  );
 
   // --- Composables ---
   const aiChatStore = useAiChatStore();

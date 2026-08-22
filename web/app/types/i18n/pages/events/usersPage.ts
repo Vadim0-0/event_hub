@@ -1,17 +1,15 @@
-import type { LocalizedScalar } from '~/types/localizedPage';
+import type { LocalizedScalar } from '~/types/i18n/localizedPage';
 
-export type MyEventsPageRaw = {
+export type UsersPageRaw = {
   title: LocalizedScalar
   infoText: LocalizedScalar
-  sortingButtonText: LocalizedScalar
   loadingErrorText: LocalizedScalar
   emptyText: LocalizedScalar
 };
 
-export type MyEventsPageMapped = {
+export type UsersPageMapped = {
   title: string
   infoText: string
-  sortingButtonText: string
   loadingErrorText: string
   emptyText: string
 };

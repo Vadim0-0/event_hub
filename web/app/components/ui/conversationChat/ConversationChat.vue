@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-  import type { Message } from '~/types/messaging';
+  import type { Message } from '~/types/domain/messaging';
 
   const props = defineProps<{
     messages: Message[]

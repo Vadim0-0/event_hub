@@ -1,4 +1,4 @@
-import type { ConversationsListResponse, Conversation } from '~/types/messaging';
+import type { ConversationsListResponse, Conversation } from '~/types/domain/messaging';
 
 const PAGE_SIZE = 50;
 

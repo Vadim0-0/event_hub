@@ -2,8 +2,8 @@
   // --- Imports ---
   import { HeaderNavigation, HeaderProfileHover } from './components';
   import mainHeaderRaw from '~~/data/components/mainHeader.json';
-  import { mapMainHeader } from '~/mappers/mainHeader';
-  import type { MainHeaderRaw, StatisticCountKey } from '~/types/mainHeader';
+  import { mapMainHeader } from '~/mappers/components/mainHeader';
+  import type { MainHeaderRaw, StatisticCountKey } from '~/types/i18n/components/mainHeader';
 
 
   // --- Composables ---

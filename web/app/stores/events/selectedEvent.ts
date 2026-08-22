@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import type { Event } from '~/types/event';
+import type { Event } from '~/types/domain/event';
 
 export const useSelectedEventStore = defineStore('selectedEvent', () => {
   const selectedEvent = ref<Event | null>(null);
