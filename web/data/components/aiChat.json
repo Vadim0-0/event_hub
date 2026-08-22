@@ -1,0 +1,40 @@
+[
+  {
+    "title": {
+      "ru": "Чат с ИИ",
+      "en": "Chat Ai"
+    },
+    "loadingOlderMessages": {
+      "ru": "Загрузка старых сообщений...",
+      "en": "Loading older messages..."
+    },
+    "beginningOfConversation": {
+      "ru": "Начало разговора",
+      "en": "Beginning of conversation"
+    },
+    "loadingMessages": {
+      "ru": "Загрузка сообщений...",
+      "en": "Loading messages..."
+    },
+    "aiUnavailable": {
+      "ru": "ИИ недоступен",
+      "en": "AI is unavailable"
+    },
+    "askSomething": {
+      "ru": "Задайте вопрос об Event Hub",
+      "en": "Ask something about Event Hub"
+    },
+    "cancelButton": {
+      "ru": "Отмена",
+      "en": "Cancel"
+    },
+    "confirmButton": {
+      "ru": "Подтвердить",
+      "en": "Confirm"
+    },
+    "typing": {
+      "ru": "ИИ печатает...",
+      "en": "AI is typing..."
+    }
+  }
+]

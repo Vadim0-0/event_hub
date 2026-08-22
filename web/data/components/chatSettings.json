@@ -1,0 +1,24 @@
+[
+  {
+    "chatSettingsButton": [
+      {
+        "icon": "icon-park-outline:clear",
+        "text": {
+          "ru": "Очистить историю",
+          "en": "Clear history"
+        },
+        "type": "clearHistory",
+        "isDelete": false
+      },
+      {
+        "icon": "line-md:trash",
+        "text": {
+          "ru": "Удалить чат",
+          "en": "Delete chat"
+        },
+        "type": "deleteChat",
+        "isDelete": true
+      }
+    ]
+  }
+]

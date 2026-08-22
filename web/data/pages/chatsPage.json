@@ -1,0 +1,88 @@
+[
+  {
+    "title": {
+      "ru": "Чаты",
+      "en": "Chats"
+    },
+    "searchPlaceholder": {
+      "ru": "Поиск...",
+      "en": "Search..."
+    },
+    "loading": {
+      "ru": "Загрузка...",
+      "en": "Loading..."
+    },
+    "emptyConversations": {
+      "ru": "Пока нет чатов",
+      "en": "No conversations yet"
+    },
+    "emptyUsers": {
+      "ru": "Пользователи не найдены",
+      "en": "No users found"
+    },
+    "startChatPreview": {
+      "ru": "Начать чат",
+      "en": "Start chat"
+    },
+    "chatSubtitle": {
+      "ru": "Чат",
+      "en": "Chat"
+    },
+    "messagePlaceholder": {
+      "ru": "Введите сообщение...",
+      "en": "Type a message..."
+    },
+    "emptyState": {
+      "ru": "Выберите чат, чтобы начать переписку",
+      "en": "Select a chat to start chatting"
+    },
+    "confirmClearTitle": {
+      "ru": "Очистить историю чата?",
+      "en": "Clear chat history?"
+    },
+    "confirmClearDescription": {
+      "ru": "Сообщения будут удалены из этого чата.",
+      "en": "Messages will be removed from this chat."
+    },
+    "confirmClearButton": {
+      "ru": "Очистить",
+      "en": "Clear"
+    },
+    "confirmClearForEveryone": {
+      "ru": "Очистить для всех",
+      "en": "Clear for everyone"
+    },
+    "confirmDeleteTitle": {
+      "ru": "Удалить чат?",
+      "en": "Delete chat?"
+    },
+    "confirmDeleteDescription": {
+      "ru": "Вы потеряете доступ к этой переписке.",
+      "en": "You will lose access to this conversation."
+    },
+    "confirmDeleteButton": {
+      "ru": "Удалить",
+      "en": "Delete"
+    },
+    "confirmDeleteForEveryone": {
+      "ru": "Удалить для всех",
+      "en": "Delete for everyone"
+    },
+    "errorTitle": {
+      "ru": "Ошибка",
+      "en": "Error"
+    },
+    "startChatError": {
+      "ru": "Не удалось начать чат",
+      "en": "Failed to start chat"
+    },
+    "clearChatError": {
+      "ru": "Не удалось очистить историю",
+      "en": "Failed to clear chat history"
+    },
+    "deleteChatError": {
+      "ru": "Не удалось удалить чат",
+      "en": "Failed to delete chat"
+    }
+  }
+]
