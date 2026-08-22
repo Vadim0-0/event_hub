@@ -1,4 +1,4 @@
-import { pickScalar } from '~/composables/useLocalization';
+import { pickScalar } from '~/composables/i18n/useLocalization';
 import type { JoinedEventsPageRaw } from '~/types/i18n/pages/events/joinedEventsPage';
 
 export function mapJoinedEventsPage(data: JoinedEventsPageRaw, locale: string) {

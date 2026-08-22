@@ -1,4 +1,4 @@
-import { pickScalar, pickArray, expandItems } from '~/composables/useLocalization';
+import { pickScalar, pickArray, expandItems } from '~/composables/i18n/useLocalization';
 import type { IndexFooterRaw } from '~/types/i18n/components/indexFooter';
 
 export function mapIndexFooter(data: IndexFooterRaw, locale: string) {

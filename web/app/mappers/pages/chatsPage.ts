@@ -1,4 +1,4 @@
-import { pickScalar } from '~/composables/useLocalization';
+import { pickScalar } from '~/composables/i18n/useLocalization';
 import type { ChatsPageRaw } from '~/types/i18n/pages/chatsPage';
 
 export function mapChatsPage(data: ChatsPageRaw, locale: string) {

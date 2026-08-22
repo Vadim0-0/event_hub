@@ -1,4 +1,4 @@
-import { pickScalar } from '~/composables/useLocalization';
+import { pickScalar } from '~/composables/i18n/useLocalization';
 import type { HistoryEventsPageRaw } from '~/types/i18n/pages/events/historyEventsPage';
 
 export function mapHistoryEventsPage(data: HistoryEventsPageRaw, locale: string) {

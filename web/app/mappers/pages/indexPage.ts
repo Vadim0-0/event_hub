@@ -1,4 +1,4 @@
-import { pickScalar, pickArray, expandItems } from '~/composables/useLocalization';
+import { pickScalar, pickArray, expandItems } from '~/composables/i18n/useLocalization';
 import type { IndexPageRaw } from '~/types/i18n/pages/indexPage';
 
 export function mapIndexPage(data: IndexPageRaw, locale: string) {

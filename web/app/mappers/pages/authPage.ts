@@ -1,4 +1,4 @@
-import { pickScalar } from '~/composables/useLocalization';
+import { pickScalar } from '~/composables/i18n/useLocalization';
 import type { AuthPageRaw } from '~/types/i18n/pages/authPage';
 import type { LocalizedScalar } from '~/types/i18n/localizedPage';
 
