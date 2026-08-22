@@ -11,7 +11,13 @@
 
   const auth = useAuthStore();
   const eventsStore = useEventsStore();
-  const api = useApi();
+  const {
+    updateUsername,
+    updateTimezone,
+    changePassword,
+    requestEmailChange,
+    confirmEmailChange,
+  } = useUserApi();
   const notifications = useNotificationsStore();
   const { timezoneOptions } = useTimezoneOptions();
   
@@ -105,48 +111,33 @@
     try {
       // 1.1 Username
       if (username.value.trim() !== auth.user?.username) {
-        const updated = await api<User>('/users/me', {
-          method: 'PATCH',
-          body: { username: username.value.trim() },
-        });
+        const updated = await updateUsername(username.value.trim());
         auth.setUser(updated);
-      }
+      };
 
       // 1.2 Timezone
       if (timezone.value !== originalTimezone.value) {
-        const updated = await api<User>('/users/me', {
-          method: 'PATCH',
-          body: { timezone: timezone.value },
-        });
+        const updated = await updateTimezone(timezone.value);
         auth.setUser(updated);
         originalTimezone.value = updated.timezone ?? timezone.value;
-      }
+      };
 
       // 2. Password
       if (currentPassword.value && newPassword.value) {
-        await api('/users/me/password', {
-          method: 'PATCH',
-          body: {
-            current_password: currentPassword.value,
-            new_password: newPassword.value,
-          },
-        });
+        await changePassword(currentPassword.value, newPassword.value);
         currentPassword.value = '';
         newPassword.value = '';
-      }
+      };
 
       // 3. Email
       if (isEmailChanged.value) {
-        await api('/users/me/email-change/request', {
-          method: 'POST',
-          body: { new_email: email.value.trim() },
-        });
+        await requestEmailChange(email.value.trim());
 
         pendingNewEmail.value = email.value.trim();
         verifyVisible.value = true;
         verificationCode.value = '';
         notifications.success('Code sent', `Check ${pendingNewEmail.value}`);
-        return; // email ещё не сохранён — ждём Verify
+        return;
       }
 
       notifications.success('Profile updated', 'Changes saved');
@@ -160,7 +151,7 @@
     }
   };
 
-  async function confirmEmailChange() {
+  async function handleConfirmEmailChange() {
     if (verificationCode.value.length !== 6) {
       fieldErrors.value.code = 'Enter the full 6-digit code';
       return;
@@ -171,10 +162,8 @@
     formError.value = '';
 
     try {
-      const updated = await api<User>('/users/me/email-change/confirm', {
-        method: 'POST',
-        body: { token: verificationCode.value },
-      });
+      const updated = await confirmEmailChange(verificationCode.value);
+      auth.setUser(updated);
 
       auth.setUser(updated);
       originalEmail.value = updated.email;
@@ -197,7 +186,7 @@
 
   async function onSubmit() {
     if (isVerifyMode.value) {
-      await confirmEmailChange();
+      await handleConfirmEmailChange();
       return;
     }
     await saveProfile();
