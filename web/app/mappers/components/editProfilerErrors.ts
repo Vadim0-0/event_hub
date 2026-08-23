@@ -56,5 +56,9 @@ export function applyEditProfilerApiErrors(
     return;
   };
 
-  formError.value = parsed.formError;
+  if (parsed.retryAfter != null) {
+    formError.value = content.emailInput.errors.resendTooSoon
+      .replace('{seconds}', String(parsed.retryAfter));
+    return;
+  };
 };

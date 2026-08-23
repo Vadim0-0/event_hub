@@ -54,6 +54,10 @@
         "empty": {
           "ru": "Введите свой адрес электронной почты",
           "en": "Enter your email"
+        },
+        "resendTooSoon": {
+          "ru": "Подождите {seconds} сек. перед повторной отправкой кода",
+          "en": "Please wait {seconds} seconds before requesting a new code"
         }
       }
     },

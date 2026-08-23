@@ -40,6 +40,7 @@ export function mapEditProfiler(data: EditProfilerRaw, locale: string) {
       placeholder: pickScalar(data.emailInput.placeholder, locale),
       errors: {
         empty: pickScalar(data.emailInput.errors.empty, locale),
+        resendTooSoon: pickScalar(data.emailInput.errors.resendTooSoon, locale),
       }
     },
     currentPasswordInput: {

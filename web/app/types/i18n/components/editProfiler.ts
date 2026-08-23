@@ -30,6 +30,7 @@ export type EditProfilerRaw = {
     placeholder: LocalizedScalar;
     errors: {
       empty: LocalizedScalar;
+      resendTooSoon: LocalizedScalar;
     };
   };
   currentPasswordInput: {
