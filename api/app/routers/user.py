@@ -275,9 +275,15 @@ async def change_password(
       current_user.id, current_user.email, current_user.username
     )
   except users_service.InvalidCurrentPasswordError as e:
-    raise HTTPException(status_code=400, detail=str(e))
+    raise HTTPException(
+      status_code=400,
+      detail={"message": str(e), "field": "current_password"},
+    )
   except users_service.SamePasswordError as e:
-    raise HTTPException(status_code=400, detail=str(e))
+    raise HTTPException(
+      status_code=400,
+      detail={"message": str(e), "field": "new_password"},
+    )
   
 
 @router.post("/me/email-change/request", response_model=EmailChangePendingOut)

@@ -1,0 +1,181 @@
+[
+  {
+    "title": {
+      "ru": "Редактировать профиль",
+      "en": "Edit Profiler"
+    },
+
+    "usernameInput": {
+      "label": {
+        "ru": "Имя",
+        "en": "Name"
+      },
+      "placeholder": {
+        "ru": "Ваше Имя",
+        "en": "Your Name"
+      },
+      "errors": {
+        "valueCharacters": {
+          "ru": "Не менее 3 символов",
+          "en": "At least 3 characters"
+        },
+        "allowedSymbols": {
+          "ru": "Только буквы, цифры, пробелы и символ «_»",
+          "en": "Only letters, numbers, spaces and _"
+        }
+      }
+    },
+    "timezoneInput": {
+      "label": {
+        "ru": "Ваш часовой пояс",
+        "en": "Your Timezone"
+      },
+      "placeholder": {
+        "ru": "Поиск часового пояса...",
+        "en": "Search timezone..."
+      },
+      "errors": {
+        "empty": {
+          "ru": "Выберите часовой пояс",
+          "en": "Select a timezone"
+        }
+      }
+    },
+    "emailInput": {
+      "label": {
+        "ru": "Почта",
+        "en": "Email"
+      },
+      "placeholder": {
+        "ru": "Ваша Почта",
+        "en": "Your Email"
+      },
+      "errors": {
+        "empty": {
+          "ru": "Введите свой адрес электронной почты",
+          "en": "Enter your email"
+        }
+      }
+    },
+    "currentPasswordInput": {
+      "label": {
+        "ru": "Текущий пароль",
+        "en": "Current Password"
+      },
+      "errors": {
+        "incorrect": {
+          "ru": "Введите свой текущий пароль",
+          "en": "Enter current password"
+        },
+        "wrongPassword": {
+          "ru": "Неверный текущий пароль",
+          "en": "Current password is incorrect"
+        },
+        "valueCharacters": {
+          "ru": "Не менее 8 символов",
+          "en": "At least 8 characters"
+        }
+      }
+    },
+    "newPasswordInput": {
+      "label": {
+        "ru": "Новый пароль",
+        "en": "New Password"
+      },
+      "errors": {
+        "valueCharacters": {
+          "ru": "Не менее 8 символов",
+          "en": "At least 8 characters"
+        },
+        "sameAsCurrent": {
+          "ru": "Новый пароль должен отличаться от текущего",
+          "en": "New password must be different from the current one"
+        }
+      }
+    },
+
+    "preview": {
+      "ru": "Предварительный просмотр",
+      "en": "Preview"
+    },
+
+    "eventCreated": {
+      "ru": "Созданные события:",
+      "en": "Events created:"
+    },
+    "joinedCreated": {
+      "ru": "Участие в мероприятиях:",
+      "en": "Joined events:"
+    },
+
+    "otpVerification": {
+      "ru": "Подтверждение OTP",
+      "en": "OTP Verification"
+    },
+    "enterCode": {
+      "ru": "Введите 6-значный код, отправленный на",
+      "en": "Enter the 6-digit code sent to"
+    },
+    "verificationCodeInput": {
+      "label": {
+        "ru": "Проверочный код",
+        "en": "Verification code"
+      },
+      "errors": {
+        "valueCharacters": {
+          "ru": "Введите полный 6-значный код",
+          "en": "Enter the full 6-digit code"
+        }
+      }
+    },
+
+    "cancelButton": {
+      "ru": "Отменить",
+      "en": "Cancel"
+    },
+    "submitButton": {
+      "verify": {
+        "ru": "Проверить",
+        "en": "Verify"
+      },
+      "save": {
+        "ru": "Сохранить изменения",
+        "en": "Save Changes"
+      }
+    },
+
+    "notifications": {
+      "codeSent": {
+        "title": {
+          "ru": "Код отправлен",
+          "en": "Code sent"
+        },
+        "message": {
+          "ru": "Проверьте",
+          "en": "Check"
+        }
+      },
+      "profileUpdated": {
+        "title": {
+          "ru": "Профиль обновлен",
+          "en": "Profile updated"
+        },
+        "message": {
+          "ru": "Изменения сохранены",
+          "en": "Changes saved"
+        }
+      },
+      "emailUpdated": {
+        "title": {
+          "ru": "Почта обновлена",
+          "en": "Email updated"
+        },
+        "message": {
+          "ru": "Профиль сохранен",
+          "en": "Profile saved"
+        }
+      }
+    }
+    
+  }
+]

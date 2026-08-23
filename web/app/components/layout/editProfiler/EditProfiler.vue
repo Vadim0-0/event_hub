@@ -1,216 +1,40 @@
 <script setup lang="ts">
+  import editProfilerRaw from '~~/data/components/editProfiler.json';
+  import { mapEditProfiler } from '~/mappers/components/editProfiler';
+  import type { EditProfilerRaw } from '~/types/i18n/components/editProfiler';
 
-  import type { User } from '~/types/domain/user';
+  const emit = defineEmits<{ close: [] }>();
 
-  const emit = defineEmits<{
-    close: [];
-  }>();
+  const { locale } = useI18n();
+  const content = computed(() =>
+    mapEditProfiler((editProfilerRaw as EditProfilerRaw[])[0]!, locale.value),
+  );
 
-  const isPanelActive = ref(false);
-  const verifyVisible = ref(false);
-
-  const auth = useAuthStore();
   const eventsStore = useEventsStore();
-  const {
-    updateUsername,
-    updateTimezone,
-    changePassword,
-    requestEmailChange,
-    confirmEmailChange,
-  } = useUserApi();
-  const notifications = useNotificationsStore();
   const { timezoneOptions } = useTimezoneOptions();
-  
-  const originalEmail = ref('');
-  const username = ref('');
-  const email = ref('');
-  const currentPassword = ref('');
-  const newPassword = ref('');
-  const timezone = ref('UTC');
-  const originalTimezone = ref('UTC');
 
-  const fieldErrors = ref({
-    username: '',
-    email: '',
-    timezone: '',
-    currentPassword: '',
-    newPassword: '',
-    code: '',
-  });
+  const {
+    isPanelActive,
+    verifyVisible,
+    isVerifyMode,
+    username,
+    email,
+    timezone,
+    currentPassword,
+    newPassword,
+    verificationCode,
+    pendingNewEmail,
+    fieldErrors,
+    formError,
+    isSubmitDisabled,
+    isSubmitting,
+    submitButtonLabel,
+    closeModal,
+    onSubmit,
+    init,
+  } = useEditProfilerForm(content, () => emit('close'));
 
-  const formError = ref('');
-  const isSubmitting = ref(false);
-  const pendingNewEmail = ref('');
-  const verificationCode = ref(''); 
-
-
-  const isEmailChanged = computed(() =>
-    email.value.trim().toLowerCase() !== originalEmail.value.toLowerCase(),
-  );
-
-  const isVerifyMode = computed(() => verifyVisible.value);
-
-  const submitButtonLabel = computed(() =>
-    isVerifyMode.value ? 'Verify' : 'Save Changes',
-  );
-
-  const isSubmitDisabled = computed(() => {
-    if (isSubmitting.value) return true;
-    if (isVerifyMode.value) return verificationCode.value.length !== 6;
-    return false;
-  });
-
-
-  function validateForm(): boolean {
-    fieldErrors.value = { 
-      username: '', 
-      email: '', 
-      timezone: '',
-      currentPassword: '', 
-      newPassword: '', 
-      code: '' 
-    };
-    formError.value = '';
-
-    if (username.value.trim().length < 3) {
-      fieldErrors.value.username = 'At least 3 characters';
-    }
-    if (!/^[a-zA-Z0-9_ ]+$/.test(username.value.trim())) {
-      fieldErrors.value.username = 'Only letters, numbers, spaces and _';
-    }
-    if (!email.value.trim()) {
-      fieldErrors.value.email = 'Enter your email';
-    }
-    if (!timezone.value) {
-      fieldErrors.value.timezone = 'Select a timezone';
-    }
-
-    const wantsPasswordChange = currentPassword.value || newPassword.value;
-    if (wantsPasswordChange) {
-      if (!currentPassword.value) fieldErrors.value.currentPassword = 'Enter current password';
-      if (newPassword.value.length < 8) fieldErrors.value.newPassword = 'At least 8 characters';
-    }
-
-    return !Object.values(fieldErrors.value).some(Boolean);
-  };
-
-  function closeModal() {
-    isPanelActive.value = false;
-    setTimeout(() => {
-      emit('close')
-  }, 300)
-  };
-
-
-  async function saveProfile() {
-    if (!validateForm()) return;
-
-    isSubmitting.value = true;
-    formError.value = '';
-
-    try {
-      // 1.1 Username
-      if (username.value.trim() !== auth.user?.username) {
-        const updated = await updateUsername(username.value.trim());
-        auth.setUser(updated);
-      };
-
-      // 1.2 Timezone
-      if (timezone.value !== originalTimezone.value) {
-        const updated = await updateTimezone(timezone.value);
-        auth.setUser(updated);
-        originalTimezone.value = updated.timezone ?? timezone.value;
-      };
-
-      // 2. Password
-      if (currentPassword.value && newPassword.value) {
-        await changePassword(currentPassword.value, newPassword.value);
-        currentPassword.value = '';
-        newPassword.value = '';
-      };
-
-      // 3. Email
-      if (isEmailChanged.value) {
-        await requestEmailChange(email.value.trim());
-
-        pendingNewEmail.value = email.value.trim();
-        verifyVisible.value = true;
-        verificationCode.value = '';
-        notifications.success('Code sent', `Check ${pendingNewEmail.value}`);
-        return;
-      }
-
-      notifications.success('Profile updated', 'Changes saved');
-      closeModal();
-    } catch (e) {
-      const parsed = parseApiError(e);
-      Object.assign(fieldErrors.value, parsed.fieldErrors);
-      formError.value = parsed.formError;
-    } finally {
-      isSubmitting.value = false;
-    }
-  };
-
-  async function handleConfirmEmailChange() {
-    if (verificationCode.value.length !== 6) {
-      fieldErrors.value.code = 'Enter the full 6-digit code';
-      return;
-    }
-
-    isSubmitting.value = true;
-    fieldErrors.value.code = '';
-    formError.value = '';
-
-    try {
-      const updated = await confirmEmailChange(verificationCode.value);
-      auth.setUser(updated);
-
-      auth.setUser(updated);
-      originalEmail.value = updated.email;
-      email.value = updated.email;
-      verifyVisible.value = false;
-      pendingNewEmail.value = '';
-      verificationCode.value = '';
-
-      notifications.success('Email updated', 'Profile saved');
-      closeModal();
-    } catch (e) {
-      const parsed = parseApiError(e);
-      fieldErrors.value.code = parsed.fieldErrors.token ?? parsed.formError;
-      formError.value = parsed.formError;
-    } finally {
-      isSubmitting.value = false;
-    }
-  };
-
-
-  async function onSubmit() {
-    if (isVerifyMode.value) {
-      await handleConfirmEmailChange();
-      return;
-    }
-    await saveProfile();
-  }
-
-  onMounted(async () => {
-    await nextTick();
-    requestAnimationFrame(() => {
-      isPanelActive.value = true;
-    });
-
-    await auth.fetchMe();
-    await eventsStore.fetchStats();
-
-    if (auth.user) {
-      username.value = auth.user.username;
-      email.value = auth.user.email;
-      originalEmail.value = auth.user.email;
-
-      timezone.value = auth.user.timezone ?? 'UTC';
-      originalTimezone.value = auth.user.timezone ?? 'UTC';
-    }
-  });
-
+  onMounted(init);
 </script>
 
 <template>
@@ -230,7 +54,7 @@
     >
       <div class="flex items-center justify-between gap-1.5 px-5 py-3.5">
         <h2 class="text-xl font-semibold text-text-main">
-          Edit Profiler
+          {{ content.title }}
         </h2>
 
         <button @click="closeModal" class="transition-all transition-300 ease-in-out hover:rotate-90">
@@ -250,15 +74,15 @@
             <UiInput
               v-model="username"
               type="text"
-              label="Name"
-              placeholder="Your Name"
+              :label="content.usernameInput.label"
+              :placeholder="content.usernameInput.placeholder"
               :error-message="fieldErrors.username"
               :disabled="isVerifyMode"
             />
             <UiSelect
               v-model="timezone"
               :options="timezoneOptions"
-              label="Your Timezone"
+              :label="content.timezoneInput.label"
 
               button-style="!bg-third !border-0 !min-h-[61px]"
               
@@ -276,22 +100,22 @@
             <UiInput
               v-model="email"
               type="email"
-              label="Email"
-              placeholder="Your Email"
+              :label="content.emailInput.label"
+              :placeholder="content.emailInput.placeholder"
               :error-message="fieldErrors.email"
               :disabled="isVerifyMode"
             />
             <UiInput
               v-model="currentPassword"
               type="password"
-              label="Current Password"
+              :label="content.currentPasswordInput.label"
               :error-message="fieldErrors.currentPassword"
               :disabled="isVerifyMode"
             />
             <UiInput
               v-model="newPassword"
               type="password"
-              label="New Password"
+              :label="content.newPasswordInput.label"
               :error-message="fieldErrors.newPassword"
               :disabled="isVerifyMode"
             />
@@ -306,7 +130,7 @@
 
           <div class="flex flex-col items-center gap-0.5">
             <p class="text-center text-sm font-medium text-text-main">
-              Preview
+              {{ content.preview }}
             </p>
             <div 
               class="
@@ -334,10 +158,10 @@
 
             <ul class="flex flex-col items-center text-center text-md font-normal text-text-main">
               <li>
-                Events created: <span class="font-bold">{{ eventsStore.createdCount }}</span>
+                {{ content.eventCreated }} <span class="font-bold">{{ eventsStore.createdCount }}</span>
               </li>
               <li>
-                Joined events: <span class="font-bold">{{ eventsStore.joinedCount }}</span>
+                {{ content.joinedCreated }} <span class="font-bold">{{ eventsStore.joinedCount }}</span>
               </li>
             </ul>
           </div>
@@ -350,7 +174,7 @@
             class="
               absolute top-0 left-0 w-full h-full z-10
               flex flex-col items-center justify-center p-3
-              bg-overlay
+              
             "
           >
             <div 
@@ -360,16 +184,16 @@
             >
               <div class="flex flex-col gap-0.5 mb-8">
                 <h2 class="text-3xl font-bold text-text-main">
-                  OTP Verification
+                  {{ content.otpVerification }}
                 </h2>
                 <p class="text-lg text-text-main">
-                  Enter the 6-digit code sent to <span class="font-semibold">{{ pendingNewEmail }}</span>
+                  {{ content.enterCode }} <span class="font-semibold">{{ pendingNewEmail }}</span>
                 </p>
               </div>
               
               <UiVerification
                 v-model="verificationCode"
-                label="Verification code"
+                :label="content.verificationCodeInput.label"
                 :length="6"
                 :error-message="fieldErrors.code"
                 :disabled="isSubmitting"
@@ -380,7 +204,7 @@
       </div>
       <div class="flex items-center justify-end gap-2.5 px-5 py-3.5">
         <UiButton style-type="cancel" @click="closeModal">
-          Cancel
+          {{ content.cancelButton }}
         </UiButton>
         <UiButton
           style-type="primary"

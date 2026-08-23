@@ -104,6 +104,10 @@ async def test_change_password_wrong_current(client, user_data_factory):
     headers={"Authorization": f"Bearer {token}"},
   )
   assert response.status_code == 400
+  assert response.json()["detail"] == {
+    "message": "Current password is incorrect",
+    "field": "current_password",
+  }
 
 
 @pytest.mark.asyncio
@@ -121,6 +125,10 @@ async def test_change_password_same_as_current(client, user_data_factory):
     headers={"Authorization": f"Bearer {token}"},
   )
   assert response.status_code == 400
+  assert response.json()["detail"] == {
+    "message": "New password must be different from the current one",
+    "field": "new_password",
+  }
 
 
 @pytest.mark.asyncio
