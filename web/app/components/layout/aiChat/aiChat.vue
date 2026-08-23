@@ -359,7 +359,7 @@
       @mousedown="startDrag"
     >
       <h2 class="text-xl font-semibold text-text-main">
-        Chat Ai
+        {{ content.title }}
       </h2>
 
       <button
@@ -384,29 +384,29 @@
       >
         <div class="flex flex-col gap-4 px-5 py-2">
           <p v-if="isLoadingOlder" class="text-center text-sm text-text-secondary">
-            Loading older messages...
+            {{ content.loadingOlderMessages }}
           </p>
           <p
             v-else-if="hasMore === false && messages.length && !isSending"
             class="text-center text-sm text-text-secondary"
           >
-            Beginning of conversation
+            {{ content.beginningOfConversation }}
           </p>
 
           <p v-if="isLoading" class="text-center text-sm text-text-secondary">
-            Loading messages...
+            {{ content.loadingMessages }}
           </p>
 
           <template v-else>
             <p v-if="!isAiAvailable" class="text-center text-sm text-text-secondary">
-              AI is unavailable
+              {{ content.aiUnavailable }}
             </p>
 
             <p
               v-else-if="!messages.length && !isSending"
               class="text-center text-sm text-text-secondary"
             >
-              Ask something about Event Hub
+              {{ content.askSomething }}
             </p>
 
             <template v-for="message in messages" :key="message.id">
@@ -426,21 +426,21 @@
                     :disabled="isCreatingEvent"
                     @click="cancelEventCreate"
                   >
-                    Cancel
+                    {{ content.cancelButton }}
                   </UiButton>
                   <UiButton
                     style-type="primary"
                     :disabled="isCreatingEvent"
                     @click="confirmEventCreate"
                   >
-                    Confirm
+                    {{ content.confirmButton }}
                   </UiButton>
                 </div>
               </div>
             </template>
 
             <p v-if="isSending" class="text-center text-sm text-text-secondary">
-              AI is typing...
+              {{ content.typing }}
             </p>
           </template>
         </div>
