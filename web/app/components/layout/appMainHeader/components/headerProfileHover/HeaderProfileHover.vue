@@ -83,6 +83,7 @@
             size-6 text-text-main
             transition-transform ease-in-out duration-300
           "
+          mode="svg"
         />
         <p
           class="text-body-xl text-text-main"
@@ -113,6 +114,14 @@
       &:nth-child(2) {
         background-color: #FECACA;
         border-color: #f87171;
+        
+        & p {
+          color: var(--color-error);
+        }
+
+        & svg {
+          color: var(--color-error)
+        }
 
         &:hover {
 
