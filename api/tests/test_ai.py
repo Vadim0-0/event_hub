@@ -1,10 +1,20 @@
+import uuid
 from unittest.mock import AsyncMock, patch
+from datetime import datetime, timezone
 
 import pytest
 import helpers
 from httpx import ASGITransport, AsyncClient
 
 from app.main import app
+
+
+class FakeMsg:
+  def __init__(self):
+    self.id = uuid.uuid4()
+    self.role = "user"
+    self.content = "Hello"
+    self.created_at = datetime.now(timezone.utc)
 
 
 @pytest.mark.asyncio
@@ -30,19 +40,26 @@ async def test_ai_chat_success(client: AsyncClient, user_data_factory):
   with (
     patch("app.config.settings.ai_enabled", True),
     patch(
-      "app.routers.ai.ai_service.chat",
-      new=AsyncMock(return_value=("Привет! Чем могу помочь?", "qwen2.5:3b")),
-    )
+      "app.routers.ai.ai_service.chat_with_memory",
+      new=AsyncMock(return_value=(
+        "Hello! How can I help you?",
+        "qwen2.5:3b",
+        FakeMsg(),
+        FakeMsg(),
+        None,
+        False,
+      )),
+    ),
   ):
     response = await client.post(
       "/ai/chat",
       headers=headers,
-      json={"message": "Привет"},
+      json={"message": "Hello!"},
     )
 
   assert response.status_code == 200
   data = response.json()
-  assert data["reply"] == "Привет! Чем могу помочь?"
+  assert data["reply"] == "Hello! How can I help you?"
   assert data["model"] == "qwen2.5:3b"
 
 
