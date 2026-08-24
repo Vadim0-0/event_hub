@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import type { Participant } from '~/types/domain/event';
-
+  import type { mapEventInfo } from '~/mappers/components/eventInfo';
 
   // --- Props & Emits ---
   const props = defineProps<{
@@ -8,6 +8,7 @@
     totalCount?: number
     isCreator?: boolean
     readOnly?: boolean
+    content: ReturnType<typeof mapEventInfo>['participants'];
   }>();
 
   const emit = defineEmits<{
@@ -16,6 +17,7 @@
   }>();
 
   const api = useApi();
+  const notifications = useNotificationsStore();
 
 
   // --- State ---
@@ -132,10 +134,25 @@
       loadedParticipants.value = loadedParticipants.value.filter(
         (p) => p.user.id !== participant.user.id,
       );
+      
+      notifications.success(
+        props.content.notifications.removeSuccess.title,
+        props.content.notifications.removeSuccess.message.replace(
+          '{username}',
+          participant.user.username,
+        ),
+      );
 
       emit('participant-removed');
-    } catch {
-      // toast / alert
+
+    } catch (e) {
+      notifications.error(
+        props.content.notifications.removeError.title,
+        props.content.notifications.removeError.message.replace(
+          '{username}',
+          participant.user.username,
+        ),
+      );
     } finally {
       removingUserId.value = null;
     }
@@ -177,7 +194,7 @@
 
     <div class="flex flex-col gap-5 mb-5">
       <h3 class="text-3xl font-semibold text-text-main">
-        Participants Users
+        {{ content.title }}
       </h3>
     </div>
 
@@ -187,7 +204,7 @@
         v-if="isInitialLoading"
         class="p-3 bg-primary-light rounded-sm">
         <p class="text-body-xl text-text-main">
-          Loading...
+          {{ content.loading }}
         </p>
       </div>
 
@@ -195,7 +212,7 @@
         v-else-if="error"
         class="p-3 bg-error/10 rounded-sm">
         <p class="text-body-xl text-error">
-          Error
+          {{ content.error }}
         </p>
       </div>
 
@@ -203,7 +220,7 @@
         v-else-if="isEmpty"
         class="p-3 bg-primary-light rounded-sm">
         <p class="text-body-xl text-text-main">
-          Empty
+          {{ content.empty }}
         </p>
       </div>
 
@@ -275,7 +292,7 @@
               "
             >
               <UiButton @click="copyParticipantEmail(participant)" style-type="cancel">
-                {{ copiedUserId === participant.user.id ? 'Copied' : 'Copy' }}
+                {{ copiedUserId === participant.user.id ? content.copyButton.coping : content.copyButton.copy }}
               </UiButton>
               <UiButton 
                 v-if="isCreator"
@@ -283,7 +300,7 @@
                 :disabled="!canRemoveParticipants"
                 @click="removeParticipant(participant)"
               >
-                {{ removingUserId === participant.user.id ? 'Removing...' : 'Delete' }}
+                {{ removingUserId === participant.user.id ? content.deleteButton.removing : content.deleteButton.delete }}
               </UiButton>
             </div>
           </Transition>
@@ -295,7 +312,7 @@
             :disabled="isLoadingMore"
             @click="loadMore"
           >
-            <p>{{ isLoadingMore ? 'Loading...' : 'Load More' }}</p>
+            <p>{{ isLoadingMore ? content.loadButton.loading : content.loadButton.loadMore }}</p>
             <Icon name="fluent:arrow-sync-24-filled" mode="svg" class="size-6" :class="{ 'animate-spin': isLoadingMore }"/>
           </UiButton>
         </li>

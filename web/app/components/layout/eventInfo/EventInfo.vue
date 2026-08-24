@@ -2,6 +2,9 @@
 
   import type { Event, EventDetail } from '~/types/domain/event';
   import { ParticipantsUsers } from './components';
+  import eventInfoRaw from '~~/data/components/eventInfo.json';
+  import { mapEventInfo } from '~/mappers/components/eventInfo';
+  import type { EventInfoRaw } from '~/types/i18n/components/eventInfo';
 
 
   // --- Props & Emits ---
@@ -14,6 +17,11 @@
     updated: [event: EventDetail]
     edit: [event: Event]
   }>();
+
+  const { locale } = useI18n();
+  const content = computed(() =>
+    mapEventInfo((eventInfoRaw as EventInfoRaw[])[0]!, locale.value),
+  );
 
 
   // --- Composables ---
@@ -211,13 +219,13 @@
           "
         >
           <p>
-            Creator: <span>{{ currentEvent.creator.username }}</span>
+            {{ content.creator }} <span>{{ currentEvent.creator.username }}</span>
           </p>
           <p>
-            Start: <span>{{ formattedStart }}</span>
+            {{ content.start }} <span>{{ formattedStart }}</span>
           </p>
           <p>
-            Location:
+            {{ content.location }}
             <a
               v-if="mapsUrl"
               :href="mapsUrl"
@@ -230,24 +238,24 @@
             <span v-else class="pl-2">{{ locationLabel }}</span>
           </p>
           <p>
-            Latitude: <span>{{ latitudeLabel }}</span>
+            {{ content.latitude }} <span>{{ latitudeLabel }}</span>
           </p>
           <p>
-            Longitude: <span>{{ longitudeLabel }}</span>
+            {{ content.longitude }} <span>{{ longitudeLabel }}</span>
           </p>
           <p>
-            Create: <span>{{ formattedCreatedAt }}</span>
+            {{ content.create}} <span>{{ formattedCreatedAt }}</span>
           </p>
           <p>
-            Max participants: <span>{{ maxParticipantsLabel }}</span>
+            {{ content.maxParticipants }} <span>{{ maxParticipantsLabel }}</span>
           </p>
           <p v-if="!isCreator">
-            Already participants: <span>{{ currentEvent.participants_count }}</span>
+            {{ content.alreadyParticipants }} <span>{{ currentEvent.participants_count }}</span>
           </p>
 
           <UiButton v-else class=" !justify-between" @click="openParticipantsUsers">
             <p>
-              Already participants: <span>{{ currentEvent.participants_count }}</span>
+              {{ content.alreadyParticipants }} <span>{{ currentEvent.participants_count }}</span>
             </p>
             <Icon
               name="weui:arrow-outlined"
@@ -256,7 +264,7 @@
           </UiButton>
 
           <p v-if="isStarted" class="text-text-secondary">
-            This event has already ended
+            {{ content.alreadyEnded }}
           </p>
         </div>
       </div>
@@ -268,7 +276,7 @@
         <UiButton 
           style-type="cancel"
           @click="emit('close')">
-          Cancel
+          {{ content.cancelButton }}
         </UiButton>
         
         <UiButton
@@ -277,10 +285,10 @@
           @click="handleToggleParticipation"
         >
           <template v-if="isParticipant">
-            Leave
+            {{ content.submitButton.leave }}
           </template>
           <template v-else>
-            Sign up
+            {{ content.submitButton.signUp }}
           </template>
         </UiButton>
 
@@ -290,7 +298,7 @@
           v-if="showChangeEventButton"
           @click="handleChangeEvent"
         >
-          Change Event
+          {{ content.changeButton }}
         </UiButton>
       </div>
 
@@ -304,6 +312,7 @@
           :total-count="currentEvent.participants_count"
           :is-creator="isCreator"
           :read-only="isEventReadOnly"
+          :content="content.participants"
           @close="closeParticipantsUsers"
           @participant-removed="onParticipantRemoved"
         />

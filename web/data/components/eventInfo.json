@@ -1,0 +1,140 @@
+[
+  {
+    "title": {
+      "ru": "Информация о мероприятии",
+      "en": "Event Info"
+    },
+
+    "creator": {
+      "ru": "Автор:",
+      "en": "Creator:"
+    },
+    "start": {
+      "ru": "Начало:",
+      "en": "Start:"
+    },
+    "location": {
+      "ru": "Местоположение:",
+      "en": "Location:"
+    },
+    "latitude": {
+      "ru": "Широта:",
+      "en": "Latitude:"
+    },
+    "longitude": {
+      "ru": "Долгота:",
+      "en": "Longitude:"
+    },
+    "create": {
+      "ru": "Созданно:",
+      "en": "Create:"
+    },
+    "maxParticipants": {
+      "ru": "Макс. участников:",
+      "en": "Max participants:"
+    },
+    "alreadyParticipants": {
+      "ru": "Зарегистрировано:",
+      "en": "Already participants:"
+    },
+
+    "alreadyEnded": {
+      "ru": "Это мероприятие уже завершилось",
+      "en": "This event has already ended"
+    },
+
+    "cancelButton": {
+      "ru": "Отменить",
+      "en": "Cancel"
+    },
+    "submitButton": {
+      "leave": {
+        "ru": "Уйти",
+        "en": "Leave"
+      },
+      "signUp": {
+        "ru": "Вступить",
+        "en": "Sign up"
+      }
+    },
+    "changeButton": {
+      "ru": "Изменить мероприятие",
+      "en": "Change Event"
+    },
+
+    "participants": {
+      "title": {
+        "ru": "Участники",
+        "en": "Participants"
+      },
+
+      "loading": {
+        "ru": "Загрузка...",
+        "en": "Loading..."
+      },
+      "error": {
+        "ru": "Ошибка",
+        "en": "Error"
+      },
+      "empty": {
+        "ru": "Пусто",
+        "en": "Empty"
+      },
+
+      "copyButton": {
+        "coping": {
+          "ru": "Скопировано",
+          "en": "Copied"
+        },
+        "copy": {
+          "ru": "Копировать",
+          "en": "Copy"
+        }
+      },
+      "deleteButton": {
+        "delete": {
+          "ru": "Удалить",
+          "en": "Delete"
+        },
+        "removing": {
+          "ru": "Удаление...",
+          "en": "Removing..."
+        }
+      },
+      "loadButton": {
+        "loading": {
+          "ru": "Загрузка...",
+          "en": "Loading..."
+        },
+        "loadMore": {
+          "ru": "Загрузить ещё",
+          "en": "Load More"
+        }
+      },
+
+      "notifications": {
+        "removeSuccess": {
+          "title": { 
+            "ru": "Участник удалён", 
+            "en": "Participant removed" 
+          },
+          "message": { 
+            "ru": "{username} был удалён из мероприятия", 
+            "en": "{username} was removed from the event" 
+          }
+        },
+        "removeError": {
+          "title": { 
+            "ru": "Ошибка удаления", 
+            "en": "Remove failed" 
+          },
+          "message": { 
+            "ru": "{username} не был удалён из мероприятия", 
+            "en": "{username} wasn't removed from the event" 
+          }
+        }
+      }
+    }
+    
+  }
+]
