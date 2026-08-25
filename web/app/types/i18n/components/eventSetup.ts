@@ -5,24 +5,6 @@ type LocalizedNotification = {
   message: LocalizedScalar;
 };
 
-type LocalizedEmptyErrors = {
-  empty: LocalizedScalar;
-};
-
-type LocalizedMaxParticipantsErrors = {
-  empty: LocalizedScalar;
-  minimumValue: LocalizedScalar;
-};
-
-type LocalizedDateTimeErrors = {
-  empty: LocalizedScalar;
-  onlyFuture: LocalizedScalar;
-};
-
-type LocalizedInputLabelOnly = {
-  label: LocalizedScalar;
-};
-
 type LocalizedFieldErrors = {
   empty: LocalizedScalar;
   minimumValue: LocalizedFieldErrors;
@@ -34,8 +16,6 @@ type LocalizedInputWithPlaceholder = {
   placeholder: LocalizedScalar;
   errors: LocalizedFieldErrors;
 };
-
-
 
 
 export type EventSetupRaw = {
