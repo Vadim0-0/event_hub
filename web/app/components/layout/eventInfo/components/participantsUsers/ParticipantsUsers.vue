@@ -16,7 +16,7 @@
     'participant-removed': []
   }>();
 
-  const api = useApi();
+  const { removeParticipant: removeParticipantApi } = useEventsApi();
   const notifications = useNotificationsStore();
 
 
@@ -127,9 +127,7 @@
 
     removingUserId.value = participant.user.id;
     try {
-      await api(`/events/${props.eventId}/participants/${participant.user.id}`, {
-        method: 'DELETE',
-      });
+      await removeParticipantApi(props.eventId, participant.user.id);
 
       loadedParticipants.value = loadedParticipants.value.filter(
         (p) => p.user.id !== participant.user.id,

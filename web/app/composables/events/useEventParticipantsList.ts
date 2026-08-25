@@ -7,7 +7,7 @@ export function useEventParticipantsList(
   enabled: Ref<boolean>,
   page: Ref<number> = ref(1),
 ) {
-  const api = useApi();
+  const { listParticipants } = useEventsApi();
   const skip = computed(() => (page.value - 1) * PAGE_SIZE);
 
   const queryParams = computed(() =>
@@ -23,7 +23,7 @@ export function useEventParticipantsList(
       : 'event-participants-disabled',
     () => {
       if (!enabled.value) return Promise.resolve([] as Participant[]);
-      return api<Participant[]>(`/events/${eventId.value}/participants?${queryParams.value}`);
+      return listParticipants(eventId.value, skip.value, PAGE_SIZE);
     },
     { watch: [eventId, page, enabled], server: false },
   );

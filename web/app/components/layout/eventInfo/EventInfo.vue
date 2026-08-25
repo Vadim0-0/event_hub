@@ -23,10 +23,12 @@
     mapEventInfo((eventInfoRaw as EventInfoRaw[])[0]!, locale.value),
   );
 
+  const notifications = useNotificationsStore();
+
 
   // --- Composables ---
   const dayjs = useDayjs();
-  const api = useApi();
+  const { getEventById, joinEvent, leaveEvent } = useEventsApi();
 
 
   // --- State ---
@@ -39,7 +41,7 @@
   const currentEvent = computed(() => eventDetails.value ?? props.event);
 
   async function loadEventDetails(id: string) {
-    eventDetails.value = await api<EventDetail>(`/events/${id}`);
+    eventDetails.value = await getEventById(id);
   };
 
   watch(
@@ -134,19 +136,57 @@
   async function handleToggleParticipation() {
     if (isParticipationDisabled.value) return;
 
+    const wasParticipant = isParticipant.value;
+    const eventTitle = currentEvent.value.title;
+
     isActionPending.value = true;
+
     try {
       if (isParticipant.value) {
-        await api(`/events/${props.event.id}/leave`, { method: 'DELETE' });
+        await leaveEvent(props.event.id);
+
+        notifications.success(
+          content.value.notifications.leaveSuccess.title,
+          content.value.notifications.leaveSuccess.message.replace(
+            '{title}',
+            eventTitle,
+          ),
+        );
       } else {
-        await api(`/events/${props.event.id}/join`, { method: 'POST' });
+        await joinEvent(props.event.id);
+
+        notifications.success(
+          content.value.notifications.joinSuccess.title,
+          content.value.notifications.joinSuccess.message.replace(
+            '{title}',
+            eventTitle,
+          ),
+        );
       }
+
       await loadEventDetails(props.event.id);
+
       if (eventDetails.value) {
         emit('updated', eventDetails.value);
       }
     } catch {
-      // optional: toast / notification
+      if (wasParticipant) {
+        notifications.error(
+          content.value.notifications.leaveError.title,
+          content.value.notifications.leaveError.message.replace(
+            '{title}',
+            eventTitle,
+          ),
+        );
+      } else {
+        notifications.error(
+          content.value.notifications.joinError.title,
+          content.value.notifications.joinError.message.replace(
+            '{title}',
+            eventTitle,
+          ),
+        );
+      }
     } finally {
       isActionPending.value = false;
     };

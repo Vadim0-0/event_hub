@@ -38,6 +38,13 @@ export function mapEventInfo(data: EventInfoRaw, locale: string) {
     },
     changeButton: pickScalar(data.changeButton, locale),
 
+    notifications: {
+      joinSuccess: mapNotification(data.notifications.joinSuccess, locale),
+      leaveSuccess: mapNotification(data.notifications.leaveSuccess, locale),
+      joinError: mapNotification(data.notifications.joinError, locale),
+      leaveError: mapNotification(data.notifications.leaveError, locale),
+    },
+
     participants: {
       title: pickScalar(data.participants.title, locale),
 

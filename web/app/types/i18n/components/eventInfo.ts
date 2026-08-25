@@ -26,6 +26,13 @@ export type EventInfoRaw = {
   };
   changeButton: LocalizedScalar;
 
+  notifications: {
+    joinSuccess: LocalizedNotification;
+    leaveSuccess: LocalizedNotification;
+    joinError: LocalizedNotification;
+    leaveError: LocalizedNotification;
+  };
+
   participants: {
     title: LocalizedScalar;
 

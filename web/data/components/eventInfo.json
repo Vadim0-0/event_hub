@@ -62,6 +62,49 @@
       "en": "Change Event"
     },
 
+    "notifications": {
+      "joinSuccess": {
+        "title": { 
+          "ru": "Вы записаны", 
+          "en": "Signed up" 
+        },
+        "message": {
+          "ru": "Вы успешно зарегистрировались на «{title}»",
+          "en": "You joined \"{title}\""
+        }
+      },
+      "leaveSuccess": {
+        "title": { 
+          "ru": "Вы вышли", 
+          "en": "Left event" 
+        },
+        "message": {
+          "ru": "Вы покинули «{title}»",
+          "en": "You left \"{title}\""
+        }
+      },
+      "joinError": {
+        "title": { 
+          "ru": "Не удалось записаться", 
+          "en": "Sign up failed" 
+        },
+        "message": { 
+          "ru": "Попробуйте позже", 
+          "en": "Please try again later" 
+        }
+      },
+      "leaveError": {
+        "title": { 
+          "ru": "Не удалось выйти", 
+          "en": "Leave failed" 
+        },
+        "message": { 
+          "ru": "Попробуйте позже", 
+          "en": "Please try again later" 
+        }
+      }
+    },
+
     "participants": {
       "title": {
         "ru": "Участники",
