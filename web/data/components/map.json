@@ -1,0 +1,35 @@
+[
+  {
+    "searchInput": {
+      "label": {
+        "ru": "Поиск по адресу",
+        "en": "Search address"
+      },
+      "placeholder": {
+        "ru": "Поиск по адресу...",
+        "en": "Search address..."
+      }
+    },
+    "loading": {
+      "ru": "Загрузка карты...",
+      "en": "Loading map..."
+    },
+
+
+    "cancelButton": {
+      "ru": "Отменить",
+      "en": "Cancel"
+    },
+    "confirmButton": {
+      "ru": "Подтвердить",
+      "en": "Confirm"
+    },
+
+    "formErrors": {
+      "loadError": {
+        "ru": "Не удалось загрузить карту", 
+        "en": "Failed to load map" 
+      }
+    }
+  }
+]

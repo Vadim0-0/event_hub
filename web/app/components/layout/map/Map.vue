@@ -2,6 +2,14 @@
   import type * as Leaflet from 'leaflet';
   import type { LatLngTuple, LeafletMouseEvent, Map as LeafletMap, Marker } from 'leaflet';
   import '@geoapify/geocoder-autocomplete/styles/minimal.css';
+  import mapRaw from '~~/data/components/map.json';
+  import { mapMap } from '~/mappers/components/map';
+  import type { MapRaw } from '~/types/i18n/components/map';
+
+  const { locale } = useI18n();
+  const content = computed(() =>
+    mapMap((mapRaw as MapRaw[])[0]!, locale.value),
+  );
 
   export type MapLocation = {
     location: string
@@ -121,7 +129,7 @@
         autocomplete = new GeocoderAutocomplete(
           searchContainer.value,
           useRuntimeConfig().public.geoapifyApiKey as string,
-          { placeholder: 'Search address...' },
+          { placeholder: content.value.searchInput.placeholder },
         );
 
         autocomplete.on('select', (value: { properties: { lat: number; lon: number; formatted?: string } }) => {
@@ -135,7 +143,7 @@
         });
       }
     } catch (e) {
-      loadError.value = e instanceof Error ? e.message : 'Failed to load map';
+      loadError.value = e instanceof Error ? e.message : content.value.formErrors.loadError;
     } finally {
       isLoading.value = false;
     }
@@ -173,7 +181,7 @@
       <button 
         type="button"
         class="group ml-auto mr-2 mb-1"
-        @click="emit('confirm')"
+        @click="emit('cancel')"
       >
         <Icon name="akar-icons:cross" 
           class="
@@ -184,7 +192,7 @@
         />
       </button>
       <label class="ui-input shrink-0 mb-4">
-        <span class="ui-input__label">Search address</span>
+        <span class="ui-input__label">{{ content.searchInput.label }}</span>
         <div ref="searchContainer" class="ui-input__field" />
       </label>
 
@@ -193,7 +201,7 @@
           v-if="isLoading"
           class="absolute inset-0 z-10 flex items-center justify-center bg-primary-light text-body-sm text-text-secondary"
         >
-          Loading map...
+          {{ content.loading }}
         </div>
 
         <p
@@ -208,14 +216,14 @@
 
       <div class="flex justify-end gap-2">
         <UiButton style-type="cancel" @click="emit('cancel')">
-          Cancel
+          {{ content.cancelButton}}
         </UiButton>
         <UiButton
           style-type="primary"
           :disabled="!props.latitude || !props.longitude"
           @click="emit('confirm')"
         >
-          Confirm
+          {{ content.confirmButton }}
         </UiButton>
       </div>
     </div>
