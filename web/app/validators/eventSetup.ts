@@ -16,6 +16,14 @@ export type EventSetupFieldErrors = {
   startTime: string
 };
 
+type EventSetupValidationMessages = {
+  title: { empty: string };
+  description: { empty: string };
+  maxParticipants: { empty: string; minimumValue: string };
+  startDate: { empty: string; onlyFuture: string };
+  startTime: { empty: string; onlyFuture: string };
+};
+
 export function createEmptyEventSetupErrors(): EventSetupFieldErrors {
   return {
     title: '',
@@ -35,37 +43,38 @@ type ValidateOptions = {
 export function validateEventSetupForm(
   values: EventSetupFormValues,
   options: ValidateOptions,
+  messages: EventSetupValidationMessages,
 ): EventSetupFieldErrors {
   const errors = createEmptyEventSetupErrors();
   const isCreateMode = options.mode !== 'edit';
 
   if (!values.title.trim()) {
-    errors.title = 'Enter event name';
+    errors.title = messages.title.empty;
   };
 
   if (isCreateMode && !values.description.trim()) {
-    errors.description = 'Enter description';
+    errors.description = messages.description.empty;
   };
 
   if (values.maxParticipants === '' || values.maxParticipants === null) {
     if (isCreateMode) {
-      errors.maxParticipants = 'Enter max participants';
+      errors.maxParticipants = messages.maxParticipants.empty;
     }
   } else if (Number(values.maxParticipants) < 1) {
-    errors.maxParticipants = 'Minimum value is 1';
+    errors.maxParticipants = messages.maxParticipants.minimumValue;
   };
 
   if (!values.startDate) {
-    errors.startDate = 'Select start date';
+    errors.startDate = messages.startDate.empty;
   };
 
   if (!values.startTime) {
-    errors.startTime = 'Select start time';
+    errors.startTime = messages.startTime.empty;
   };
 
   if (options.startsAt && options.isStartInPast) {
-    errors.startDate = 'Date must be in the future';
-    errors.startTime = 'Time must be in the future';
+    errors.startDate = messages.startDate.onlyFuture;
+    errors.startTime = messages.startTime.onlyFuture;
   };
 
   return errors;

@@ -6,6 +6,9 @@
     hasEventSetupErrors,
     type EventSetupFieldErrors,
   } from '~/validators/eventSetup';
+  import eventSetupRaw from '~~/data/components/eventSetup.json';
+  import { mapEventSetup } from '~/mappers/components/eventSetup';
+  import type { EventSetupRaw } from '~/types/i18n/components/eventSetup';
 
 
   // === 1. PROPS / EMITS ===
@@ -19,6 +22,11 @@
     saved: []
     deleted: []
   }>();
+
+  const { locale } = useI18n();
+  const content = computed(() =>
+    mapEventSetup((eventSetupRaw as EventSetupRaw[])[0]!, locale.value),
+  );
 
 
   // === 2. COMPOSABLES ===
@@ -105,6 +113,13 @@
         isStartInPast: isStartInPast.value,
         mode: props.mode,
       },
+      {
+        title: content.value.nameInput.errors,
+        description: content.value.descriptionInput.errors,
+        maxParticipants: content.value.maxParticipantsInput.errors,
+        startDate: content.value.startDateInput.errors,
+        startTime: content.value.startTimeInput.errors,
+      },
     );
 
     return !hasEventSetupErrors(fieldErrors.value);
@@ -179,15 +194,15 @@
         await api('/events', { method: 'POST', body: payload });
 
         notifications.success(
-          'Event created',
-          'The event was successfully created',
+          content.value.notifications.eventCreatedSuccess.title,
+          content.value.notifications.eventCreatedSuccess.message,
         );
       } else if (props.event) {
         await api(`/events/${props.event.id}`, { method: 'PATCH', body: payload });
 
         notifications.success(
-          'Event updated',
-          'The event was successfully updated',
+          content.value.notifications.eventUpdatedSuccess.title,
+          content.value.notifications.eventUpdatedSuccess.message,
         );
       };
 
@@ -203,10 +218,12 @@
         startDate: parsed.fieldErrors.starts_at ?? fieldErrors.value.startDate,
       };
 
-      saveError.value = parsed.formError || 'Failed to save event';
+      saveError.value = parsed.formError || content.value.formErrors.saveError;
 
       notifications.error(
-        isCreateMode.value ? 'Create error' : 'Update error',
+        isCreateMode.value
+          ? content.value.notifications.eventCreatedError.title
+          : content.value.notifications.eventUpdatedError.title,
         saveError.value,
       );
 
@@ -236,16 +253,19 @@
       await api(`/events/${props.event.id}`, { method: 'DELETE' });
 
       notifications.success(
-        'Event deleted',
-        'The event was successfully deleted',
+        content.value.notifications.eventDeletedSuccess.title,
+        content.value.notifications.eventDeletedSuccess.message,
       );
 
       emit('deleted');
     } catch (e) {
       const parsed = parseApiError(e);
-      deleteError.value = parsed.formError || 'Failed to delete event';
+      deleteError.value = parsed.formError || content.value.formErrors.deleteError;
 
-      notifications.error('Delete error', deleteError.value);
+      notifications.error(
+        content.value.notifications.eventDeletedError.title,
+        deleteError.value,
+      );
     } finally {
       isDeleting.value = false;
     };
@@ -265,7 +285,7 @@
     class="
       relative
       flex flex-col flex-1 gap-3
-      px-5 py-5
+      py-5
       h-full w-full min-h-0 overflow-hidden
       transition-all transition-300 ease-in-out
     bg-main border-l-2 border-solid border-third shadow-sm rounded-l-lg
@@ -273,7 +293,7 @@
   >
     <button 
       type="button"
-      class="group ml-auto mr-2"
+      class="group ml-auto mr-7"
       @click="emit('close')"
     >
       <Icon name="akar-icons:cross" 
@@ -285,14 +305,14 @@
       />
     </button>
 
-    <div class="mb-4">
+    <div class="mb-4 px-5">
       <h3 class="text-3xl font-semibold text-text-main">
-        {{ isCreateMode ? 'Add Event' : 'Change Event' }}
+        {{ isCreateMode ? content.title.addEvent : content.title.changeEvent}}
       </h3>
     </div>
 
     <div
-      class="flex flex-col flex-1 gap-5 min-h-0 overflow-y-auto"
+      class="flex flex-col flex-1 gap-5 min-h-0 overflow-y-auto px-5"
       data-lenis-prevent
     >
       <div 
@@ -302,14 +322,14 @@
       >
         <UiInput
           v-model="title"
-          label="Enter the Name"
-          placeholder="Name"
+          :label=content.nameInput.label
+          :placeholder=content.nameInput.placeholder
           :error-message="fieldErrors.title"
         />
         <UiTextarea
           v-model="description"
-          label="Enter the Description"
-          placeholder="Description"
+          :label=content.descriptionInput.label
+          :placeholder=content.descriptionInput.placeholder
           input-class="min-h-[200px]"
           :error-message="fieldErrors.description"
         />
@@ -322,15 +342,15 @@
         <UiInput
           v-model="maxParticipants"
           type="number"
-          label="Max Participants"
-          placeholder="Value"
+          :label=content.maxParticipantsInput.label
+          :placeholder=content.maxParticipantsInput.placeholder
           :error-message="fieldErrors.maxParticipants"
         />
         <UiInput
           :model-value="location"
           readonly
-          label="Location"
-          placeholder="Click to pick on map"
+          :label=content.locationInput.label
+          :placeholder=content.locationInput.placeholder
           input-class="cursor-pointer"
           @click="openMapPicker"
         />
@@ -338,26 +358,26 @@
           <UiInput
             :model-value="latitude ?? ''"
             readonly
-            label="Latitude"
+            :label=content.latitudeInput.label
             placeholder="-90"
           />
           <UiInput
             :model-value="longitude ?? ''"
             readonly
-            label="Longitude"
+            :label=content.longitudeInput.label
             placeholder="-180"
           />
         </div>
         <UiDate 
           v-model="startDate"
-          label="Start date"
-          placeholder="Start date"
+          :label=content.startDateInput.label
+          :placeholder=content.startDateInput.placeholder
           :error-message="fieldErrors.startDate"
         />
         <UiTime
           v-model="startTime"
-          label="Start time"
-          placeholder="Select time"
+          :label=content.startTimeInput.label
+          :placeholder=content.startTimeInput.placeholder
           :error-message="fieldErrors.startTime"
         />
       </div>
@@ -372,15 +392,15 @@
     </p>
 
     <div class="
-      grid grid-cols-2 gap-2.5
+      grid grid-cols-2 gap-2.5 px-5
     ">
       <template  v-if="!isDeleteConfirmOpen">
         <UiButton style-type="cancel" @click="emit('close')" :disabled="isSaving">
-          Cancel
+          {{ content.cancelButton }}
         </UiButton>
   
         <UiButton style-type="primary" @click="handleSave" :disabled="isSaving">
-          {{ isSaving ? 'Saving...' : (isCreateMode ? 'Save' : 'Update') }}
+          {{ isSaving ? content.submitButton.saving : (isCreateMode ? content.submitButton.save : content.submitButton.update ) }}
         </UiButton>
   
         <UiButton
@@ -390,7 +410,7 @@
           :disabled="isSaving || isDeleting"
           @click="openDeleteConfirm"
         >
-          Delete Event
+          {{ content.deleteButton}}
         </UiButton>
       </template>
 
@@ -400,7 +420,7 @@
           :disabled="isDeleting"
           @click="cancelDeleteConfirm"
         >
-          Cancel
+          {{ content.cancelButton }}
         </UiButton>
   
         <UiButton
@@ -408,7 +428,7 @@
           :disabled="isDeleting"
           @click="handleDelete"
         >
-          {{ isDeleting ? 'Deleting...' : 'Delete' }}
+          {{ isDeleting ? content.confirmButton.deleting : content.confirmButton.delete}}
         </UiButton>
       </template>
     </div>

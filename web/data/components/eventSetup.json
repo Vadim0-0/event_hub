@@ -1,0 +1,242 @@
+[
+  {
+    "title": {
+      "addEvent": {
+        "ru": "Добавить событие",
+        "en": "Add Event"
+      },
+      "changeEvent": {
+        "ru": "Изменить событие",
+        "en": "Change Event"
+      }
+    },
+
+    "nameInput": {
+      "label": {
+        "ru": "Введите название",
+        "en": "Enter the Name"
+      },
+      "placeholder": {
+        "ru": "Название",
+        "en": "Name"
+      },
+      "errors": {
+        "empty": {
+          "ru": "Введите название",
+          "en": "Enter a name"
+        }
+      }
+    },
+    "descriptionInput": {
+      "label": {
+        "ru": "Введите название события",
+        "en": "Enter the event name"
+      },
+      "placeholder": {
+        "ru": "Описание",
+        "en": "Description"
+      },
+      "errors": {
+        "empty": {
+          "ru": "Введите описание",
+          "en": "Enter description"
+        }
+      }
+    },
+    "maxParticipantsInput": {
+      "label": {
+        "ru": "Макс. участников",
+        "en": "Max Participants"
+      },
+      "placeholder": {
+        "ru": "Значение",
+        "en": "Value"
+      },
+      "errors": {
+        "empty": {
+          "ru": "Укажите макс. участников",
+          "en": "Enter max participants"
+        },
+        "minimumValue": {
+          "ru": "Минимальное значение 1",
+          "en": "Minimum value is 1"
+        }
+      }
+    },
+    "locationInput": {
+      "label": {
+        "ru": "Местоположение",
+        "en": "Location"
+      },
+      "placeholder": {
+        "ru": "Нажмите, чтобы выбрать точку на карте",
+        "en": "Click to pick on map"
+      },
+      "errors": {
+        "empty": {
+          "ru": "Введите местоположение",
+          "en": "Enter Location"
+        }
+      }
+    },
+    "latitudeInput": {
+      "label": {
+        "ru": "Широта",
+        "en": "Latitude"
+      }
+    },
+    "longitudeInput": {
+      "label": {
+        "ru": "Долгота",
+        "en": "Longitude"
+      }
+    },
+    "startDateInput": {
+      "label": {
+        "ru": "Дата начала",
+        "en": "Start date"
+      },
+      "placeholder": {
+        "ru": "Выберите дату",
+        "en": "Select date"
+      },
+      "errors": {
+        "empty": {
+          "ru": "Выберите дату начала",
+          "en": "Select start date"
+        },
+        "onlyFuture": {
+          "ru": "Дата должна быть в будущем",
+          "en": "Date must be in the future"
+        }
+      }
+    },
+    "startTimeInput": {
+      "label": {
+        "ru": "Время начала",
+        "en": "Start time"
+      },
+      "placeholder": {
+        "ru": "Выберите время",
+        "en": "Select time"
+      },
+      "errors": {
+        "empty": {
+          "ru": "Выберите время начала",
+          "en": "Select start time"
+        },
+        "onlyFuture": {
+          "ru": "Время должно быть в будущем",
+          "en": "Time must be in the future"
+        }
+      }
+    },
+
+    "cancelButton": {
+      "ru": "Отменить",
+      "en": "Cancel"
+    },
+    "submitButton": {
+      "saving": {
+        "ru": "Сохранение...",
+        "en": "Saving..."
+      },
+      "save": {
+        "ru": "Сохранить",
+        "en": "Save"
+      },
+      "update": {
+        "ru": "Обновить",
+        "en": "Update"
+      }
+    },
+    "deleteButton": {
+      "ru": "Удалить событие",
+      "en": "Delete Event"
+    },
+    "confirmButton": {
+      "deleting": {
+        "ru": "Удаление...",
+        "en": "Deleting..."
+      },
+      "delete": {
+        "ru": "Удалить",
+        "en": "Delete"
+      }
+    },
+
+    "formErrors": {
+      "saveError": {
+        "ru": "Не удалось сохранить событие", 
+        "en": "Failed to save event" 
+      },
+      "deleteError": {
+        "ru": "Не удалось удалить событие", 
+        "en": "Failed to delete event" 
+      }
+    },
+
+    "notifications": {
+      "eventCreatedSuccess": {
+        "title": { 
+          "ru": "Событие создано", 
+          "en": "Event created" 
+        },
+        "message": {
+          "ru": "Мероприятие было успешно создано",
+          "en": "The event was successfully created"
+        }
+      },
+      "eventUpdatedSuccess": {
+        "title": { 
+          "ru": "Событие обновлено", 
+          "en": "Event updated" 
+        },
+        "message": {
+          "ru": "Мероприятие было успешно обновлено",
+          "en": "The event was successfully updated"
+        }
+      },
+      "eventCreatedError": {
+        "title": { 
+          "ru": "Событие не созданно", 
+          "en": "The event has not been created" 
+        },
+        "message": {
+          "ru": "Создать событие не удалось",
+          "en": "The event wasn't successfully created"
+        }
+      },
+      "eventUpdatedError": {
+        "title": { 
+          "ru": "Событие не обновлено", 
+          "en": "Event not updated" 
+        },
+        "message": {
+          "ru": "Ошибка при обновлении информации",
+          "en": "The event update failed"
+        }
+      },
+      "eventDeletedSuccess": {
+        "title": { 
+          "ru": "Событие удалено", 
+          "en": "Event deleted" 
+        },
+        "message": {
+          "ru": "Событие было успешно удалено",
+          "en": "The event was successfully deleted"
+        }
+      },
+      "eventDeletedError": {
+        "title": { 
+          "ru": "Ошибка удаления", 
+          "en": "Delete error" 
+        },
+        "message": {
+          "ru": "Ошибка удаления события",
+          "en": "Event deleted error"
+        }
+      }
+    }
+  }
+]
