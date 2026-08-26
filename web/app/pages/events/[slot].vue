@@ -279,13 +279,21 @@
     class="
       relative flex flex-col flex-1 py-10
       bg-fourth
+      max-md:py-5
     "
   >
-    <div class="container mx-auto flex flex-col flex-1 px-8">
-      <div class="mb-3">
+    <div 
+      class="
+        container mx-auto flex flex-col flex-1 px-8
+        max-md:px-4
+        max-sm:px-3
+      "
+    >
+      <div class="mb-3 max-lg:mb-2">
         <h1
           class="
             text-4xl font-semibold text-text-main 
+            max-lg:text-3xl
           "
         >
           {{ pageContent?.title }}
@@ -296,11 +304,12 @@
           flex items-center gap-2
           px-2.5 py-1 mb-3
           bg-third rounded-sm
+          max-sm:mb-2 max-sm:px-2 max-sm:py-1
         "
       >
         <Icon 
           name="material-symbols:search-rounded"
-          class="size-8 text-fifth"
+          class="shrink-0 size-8 text-fifth max-sm:size-7"
         />
         <UiInput 
           v-model="search"
@@ -308,6 +317,7 @@
           placeholder="Search..."
           input-class="
            !bg-transparent !py-2
+           max-sm:!py-1.5
           "
         />
       </div>
@@ -320,6 +330,7 @@
         <div
           class="
             text-text-main text-body-xl
+            max-sm:text-body-sm
           "
         >
           <p v-if="isEventsListPage">
@@ -341,7 +352,13 @@
           </UiButton>
         </div>
       </div>
-      <div class="relative flex-1">
+      <div 
+        class="
+          relative flex-1 overflow-y-auto overflow-x-hidden
+          max-sm:
+        " 
+        
+        data-lenis-prevent>
         <div 
           v-if="isErrorLoad"
           class="p-3 bg-error/10 rounded-sm">
@@ -366,6 +383,11 @@
               absolute top-0 left-0 w-full
               grid grid-cols-6 gap-4
               z-2
+              max-2xl:grid-cols-5
+              max-xl:grid-cols-4
+              max-lg:grid-cols-3 max-lg:gap-3
+              max-md:grid-cols-2 max-md:gap-2
+              max-sm:relative max-sm:grid-cols-1 
             "
           >
             <EventCard 
@@ -386,6 +408,7 @@
               absolute top-0 left-0 w-full
               flex flex-col gap-2.5
               z-2
+              max-sm:relative max-sm:gap-2
             "
           >
             <UserCard
