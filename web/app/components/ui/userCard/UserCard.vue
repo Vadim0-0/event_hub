@@ -81,7 +81,7 @@
     :class="{ 'is-open': isBodyVisible }"
   >
     <div 
-      class="flex items-center gap-3.5 w-full p-2.5 cursor-pointer"
+      class="flex items-center gap-3.5 w-full p-2.5 cursor-pointer max-sm:gap-2.5 max-sm:p-2"
       role="button"
       tabindex="0"
       @click="toggleOpen"
@@ -91,6 +91,7 @@
         class="
           flex items-center justify-center overflow-hidden rounded-sm flex-shrink-0
           w-12 h-12
+          max-sm:w-10 max-sm:h-10
         "
       >
         <svg 
@@ -104,17 +105,17 @@
           </g>
         </svg>
       </div>
-      <div class="flex flex-col ">
+      <div class="flex flex-col max-sm:gap-1">
         <h3 class="text-text-main text-lg font-semibold leading-4">
           {{ user.username }}
         </h3>
-        <p class="text-text-secondary text-ml">
+        <p class="text-text-secondary text-ml max-sm:text-sm">
           {{ user.email }}
         </p>
       </div>
       <div class="flex items-center justify-center ml-auto mr-2.5">
         <Icon name="ep:arrow-down-bold" mode="svg" 
-          class="text-text-main size-5 transition-transform duration-300"
+          class="text-text-main size-5 transition-transform duration-300 max-sm:size-4"
           :class="{ 'rotate-180': isBodyVisible }"
         />
       </div>
@@ -133,10 +134,11 @@
         <div 
           class="flex flex-col pt-2"  
         >
-          <div class="flex items-center justify-between gap-2.5 px-4.5">
+          <div class="flex items-center justify-between gap-2.5 px-4.5 max-sm:px-2">
             <div
               class="
                 text-text-main text-body-xl
+                max-sm:text-body-sm
               "
             >
               <p>
@@ -161,6 +163,11 @@
               class="
               grid grid-cols-6 gap-4 p-4.5
               z-2
+              max-2xl:grid-cols-5
+              max-xl:grid-cols-4
+              max-lg:grid-cols-3 max-lg:gap-3
+              max-md:grid-cols-2 max-md:gap-2
+              max-sm:relative max-sm:grid-cols-1 max-sm:p-2.5
             ">
 
               <EventCard 

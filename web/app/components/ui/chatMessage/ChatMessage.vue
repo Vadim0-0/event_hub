@@ -17,17 +17,19 @@
       class="
         flex flex-col items-end gap-1 max-w-3/5 min-w-52
         p-2 rounded-sm
+
+        max-sm:p-1 
       "
-      :class="isMine ? 'bg-primary' : 'bg-third'"
+      :class="isMine ? 'bg-primary' : 'bg-third my-1.5'"
     >
       <p 
-        class="w-full text-body-sm font-medium"
+        class="w-full text-body-sm font-medium max-sm:text-sm"
         :class="isMine ? 'text-main' : 'text-text-main'"
       >
         {{ body }}
       </p>
       <p 
-        class="text-sm whitespace-nowrap"
+        class="text-sm whitespace-nowrap max-sm:text-xs"
         :class="isMine ? 'text-secondary ' : 'text-text-main'"
       >
         {{ time }}

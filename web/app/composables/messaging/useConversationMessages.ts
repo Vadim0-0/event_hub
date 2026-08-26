@@ -24,23 +24,43 @@ export function useConversationMessages(
     if (before) params.set('before', before);
 
     return api<Message[]>(`/conversations/${id}/messages?${params}`);
-  }
+  };
 
-  async function scrollToBottom() {
-    await nextTick();
-    requestAnimationFrame(() => {
-      const container = messagesContainer.value;
-      const content = messagesContent.value;
-      if (!container) return;
-      const maxScroll = container.scrollHeight - container.clientHeight;
-      container.scrollTop = maxScroll > 0 ? maxScroll : 0;
-      if (content && maxScroll <= 0) {
-        container.scrollTop = Math.max(0, content.offsetHeight - container.clientHeight);
-      }
+  function syncStickToBottom() {
+    const container = messagesContainer.value;
+    if (!container) return;
+
+    const distanceFromBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight;
+
+    shouldStickToBottom.value = distanceFromBottom < 80;
+  };
+
+  function applyScrollToBottom() {
+    const container = messagesContainer.value;
+    if (!container) return;
+
+    container.scrollTop = container.scrollHeight;
+    syncStickToBottom();
+  };
+
+  function scrollToBottom(): Promise<void> {
+    shouldStickToBottom.value = true;
+
+    return new Promise((resolve) => {
+      nextTick().then(() => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            applyScrollToBottom();
+            resolve();
+          });
+        });
+      });
     });
-  }
+  };
 
   async function loadMessages() {
+    shouldStickToBottom.value = true;
     isLoading.value = true;
     hasMore.value = true;
 
@@ -51,7 +71,7 @@ export function useConversationMessages(
       isLoading.value = false;
       await scrollToBottom();
     }
-  }
+  };
 
   async function loadOlderMessages() {
     if (
@@ -153,6 +173,28 @@ export function useConversationMessages(
       }
       scrollToBottom();
     },
+  );
+
+  watch(
+    messagesContent,
+    (content, _, onCleanup) => {
+      if (!content || import.meta.server) return;
+
+      const observer = new ResizeObserver(() => {
+        if (suppressAutoScroll.value || isLoadingOlder.value) return;
+
+        if (shouldStickToBottom.value) {
+          applyScrollToBottom();
+          return;
+        }
+
+        syncStickToBottom();
+      });
+
+      observer.observe(content);
+      onCleanup(() => observer.disconnect());
+    },
+    { flush: 'post' },
   );
 
   return {

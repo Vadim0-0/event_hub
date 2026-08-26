@@ -57,16 +57,21 @@
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 p-5">
+  <div 
+    class="
+      flex flex-col gap-2 p-5
+      max-sm:gap-1 max-sm:p-2
+    "
+  >
     <p
       v-if="loadingOlder"
-      class="text-text-secondary text-sm text-center py-2"
+      class="text-text-secondary text-sm text-center py-2 max-sm:p-1"
     >
       Loading older messages...
     </p>
     <p
       v-else-if="hasMore === false && chatItems.length"
-      class="text-text-secondary text-sm text-center py-2"
+      class="text-text-secondary text-sm text-center py-2 max-sm:p-1"
     >
       Beginning of conversation
     </p>

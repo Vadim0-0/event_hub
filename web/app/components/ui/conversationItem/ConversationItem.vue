@@ -46,6 +46,7 @@
       class="
         flex items-center justify-center overflow-hidden rounded-sm shrink-0
         w-11 h-11
+        max-sm:w-10 max-sm:h-10
       "
     >
       <svg 

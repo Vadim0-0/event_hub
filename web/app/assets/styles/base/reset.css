@@ -1,5 +1,9 @@
 @layer base {
 
+  body {
+    overflow-x: hidden;
+  }
+
   input, select, textarea {
     vertical-align:middle;
     background-color: inherit;
