@@ -1,5 +1,6 @@
 <script setup lang="ts">
   // --- Imports ---
+  import { useScrollLock, useSwipe } from '@vueuse/core';
   import { HeaderNavigation, HeaderProfileHover } from './components';
   import mainHeaderRaw from '~~/data/components/mainHeader.json';
   import { mapMainHeader } from '~/mappers/components/mainHeader';
@@ -46,15 +47,35 @@
   // --- State ---
   const headerEl = ref<HTMLElement | null>(null);
   const isProfileOpen = ref(false);
+  const isMobile = useMediaQuery('(max-width: 767px)');
   const isCollapsed = ref(false);
+  const collapsedLayoutWidth = ref(0);
   const profilePopupRef = ref<HTMLElement | null>(null);
   const profileButtonRef = ref<HTMLElement | null>(null);
 
+  const isScrollLocked = useScrollLock(
+    import.meta.client ? document.body : null,
+  );
 
-  defineExpose({ el: headerEl });
+
+  
+  defineExpose({
+    el: headerEl,
+    getLayoutOffsetWidth,
+  });
 
 
   // --- Profile panel ---
+  function onProfileButtonMouseEnter() {
+    if (isMobile.value) return;
+    openProfile();
+  };
+
+  function onProfileButtonClick() {
+    if (!isMobile.value) return;
+    isProfileOpen.value = !isProfileOpen.value;
+  };
+
   function openProfile() {
     isProfileOpen.value = true;
   };
@@ -67,6 +88,11 @@
     ignore: [profileButtonRef],
   });
 
+  function onProfileBackdropClick() {
+    if (!isMobile.value) return;
+    closeProfile();
+  };
+
 
   // --- Header collapse ---
   function toggleHeader() {
@@ -74,6 +100,55 @@
     if (isCollapsed.value) {
       closeProfile();
     }
+  };
+
+  function expandHeader() {
+    if (!isCollapsed.value) return;
+    isCollapsed.value = false;
+  };
+
+  function collapseHeader() {
+    if (isCollapsed.value) return;
+    isCollapsed.value = true;
+    closeProfile();
+  };
+
+  function updateCollapsedLayoutWidth() {
+    if (!headerEl.value || !isCollapsed.value) return;
+
+    headerEl.value.addEventListener('transitionend', () => {
+      collapsedLayoutWidth.value = headerEl.value!.offsetWidth;
+    }, { once: true });
+  }
+
+  function getLayoutOffsetWidth() {
+    if (isMobile.value) {
+      return collapsedLayoutWidth.value || headerEl.value?.offsetWidth || 0;
+    }
+    return headerEl.value?.offsetWidth || 0;
+  };
+
+  const { direction } = useSwipe(headerEl, {
+    threshold: 50,
+    passive: true,
+    onSwipeEnd(_, dir) {
+      if (!isMobile.value) return;
+
+      if (dir === 'right' && isCollapsed.value) {
+        expandHeader();
+      };
+
+      if (dir === 'left' && !isCollapsed.value) {
+        collapseHeader();
+      };
+    },
+  });
+
+  function onNavigationClick() {
+    if (!isMobile.value) return;
+
+    collapseHeader();
+    nextTick(updateCollapsedLayoutWidth);
   };
 
 
@@ -87,6 +162,25 @@
   // --- Lifecycle ---
   onMounted(() => {
     void loadUnreadCount();
+
+    if (isMobile.value) {
+      isCollapsed.value = true;
+    };
+
+    nextTick(updateCollapsedLayoutWidth);
+  });
+
+  watch(isMobile, (mobile) => {
+    if (mobile) {
+      isCollapsed.value = true;
+      closeProfile();
+    };
+
+    nextTick(updateCollapsedLayoutWidth);
+  });
+
+  watchEffect(() => {
+    isScrollLocked.value = isProfileOpen.value && isMobile.value;
   });
   
 </script>
@@ -100,8 +194,10 @@
       h-full z-10 py-2.5
       transition-all transition-300 ease-in-out
       bg-main border-r-2 border-solid border-third shadow-sm
+      touch-action: pan-y;
+      max-sm:border-r
     "
-    :class="isCollapsed ? 'w-18 px-2' : 'w-75 px-4'"
+    :class="isCollapsed ? 'w-18 px-2 max-sm:w-15 max-sm:px-1.5' : 'w-75 px-4 max-sm:px-2.5'"
   >
     <div 
       class="
@@ -111,8 +207,10 @@
         
         transition-all easy-in-out duration-300
         hover:shadow-inner
+
+        max-sm:mb-1 max-sm:rounded-sm
       "
-      :class="isCollapsed ? 'p-2' : 'p-3'"
+      :class="isCollapsed ? 'p-2 max-sm:p-2' : 'p-3 max-sm:p-2'"
     >
       <NuxtLink 
         class="
@@ -129,6 +227,7 @@
             transition-all easy-in-out duration-300
             group-hover:text-primary-hover
           "
+          :class="isCollapsed ? 'max-sm:size-7' : 'max-sm:size-7'"
         />
         <p 
           v-show="!isCollapsed"
@@ -138,6 +237,7 @@
             text-primary
             transition-all easy-in-out duration-300
             group-hover:text-primary-hover
+            max-sm:text-2xl
           "
         >
           Event Hub
@@ -145,7 +245,7 @@
       </NuxtLink>
     </div>
 
-    <div class="mb-3">
+    <div class="mb-3 max-sm:mb-2">
       <UiSelect
         v-model="selectedLocale"
         :options="languageOptions"
@@ -153,16 +253,20 @@
       />
     </div>
 
-    <div class="flex-1 overflow-y-auto">
+    <div 
+      class="flex-1 overflow-y-auto mb-3 max-sm:mb-2"
+      data-lenis-prevent
+    >
       <HeaderNavigation 
         :navigation="navigation"
         :collapsed="isCollapsed"
+        @navigate="onNavigationClick"
       />
     </div>
 
     <div class="mt-auto">
       <div 
-        :class="isCollapsed ? 'flex flex-col gap-2 mb-2' : 'grid grid-cols-2 gap-2.5 mb-2.5'"
+        :class="isCollapsed ? 'flex flex-col gap-2 mb-2 max-sm:gap-1 max-sm:mb-1' : 'grid grid-cols-2 gap-2.5 mb-2.5 max-sm:mb-2'"
       >
         <div 
           v-for="item in statistics"
@@ -174,10 +278,10 @@
             rounded-md
             bg-primary-light border border-slid border-primary
           "
-          :class="isCollapsed ? 'flex-col gap-1' : 'gap-2.5'"
+          :class="isCollapsed ? 'flex-col gap-1 max-sm:hidden' : 'gap-2.5'"
         >
           <Icon :name="item.icon" class="size-5 text-text-main" />
-          <p class="text-lg text-text-main font-medium">
+          <p class="text-lg text-text-main font-medium max-sm:text-body-sm">
             {{ item.count }}
           </p>
 
@@ -200,23 +304,25 @@
       </div>
       <button 
         ref="profileButtonRef"
-        @mouseenter="openProfile"
+        @mouseenter="onProfileButtonMouseEnter"
+        @click="onProfileButtonClick"
         class="
           flex items-center 
           w-full rounded-md
           bg-third border border-solid border-fifth
         "
-        :class="isCollapsed ? 'justify-center gap-0 py-1.5 px-1' : 'py-1.5 px-4 gap-2'"
+        :class="isCollapsed ? 'justify-center gap-0 py-1.5 px-1' : 'py-1.5 px-4 gap-2 max-sm:py-1 max-sm:px-2'"
       >
         <div 
           class="
             flex items-center justify-center overflow-hidden rounded-[50%] shrink-0
             bg-main border-r-2 border-solid border-third
+            max-sm:bg-transparent 
           "
-          :class="isCollapsed ? 'p-1' : 'p-2.5'"
+          :class="isCollapsed ? 'p-1 max-sm:p-0' : 'p-2.5 max-sm:p-1'"
         >
           <svg 
-            class="size-8 fill-text-main"
+            class="size-8 fill-text-main max-sm:size-9"
             xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 32 32">
             <path d="M0 0h32v32H0z" fill="none" />
             <g fill="">
@@ -240,8 +346,12 @@
       <div 
         v-if="isProfileOpen"
         ref="profilePopupRef"
-        @mouseleave="closeProfile"
-        class="absolute left-[calc(100%+2px)] bottom-0 z-9"
+        @mouseleave="!isMobile && closeProfile()"
+        @click.self="onProfileBackdropClick"
+        class="
+          absolute left-[calc(100%+2px)] bottom-0 z-9
+          max-sm:fixed max-sm:flex max-sm:flex-col max-sm:justify-end max-sm:left-0 max-sm:w-full max-sm:h-full max-sm:bg-overlay
+        "
       >
         <HeaderProfileHover 
           :statistics="statistics"
@@ -258,6 +368,7 @@
         absolute top-2/4 transform -translate-y-2/4 rotate-180
         flex items-center justify-center py-2 rounded-r-sm
         bg-third
+        max-sm:hidden
       "
       :class="isCollapsed ? '-right-6.75 scale-x-[-1]' : 'right-0 '"
       @click="toggleHeader"
@@ -275,6 +386,7 @@
   .profile-hover-enter-active,
   .profile-hover-leave-active {
     transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
   }
   .profile-hover-enter-from,
   .profile-hover-leave-to {

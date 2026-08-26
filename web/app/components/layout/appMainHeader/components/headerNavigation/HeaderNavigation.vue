@@ -4,6 +4,10 @@
   
   defineProps<HeaderNavigation & { collapsed?: boolean }>()
 
+  const emit = defineEmits<{
+    navigate: [];
+  }>();
+
   const localePath = useLocalePath();
   const messagingStore = useMessagingStore();
   const { unreadTotal } = storeToRefs(messagingStore);
@@ -12,6 +16,10 @@
     if (count > 99) return '99';
     return String(count);
   };
+
+  function onNavClick() {
+    emit('navigate');
+  }
 
 </script>
 
@@ -33,7 +41,8 @@
         hover:bg-primary-light
       "
       active-class="active !bg-primary"
-      :class="collapsed ? 'justify-center' : ''"
+      :class="collapsed ? 'justify-center max-sm:py-2' : 'max-sm:py-2'"
+      @click="onNavClick"
     >
       <span
         v-if="btn.id === 'chatsPage' && unreadTotal > 0"
@@ -55,6 +64,7 @@
           size-6 text-text-main
           transition-all transition-300 ease-in-out
           group-[.active]:text-main
+          max-sm:size-5
         "
       />
       <p
@@ -64,6 +74,7 @@
           text-body-xl text-text-main
           transition-all transition-300 ease-in-out
           group-[.active]:text-main
+          max-sm:text-body-sm
         "
       >
         {{ btn.text }}

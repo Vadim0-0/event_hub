@@ -16,7 +16,10 @@
 
 
   // --- Layout ---
-  const headerRef = ref<{ el: HTMLElement | null } | null>(null);
+  const headerRef = ref<{
+    el: HTMLElement | null;
+    getLayoutOffsetWidth: () => number;
+  } | null>(null);
   const marginLeftStyle = ref({ marginLeft: '0px' });
   const mapStore = useMapStore();
 
@@ -24,8 +27,12 @@
 
   function updateMarginLeft() {
     if (!headerRef.value?.el) return;
-    marginLeftStyle.value = { marginLeft: `${headerRef.value.el.offsetWidth}px` };
-  };
+
+    const width = headerRef.value.getLayoutOffsetWidth?.() 
+      ?? headerRef.value.el.offsetWidth;
+
+    marginLeftStyle.value = { marginLeft: `${width}px` };
+  }
 
 
   // --- Event panels ---

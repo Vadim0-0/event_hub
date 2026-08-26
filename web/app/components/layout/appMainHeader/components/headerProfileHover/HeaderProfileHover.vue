@@ -32,7 +32,9 @@
       flex flex-col items-center gap-1
       p-2.5 w-[250px]
       bg-main rounded-xl
-      border-1 border-solid border-third shadow-sm
+      border border-solid border-third shadow-sm
+
+      max-sm:w-full max-sm:px-4 max-sm:py-6 max-sm:border-b-0 max-sm:rounded-b-none
     "
   >
     <div 
@@ -42,7 +44,7 @@
       "
     >
       <svg 
-        class="size-10 fill-text-main"
+        class="size-10 fill-text-main max-sm:size-14"
         xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 32 32">
         <path d="M0 0h32v32H0z" fill="none" />
         <g fill="">
@@ -55,6 +57,8 @@
     <div
       class="flex flex-col gap-1 mb-5 w-full
         text-lg text-text-main
+
+        max-sm:mb-3 max-sm:gap-0
       "
     >
       <p>{{ auth.user?.username ?? defaults.username }}</p>
@@ -64,7 +68,7 @@
       </p>
     </div>
     <div
-      class="profile-btns flex flex-col gap-2.5 w-full"
+      class="profile-btns flex flex-col gap-2.5 w-full max-sm:gap-2"
     >
       <button
         v-for="btn in profileBtns"
@@ -73,7 +77,7 @@
         @click="handleProfileBtnClick(btn.id)"
         class="
           flex items-center gap-2 px-3 py-2 w-full
-          bg-secondary border-1 border-solid border-fifth
+          bg-secondary border border-solid border-fifth
           rounded-md
         "
       >
@@ -82,11 +86,12 @@
           class="
             size-6 text-text-main
             transition-transform ease-in-out duration-300
+            max-sm:size-5
           "
           mode="svg"
         />
         <p
-          class="text-body-xl text-text-main"
+          class="text-body-xl text-text-main text-body-sm"
         >
           {{ btn.text }}
         </p>
