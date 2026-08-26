@@ -1,0 +1,28 @@
+[
+  {
+    "timeFormatPlaceholder": {
+      "ru": "ЧЧ:ММ",
+      "en": "HH:mm"
+    },
+    "selectTimeTitle": {
+      "ru": "Выберите время",
+      "en": "Select time"
+    },
+    "amLabel": {
+      "ru": "ДП",
+      "en": "AM"
+    },
+    "pmLabel": {
+      "ru": "ПП",
+      "en": "PM"
+    },
+    "cancelButton": {
+      "ru": "Отмена",
+      "en": "Cancel"
+    },
+    "confirmButton": {
+      "ru": "ОК",
+      "en": "OK"
+    }
+  }
+]

@@ -1,6 +1,14 @@
 <script setup lang="ts">
 
   import type { Message } from '~/types/domain/messaging';
+  import conversationChatRaw from '~~/data/components/ui/conversationChat.json';
+  import { mapConversationChat } from '~/mappers/components/ui/conversationChat';
+  import type { ConversationChatRaw } from '~/types/i18n/components/ui/conversationChat';
+
+  const { locale } = useI18n();
+  const content = computed(() =>
+    mapConversationChat((conversationChatRaw as ConversationChatRaw[])[0]!, locale.value),
+  );
 
   const props = defineProps<{
     messages: Message[]
@@ -23,9 +31,11 @@
   function formatDateLabel(iso: string) {
     const d = dayjs(iso);
     const today = dayjs();
-    if (d.isSame(today, 'day')) return 'Today';
-    if (d.isSame(today.subtract(1, 'day'), 'day')) return 'Yesterday';
-    return d.format('DD MMMM YYYY');
+
+    if (d.isSame(today, 'day')) return content.value.today;
+    if (d.isSame(today.subtract(1, 'day'), 'day')) return content.value.yesterday;
+
+    return d.locale(locale.value).format('DD MMMM YYYY');
   };
 
   const chatItems = computed<ChatItem[]>(() => {
@@ -67,22 +77,22 @@
       v-if="loadingOlder"
       class="text-text-secondary text-sm text-center py-2 max-sm:p-1"
     >
-      Loading older messages...
+      {{ content.loadingOlderMessages }}
     </p>
     <p
       v-else-if="hasMore === false && chatItems.length"
       class="text-text-secondary text-sm text-center py-2 max-sm:p-1"
     >
-      Beginning of conversation
+      {{ content.beginningOfConversation }}
     </p>
     <p v-if="loading" class="text-text-secondary text-sm text-center">
-      Loading messages...
+      {{ content.loadingMessages }}
     </p>
     <p
       v-else-if="!chatItems.length"
       class="text-text-secondary text-sm text-center"
     >
-      No messages yet
+      {{ content.noMessages }}
     </p>
     
     <template v-else>

@@ -75,4 +75,9 @@ export default defineNuxtConfig({
   },
 
   i18n: i18nOptions,
+
+  dayjs: {
+    locales: ['en', 'ru'],
+    defaultLocale: 'en',
+  },
 })

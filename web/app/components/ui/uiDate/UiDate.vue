@@ -1,7 +1,16 @@
 <script setup lang="ts">
 
+  import uiDateRaw from '~~/data/components/ui/uiDate.json';
+  import { mapUiDate } from '~/mappers/components/ui/uiDate';
+  import type { UiDateRaw } from '~/types/i18n/components/ui/uiDate';
+
   // === 1. CONFIG ===
   defineOptions({ inheritAttrs: false });
+
+  const { locale } = useI18n();
+  const content = computed(() =>
+    mapUiDate((uiDateRaw as UiDateRaw[])[0]!, locale.value),
+  );
 
   const dayjs = useDayjs()
 
@@ -18,7 +27,7 @@
 
   const props = withDefaults(defineProps<Props>(), {
     label: '',
-    placeholder: 'Select date',
+    placeholder: '',
     id: undefined,
     class: '',
     disabled: false,
@@ -179,7 +188,9 @@
     onLeave: onSelectorLeave,
   } = useHeightTransition({ duration: 300, marginTop: 5 });
 
-  const monthLabel = computed(() => viewDate.value.format('MMMM YYYY'));
+  const monthLabel = computed(() =>
+    viewDate.value.locale(locale.value).format('MMMM YYYY'),
+  );
 
   function prevMonth() {
     viewDate.value = viewDate.value.subtract(1, 'month');
@@ -191,7 +202,11 @@
 
 
   // === 7. CALENDAR LOGIC ===
-  const weekDays = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+  const weekDays = computed(() => content.value.weekDays);
+
+  const inputPlaceholder = computed(() =>
+    props.placeholder.trim() || content.value.dateFormatPlaceholder,
+  );
 
   const calendarDays = computed(() => {
     const start = viewDate.value.startOf('month').startOf('week').add(1, 'day');
@@ -277,7 +292,7 @@
           type="text"
           inputmode="numeric"
           maxlength="10"
-          :placeholder="props.placeholder || 'DD.MM.YYYY'"
+          :placeholder="inputPlaceholder"
           :disabled="props.disabled"
           :value="inputText"
           :class="{ 'is-invalid': inputState === 'invalid' }"
@@ -337,10 +352,10 @@
             </div>
             <div class="date-selector__bottom">
               <button type="button" @click="clearDate">
-                Clear
+                {{ content.clearButton }}
               </button>
               <button type="button" @click="setToday">
-                Today
+                {{ content.todayButton }}
               </button>
             </div>
           </div>
@@ -351,7 +366,7 @@
 
     <div class="ui-date__error" v-if="inputState === 'invalid'">
       <p>
-        Invalid date format
+        {{ content.invalidDateFormat }}
       </p>
     </div>
     <div v-if="props.errorMessage" class="ui-date__error">

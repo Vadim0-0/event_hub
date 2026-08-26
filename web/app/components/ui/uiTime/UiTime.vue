@@ -1,7 +1,16 @@
 <script setup lang="ts">
 
+  import uiTimeRaw from '~~/data/components/ui/uiTime.json';
+  import { mapUiTime } from '~/mappers/components/ui/uiTime';
+  import type { UiTimeRaw } from '~/types/i18n/components/ui/uiTime';
+
   // === 1. CONFIG ===
   defineOptions({ inheritAttrs: false });
+
+  const { locale } = useI18n();
+  const content = computed(() =>
+    mapUiTime((uiTimeRaw as UiTimeRaw[])[0]!, locale.value),
+  );
 
   interface Props {
     label?: string
@@ -14,7 +23,7 @@
 
   const props = withDefaults(defineProps<Props>(), {
     label: '',
-    placeholder: 'Select time',
+    placeholder: '',
     id: undefined,
     class: '',
     disabled: false,
@@ -64,6 +73,10 @@
 
   const hasInputError = computed(() => Boolean(props.errorMessage?.trim()));
 
+  const inputPlaceholder = computed(() =>
+    props.placeholder.trim() || content.value.timeFormatPlaceholder,
+  );
+
 
   // === 5. HELPERS ===
   function hourAngle(hour: number) {
@@ -79,8 +92,12 @@
     return String(minute).padStart(2, '0');
   }
 
+  function periodLabel(sign: Period) {
+    return sign === 'AM' ? content.value.amLabel : content.value.pmLabel;
+  }
+
   function formatTime(hour: number, minute: number, sign: Period) {
-    return `${hour}:${formatMinute(minute)} ${sign}`;
+    return `${hour}:${formatMinute(minute)} ${periodLabel(sign)}`;
   }
 
   function syncTextsFromPreview() {
@@ -137,6 +154,13 @@
     },
     { immediate: true },
   );
+
+  watch(content, () => {
+    const parsed = parseModel(modelValue.value);
+    if (!parsed) return;
+
+    inputText.value = formatTime(parsed.hour, parsed.minute, parsed.period);
+  });
 
 
   // === 7. POPUP OPEN / CLOSE ===
@@ -381,7 +405,7 @@
           :id="props.id"
           type="text"
           :value="inputText"
-          :placeholder="props.placeholder"
+          :placeholder="inputPlaceholder"
           :disabled="props.disabled"
           readonly
         >
@@ -399,7 +423,7 @@
           <div class="time-selector">
             <div class="time-selector__top">
               <p>
-                SELECT TIME
+                {{ content.selectTimeTitle }}
               </p>
             </div>
       
@@ -431,13 +455,13 @@
                 <label :for="amId" class="time-selector__fields-signs__label">
                   <input type="radio" :id="amId" :name="radiosName" value="AM" v-model="period">
                   <span class="time-selector__fields-signs__label-custom">
-                    AM
+                    {{ content.amLabel }}
                   </span>
                 </label>
                 <label :for="pmId" class="time-selector__fields-signs__label">
                   <input type="radio" :id="pmId" :name="radiosName" value="PM" v-model="period">
                   <span class="time-selector__fields-signs__label-custom">
-                    PM
+                    {{ content.pmLabel }}
                   </span>
                 </label>
               </div>
@@ -515,10 +539,10 @@
       
             <div class="time-selector__bottom">
               <button type="button" @click="cancelSelector">
-                CANCEL
+                {{ content.cancelButton }}
               </button>
               <button type="button" @click="confirmSelector">
-                OK
+                {{ content.confirmButton }}
               </button>
             </div>
           </div>

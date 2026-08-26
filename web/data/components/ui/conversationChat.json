@@ -1,0 +1,32 @@
+[
+  {
+    "title": {
+      "ru": "Чат с ИИ",
+      "en": "Chat Ai"
+    },
+    "loadingOlderMessages": {
+      "ru": "Загрузка старых сообщений...",
+      "en": "Loading older messages..."
+    },
+    "beginningOfConversation": {
+      "ru": "Начало разговора",
+      "en": "Beginning of conversation"
+    },
+    "loadingMessages": {
+      "ru": "Загрузка сообщений...",
+      "en": "Loading messages..."
+    },
+    "noMessages": {
+      "ru": "Сообщений пока нет",
+      "en": "No messages yet"
+    },
+    "today": {
+      "ru": "Сегодня",
+      "en": "Today"
+    },
+    "yesterday": {
+      "ru": "Вчера",
+      "en": "Yesterday"
+    }
+  }
+]

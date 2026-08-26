@@ -1,0 +1,24 @@
+[
+  {
+    "dateFormatPlaceholder": {
+      "ru": "ДД.ММ.ГГГГ",
+      "en": "DD.MM.YYYY"
+    },
+    "weekDays": {
+      "ru": ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"],
+      "en": ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
+    },
+    "clearButton": {
+      "ru": "Очистить",
+      "en": "Clear"
+    },
+    "todayButton": {
+      "ru": "Сегодня",
+      "en": "Today"
+    },
+    "invalidDateFormat": {
+      "ru": "Неверный формат даты",
+      "en": "Invalid date format"
+    }
+  }
+]
