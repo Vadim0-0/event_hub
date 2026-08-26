@@ -101,11 +101,11 @@
 
 <template>
   <form @submit.prevent="onSubmit">
-    <div class="flex flex-col gap-0.5 mb-8">
-      <h2 class="text-heading-lg font-bold text-text-main">
+    <div class="flex flex-col gap-0.5 mb-8 max-sm:mb-5">
+      <h2 class="text-heading-lg font-bold text-text-main max-sm:text-3xl">
         {{ content.title }}
       </h2>
-      <p class="text-lg text-text-main">
+      <p class="text-lg text-text-main max-sm:text-ms">
         {{ content.text }} <span class="font-semibold">{{ email }}</span>
       </p>
     </div>
@@ -120,28 +120,28 @@
       />
     </div>
 
-    <div class="flex items-center justify-center gap-2 mb-4">
+    <div class="flex items-center justify-center gap-2 mb-8 max-sm:flex-row-reverse">
       <UiButton
         type="button"
         style-type="primary"
-        class="w-11 h-11 !py-0"
+        class="flex-shrink-0 w-11 h-11 !p-1 max-sm:w-9 max-sm:h-9"
         :disabled="isResendDisabled"
         @click="onResend"
       >
         <Icon name="fluent:arrow-sync-12-regular" mode="svg" class="w-full h-full" :class="{ 'animate-spin': auth.isLoading }"/>
       </UiButton>
 
-      <p v-if="isCooldownActive" class="text-center text-lg text-text-main">
+      <p v-if="isCooldownActive" class="text-center text-lg text-text-main max-sm:!text-body-sm">
         {{ content.verifyResend.firstText.main }}
         <span>{{ secondsLeft }}</span>
         {{ content.verifyResend.firstText.time }}
       </p>
-      <p v-else class="text-center text-lg text-text-main">
+      <p v-else class="text-center text-lg text-text-main max-sm:!text-body-sm">
         {{ content.verifyResend.secondText.main }}
       </p>
     </div>
 
-    <div class="grid grid-cols-2 gap-4 mb-4">
+    <div class="grid grid-cols-2 gap-4 mb-4 max-sm:grid-cols-1 max-sm:gap-2">
       <UiButton
         type="button"
         style-type="cancel"

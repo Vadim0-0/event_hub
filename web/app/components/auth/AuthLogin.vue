@@ -60,8 +60,8 @@
 
 <template>
   <form @submit.prevent="onSubmit">
-    <div class="mb-8">
-      <h2 class="text-heading-lg font-bold text-text-main">
+    <div class="mb-8 max-sm:mb-5">
+      <h2 class="text-heading-lg font-bold text-text-main max-sm:text-3xl">
         {{ content.title }}
       </h2>
     </div>
@@ -81,13 +81,14 @@
         input-class="!bg-secondary"
       />
     </div>
-    <div class="grid grid-cols-2 gap-4 mb-6">
+    <div class="grid grid-cols-2 gap-4 mb-6 max-sm:grid-cols-1 max-sm:gap-2">
       <NuxtLink to="/" 
         class="
           btn-global py-3 
           
-          bg-fourth text-text-main border border-solid border-fifth
+          bg-fourth text-text-main text-body-xl border border-solid border-fifth
           hover:bg-third
+          max-sm:text-body-sm
         "
       >
         {{ content.cancelButton }}
@@ -95,13 +96,13 @@
       <UiButton
         type="submit"
         :disabled="auth.isLoading"
-        class="!py-3 !text-body-xl"
+        class="!py-3 !text-body-xl max-sm:!text-body-sm"
       >
         {{ auth.isLoading ? content.confirmButton.loading : content.confirmButton.initial }}
       </UiButton>
     </div>
     <div class="flex flex-col items-center">
-      <p class="text-lg text-text-secondary">
+      <p class="text-center text-lg text-text-secondary max-sm:text-body-sm">
         {{ content.createAccount.text }}
         <button 
           type="button" 

@@ -74,8 +74,8 @@
 
 <template>
   <form @submit.prevent="onSubmit">
-    <div class="mb-8">
-      <h2 class="text-heading-lg font-bold text-text-main">
+    <div class="mb-8 max-sm:mb-5">
+      <h2 class="text-heading-lg font-bold text-text-main max-sm:text-3xl">
         {{ content.title }}
       </h2>
     </div>
@@ -93,11 +93,11 @@
         :placeholder="content.timezonePlaceholder"
         :error-message="fieldErrors.timezone"
         list-layout="bottom"
-        button-style="!bg-secondary !border-0 !min-h-[61px]"
+        button-style="!bg-secondary !border-0 !min-h-[61px] max-sm:!min-h-[58px]"
         list-style="!bg-secondary !border-0"
-        list-button-style="!min-h-[61px]"
+        list-button-style="!min-h-[61px] max-sm:!min-h-[58px]"
 
-        search-style="!min-h-[61px]"
+        search-style="!min-h-[61px] max-sm:!min-h-[58px]"
         search-visible
         search-placeholder="Search timezone..."
       />
@@ -116,7 +116,7 @@
         input-class="!bg-secondary" 
       />
     </div>
-    <div class="grid grid-cols-2 gap-4 mb-2">
+    <div class="grid grid-cols-2 gap-4 mb-2 max-sm:grid-cols-1 max-sm:gap-2">
       <UiButton
         @click="$emit('switch-to-login')" 
         type="button"
