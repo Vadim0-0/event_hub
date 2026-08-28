@@ -254,23 +254,12 @@
   );
 
 
-  // --- EventSetup ---
-  const eventSetupStore = useEventSetupStore();
-  const selectedEventStore = useSelectedEventStore();
+  const showCreateEventButton = computed(() =>
+    isAllEventsPage.value ||
+    isMyEventsPage.value ||
+    isJoinedEventsPage.value,
+  );
 
-  function openCreateEvent() {
-    selectedEventStore.close();
-    eventSetupStore.openCreate();
-  };
-
-
-  // --- AI Chat ---
-  const aiChatStore = useAiChatStore();
-
-  function aiChatOpen(event: MouseEvent) {
-    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
-    aiChatStore.open(rect)
-  };
 
 </script>
 
@@ -342,7 +331,7 @@
         </div>
 
         <div v-if="pageContent?.sortingButtonText">
-          <UiButton @click="toggleSort" style-type="cancel">
+          <UiButton @click="toggleSort" style-type="cancel" class="leading-none">
             <Icon 
               :name="sortIcon"
               class="size-5 text-text-main"
@@ -420,30 +409,7 @@
           </TransitionGroup>
         </template>
 
-        <div class="
-          absolute z-3 bottom-0.5 right-0.5
-          flex gap-1
-        ">
-          <Transition name="ai-btn-hide">
-            <UiButton
-              v-if="!aiChatStore.isOpen"
-              key="ai-chat-trigger"
-              class="w-11 h-11"
-              @click="aiChatOpen"
-            >
-              <Icon name="mingcute:ai-fill" mode="svg" class="size-full" />
-            </UiButton>
-          </Transition>
-          <UiButton
-            v-if="isAllEventsPage || isMyEventsPage || isJoinedEventsPage"
-            @click="openCreateEvent"
-            class="
-              w-11 h-11
-            "
-          >
-            <Icon name="line-md:plus" mode="svg" class="w-full h-full"/>
-          </UiButton>
-        </div>
+        <LayoutEventsFloatingActions :show-create-button="showCreateEventButton" />
 
       </div>
       <div>
