@@ -1,6 +1,6 @@
 <script setup lang="ts">
   // --- Imports ---
-  import { useScrollLock, useSwipe } from '@vueuse/core';
+  import { useSwipe } from '@vueuse/core';
   import { HeaderNavigation, HeaderProfileHover } from './components';
   import mainHeaderRaw from '~~/data/components/mainHeader.json';
   import { mapMainHeader } from '~/mappers/components/mainHeader';
@@ -53,9 +53,7 @@
   const profilePopupRef = ref<HTMLElement | null>(null);
   const profileButtonRef = ref<HTMLElement | null>(null);
 
-  const isScrollLocked = useScrollLock(
-    import.meta.client ? document.body : null,
-  );
+  usePageScrollLockWhen(() => isProfileOpen.value, { mobileOnly: true });
 
 
   
@@ -179,9 +177,6 @@
     nextTick(updateCollapsedLayoutWidth);
   });
 
-  watchEffect(() => {
-    isScrollLocked.value = isProfileOpen.value && isMobile.value;
-  });
   
 </script>
 

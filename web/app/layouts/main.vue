@@ -22,6 +22,15 @@
   } | null>(null);
   const marginLeftStyle = ref({ marginLeft: '0px' });
   const mapStore = useMapStore();
+  const isMobile = useMediaQuery('(max-width: 767px)');
+
+  initPageScrollLock(isMobile);
+
+  usePageScrollLockWhen(() => editProfilerStore.isOpen, { mobileOnly: false });
+  usePageScrollLockWhen(() => confirmStore.isOpen, { mobileOnly: true });
+  usePageScrollLockWhen(() => mapStore.isOpen, { mobileOnly: true });
+  usePageScrollLockWhen(() => eventSetupStore.isOpen, { mobileOnly: true });
+  usePageScrollLockWhen(() => aiChatStore.isOpen, { mobileOnly: true });
 
   let resizeObserver: ResizeObserver | null = null;
 
@@ -207,6 +216,18 @@
   .smooth-appearance-enter-from,
   .smooth-appearance-leave-to {
     opacity: 0;
+  }
+
+  @media (max-width: 767px)  {
+    .slide-enter-active,
+    .slide-leave-active {
+      transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+    }
+    .slide-enter-from,
+    .slide-leave-to {
+      opacity: 1;
+      transform: translateY(100%);
+    }
   }
 
 </style>
