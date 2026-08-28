@@ -42,6 +42,7 @@
   const isOpen = ref(false);
   const fieldRef = ref<HTMLElement | null>(null);
   const viewDate = ref(dayjs());
+  const isMobile = useMediaQuery('(max-width: 767px)');
 
 
   // === 2. MIN DATE ===
@@ -188,6 +189,14 @@
     onLeave: onSelectorLeave,
   } = useHeightTransition({ duration: 300, marginTop: 5 });
 
+  const selectorTransitionHooks = {
+    onBeforeEnter: onSelectorBeforeEnter,
+    onEnter: onSelectorEnter,
+    onAfterEnter: onSelectorAfterEnter,
+    onBeforeLeave: onSelectorBeforeLeave,
+    onLeave: onSelectorLeave,
+  };
+
   const monthLabel = computed(() =>
     viewDate.value.locale(locale.value).format('MMMM YYYY'),
   );
@@ -304,14 +313,16 @@
       </div>
   
       <Transition
-        :css="false"
-        @before-enter="onSelectorBeforeEnter"
-        @enter="onSelectorEnter"
-        @after-enter="onSelectorAfterEnter"
-        @before-leave="onSelectorBeforeLeave"
-        @leave="onSelectorLeave"
+        :css="isMobile"
+        :name="isMobile ? 'date-selector-mobile' : undefined"
+        v-bind="isMobile ? {} : selectorTransitionHooks"
       >
-        <div v-if="isOpen" class="ui-date__body-wrap">
+        <div
+          v-if="isOpen"
+          class="ui-date__body-wrap"
+          data-lenis-prevent
+          @click.stop
+        >
           <div class="date-selector">
             <div class="date-selector__top">
               <button type="button" class="date-selector__top-btn prev-btn" @click="prevMonth">
@@ -351,12 +362,23 @@
     
             </div>
             <div class="date-selector__bottom">
-              <button type="button" @click="clearDate">
-                {{ content.clearButton }}
-              </button>
-              <button type="button" @click="setToday">
-                {{ content.todayButton }}
-              </button>
+              <template v-if="!isMobile">
+                <button type="button" @click="clearDate">
+                  {{ content.clearButton }}
+                </button>
+                <button type="button" @click="setToday">
+                  {{ content.todayButton }}
+                </button>
+              </template>
+
+              <template v-else>
+                <UiButton type="button" style-type="cancel" @click="clearDate">
+                  {{ content.clearButton }}
+                </UiButton>
+                <UiButton type="button" style-type="primary"  @click="setToday">
+                  {{ content.todayButton }}
+                </UiButton>
+              </template>
             </div>
           </div>
         </div>
@@ -385,7 +407,7 @@
     border: none;
 
     &__label {
-      margin-bottom: 5px;
+      margin-bottom: 1px;
       color: var(--color-text-main);
       font-size: var(--text-body-sm);
       font-weight: 500;
@@ -524,6 +546,7 @@
               & span {
                 text-align: center;
                 font-size: 16px;
+                font-weight: 600;
                 color: var(--color-text-main);
               }
             }
@@ -540,11 +563,13 @@
                 text-align: center;
                 font-size: 16px;
                 color: var(--color-text-main);
-  
-                &:hover {
-                  background-color: var(--color-primary-light-2);
+
+                @media (hover: hover) and (pointer: fine) {
+                  &:hover {
+                    background-color: var(--color-primary-light-2);
+                  }
                 }
-  
+
                 &.is-selected {
                   background-color: var(--color-primary);
   
@@ -585,6 +610,138 @@
         border-color: var(--color-error) !important;
       }
     }
+  }
+
+  @media (max-width: 767px)  {
+    .ui-date {
+
+      &__body {
+
+        &-field {
+    
+          &__open {
+            right: 10px;
+    
+            & svg {
+              width: 26px;
+              height: 26px;
+              color: var(--color-primary);
+            }
+          }
+    
+          & input {
+            padding: 14px 10px;
+            font-size: var(--text-body-sm);
+          }
+        }
+
+        &-wrap {
+          position: fixed;
+          top: 0;
+          left: 0;
+          display: flex;
+          flex-direction: column;
+          width: 100%;
+          height: 100%;
+          margin-top: 0;
+          background-color: var(--color-third);
+          z-index: 101;
+
+          & .date-selector {
+            flex: 1;
+            gap: 0;
+            padding: 10px;
+
+            &__top {
+              gap: 5px;
+              padding: 15px 5px;
+              width: 100%;
+              max-width: 450px;
+              margin: 0 auto;
+              margin-top: auto;
+              border-radius: 5px 5px 0 0;
+              background-color: var(--color-main);
+              container-type: inline-size;
+
+              &-name {
+                font-size: 4.5cqi;
+              }
+
+              &-btn {
+
+                & svg {
+                  width: 22px;
+                  height: 22px;
+                }
+              }
+            }
+
+            &__calendar {
+              padding: 15px 0;
+              gap: 20px;
+              width: 100%;
+              max-width: 450px;
+              margin: 0 auto;
+              border-radius: 0 0 5px 5px;
+              background-color: var(--color-main);
+              container-type: inline-size;
+
+              &-weekdays {
+                & span {
+                  font-size: 4.2cqi;
+                }
+              }
+
+              &-grid {
+                
+                & button {
+                  aspect-ratio: 1.4 / 1; 
+                  font-size: 4cqi;
+                  
+                }
+              }
+            }
+
+            &__bottom {
+              display: grid;
+              grid-template-columns: repeat(2, 1fr);
+              margin-top: auto;
+              padding: 0;
+      
+              & button {
+                padding: 6px 8px;
+                
+                &:nth-child(2) {
+                  color: var(--color-main);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      &__error {
+        margin-top: 5px;
+        font-size: var(--text-body-sm);
+      }
+    }
+  }
+
+  .date-selector-mobile-enter-active,
+  .date-selector-mobile-leave-active {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+
+  .date-selector-mobile-enter-from,
+  .date-selector-mobile-leave-to {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  .date-selector-mobile-enter-to,
+  .date-selector-mobile-leave-from {
+    opacity: 1;
+    transform: translateY(0);
   }
 
 </style>

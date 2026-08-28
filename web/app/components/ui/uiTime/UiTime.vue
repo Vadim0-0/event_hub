@@ -77,6 +77,10 @@
     props.placeholder.trim() || content.value.timeFormatPlaceholder,
   );
 
+  const isMobile = useMediaQuery('(max-width: 767px)');
+  const isDialDragging = ref(false);
+  const activePointerId = ref<number | null>(null);
+
 
   // === 5. HELPERS ===
   function hourAngle(hour: number) {
@@ -184,6 +188,8 @@
   }
 
   function closeSelector() {
+    isDialDragging.value = false;
+    activePointerId.value = null;
     isOpen.value = false;
     dialLocked.value = false;
     handVisible.value = false;
@@ -197,6 +203,14 @@
     onBeforeLeave: onSelectorBeforeLeave,
     onLeave: onSelectorLeave,
   } = useHeightTransition({ duration: 300, marginTop: 10 });
+
+  const selectorTransitionHooks = {
+    onBeforeEnter: onSelectorBeforeEnter,
+    onEnter: onSelectorEnter,
+    onAfterEnter: onSelectorAfterEnter,
+    onBeforeLeave: onSelectorBeforeLeave,
+    onLeave: onSelectorLeave,
+  };
 
   function cancelSelector() {
     selectedHour.value = snapshotHour.value;
@@ -236,6 +250,30 @@
 
 
   // === 8. DIAL HOVER / SELECT ===
+  function getDialCenter(el: HTMLElement) {
+    const rect = el.getBoundingClientRect();
+    return {
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2,
+    };
+  };
+  
+  function getAngleFromCenter(clientX: number, clientY: number, center: { x: number; y: number }) {
+    const rad = Math.atan2(clientX - center.x, center.y - clientY);
+    let deg = (rad * 180) / Math.PI;
+    if (deg < 0) deg += 360;
+    return deg;
+  };
+  
+  function getHourFromAngle(deg: number) {
+    const index = Math.round(deg / 30) % 12;
+    return hours[index] ?? 12;
+  };
+  
+  function getMinuteFromAngle(deg: number) {
+    return Math.round(deg / 6) % 60;
+  };
+
   function onHourEnter(hour: number) {
     if (dialLocked.value) return;
     previewHour.value = hour;
@@ -286,6 +324,8 @@
   }
 
   function onDialsMouseLeave() {
+    if (isDialDragging.value) return;
+    
     requestAnimationFrame(() => {
       if (dialsRef.value?.matches(':hover')) return;
 
@@ -298,6 +338,64 @@
       dialLocked.value = false;
     });
   }
+
+  function onDialPointerDown(e: PointerEvent) {
+    if (!isMobile.value || dialLocked.value || props.disabled) return;
+    if (e.pointerType === 'mouse') return;
+
+    isDialDragging.value = true;
+    activePointerId.value = e.pointerId;
+
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    e.preventDefault();
+
+    updateDialFromPointer(e);
+  }
+
+  function onDialPointerMove(e: PointerEvent) {
+    if (!isDialDragging.value || e.pointerId !== activePointerId.value) return;
+
+    e.preventDefault();
+    updateDialFromPointer(e);
+  }
+
+  function onDialPointerUp(e: PointerEvent) {
+    if (!isDialDragging.value || e.pointerId !== activePointerId.value) return;
+
+    const clockFace = dialsRef.value?.querySelector('.clock-face') as HTMLElement | null;
+    if (!clockFace) return;
+
+    const center = getDialCenter(clockFace);
+    const angle = getAngleFromCenter(e.clientX, e.clientY, center);
+
+    if (dialMode.value === 'hours') {
+      selectHour(getHourFromAngle(angle));
+    } else {
+      selectMinute(getMinuteFromAngle(angle));
+    }
+
+    isDialDragging.value = false;
+    activePointerId.value = null;
+
+    try {
+      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    } catch {}
+  }
+
+  function updateDialFromPointer(e: PointerEvent) {
+    const clockFace = dialsRef.value?.querySelector('.clock-face') as HTMLElement | null;
+    if (!clockFace) return;
+
+    const center = getDialCenter(clockFace);
+    const angle = getAngleFromCenter(e.clientX, e.clientY, center);
+
+    if (dialMode.value === 'hours') {
+      onHourEnter(getHourFromAngle(angle));
+    } else {
+      onMinuteEnter(getMinuteFromAngle(angle));
+    }
+  }
+
 
 
   // === 9. KEYBOARD INPUT ===
@@ -378,8 +476,7 @@
 
   function onMinuteFocus() {
     dialMode.value = 'minutes';
-  }
-
+  };
 </script>
 
 <template>
@@ -392,12 +489,12 @@
     </span>
 
     <div ref="fieldRef" class="ui-time__body">
-      <div class="ui-time__body-field">
+      <div class="ui-time__body-field" @click.stop="openSelector">
         <button
           type="button"
           class="ui-time__body-field__open"
           :disabled="props.disabled"
-          @click.stop="openSelector"
+          
         >
           <Icon name="ic:outline-watch-later" mode="svg" />
         </button>
@@ -412,14 +509,16 @@
       </div>
 
       <Transition
-        :css="false"
-        @before-enter="onSelectorBeforeEnter"
-        @enter="onSelectorEnter"
-        @after-enter="onSelectorAfterEnter"
-        @before-leave="onSelectorBeforeLeave"
-        @leave="onSelectorLeave"
+        :css="isMobile"
+        :name="isMobile ? 'time-selector-mobile' : undefined"
+        v-bind="isMobile ? {} : selectorTransitionHooks"
       >
-        <div v-if="isOpen" class="ui-time__body-wrap">
+        <div
+          v-if="isOpen"
+          class="ui-time__body-wrap"
+          data-lenis-prevent
+          @click.stop
+        >
           <div class="time-selector">
             <div class="time-selector__top">
               <p>
@@ -470,9 +569,13 @@
             <div
               ref="dialsRef"
               class="time-selector__dials"
-              :class="{ 'is-locked': dialLocked }"
+              :class="{ 'is-locked': dialLocked, 'is-dragging': isDialDragging }"
               @mousedown.prevent
               @mouseleave="onDialsMouseLeave"
+              @pointerdown="onDialPointerDown"
+              @pointermove="onDialPointerMove"
+              @pointerup="onDialPointerUp"
+              @pointercancel="onDialPointerUp"
             >
       
               <Transition name="clock-face-anim" mode="out-in">
@@ -494,6 +597,7 @@
                     :key="hour"
                     type="button"
                     class="clock-face__number"
+                    :class="{ active: dialMode === 'hours' && previewHour === hour }"
                     :style="{ '--angle': `${hourAngle(hour)}deg` }"
                     @mouseenter="onHourEnter(hour)"
                     @click="selectHour(hour)"
@@ -520,10 +624,7 @@
                     :key="minute"
                     type="button"
                     class="clock-face__number"
-                    :class="{
-                      'is-label': minute % 5 === 0,
-                      'is-tick': minute % 5 !== 0,
-                    }"
+                    :class="{ active: dialMode === 'minutes' && previewMinute === minute }"
                     :style="{ '--angle': `${minuteAngle(minute)}deg` }"
                     @mouseenter="onMinuteEnter(minute)"
                     @click="selectMinute(minute)"
@@ -538,12 +639,23 @@
             </div>
       
             <div class="time-selector__bottom">
-              <button type="button" @click="cancelSelector">
-                {{ content.cancelButton }}
-              </button>
-              <button type="button" @click="confirmSelector">
-                {{ content.confirmButton }}
-              </button>
+              <template v-if="!isMobile">
+                <button type="button" @click="cancelSelector">
+                  {{ content.cancelButton }}
+                </button>
+                <button type="button" @click="confirmSelector">
+                  {{ content.confirmButton }}
+                </button>
+              </template>
+
+              <template v-else>
+                <UiButton type="button" style-type="cancel" @click="cancelSelector">
+                  {{ content.cancelButton }}
+                </UiButton>
+                <UiButton type="button" style-type="primary"  @click="confirmSelector">
+                  {{ content.confirmButton }}
+                </UiButton>
+              </template>
             </div>
           </div>
         </div>
@@ -566,7 +678,7 @@
     border: none;
 
     &__label {
-      margin-bottom: 5px;
+      margin-bottom: 1px;
       color: var(--color-text-main);
       font-size: var(--text-body-sm);
       font-weight: 500;
@@ -663,6 +775,8 @@
     
           background-color: var(--color-third);
           border-radius: 5px;
+
+          touch-action: none;
     
           &__top {
     
@@ -676,6 +790,7 @@
             align-items: center;
             justify-content: center;
             gap: 10px;
+            margin-left: 52px;
     
             &-inputs {
               display: flex;
@@ -956,6 +1071,158 @@
     }
   }
 
+  @media (max-width: 767px) {
+    .ui-time {
+
+      &__body {
+        &-field {
+
+          &__open {
+            right: 10px;
+
+            & svg {
+              width: 25px;
+              height: 25px;
+              color: var(--color-primary);
+            }
+          }
+
+          & > input {
+            padding: 14px 10px;
+            font-size: var(--text-body-sm);
+          }
+        }
+
+        &-wrap {
+          position: fixed;
+          top: 0;
+          left: 0;
+          display: flex;
+          flex-direction: column;
+          width: 100%;
+          height: 100%;
+          margin-top: 0;
+          background-color: var(--color-third);
+          z-index: 101;
+
+          & .time-selector {
+            flex: 1;
+           
+            gap: 20px;
+
+            &__top {
+              margin-bottom: auto;
+
+              font-size: 24px;
+              font-weight: 500;
+            }
+      
+            &__fields {
+              margin-left: 54px;
+      
+              &-inputs {
+      
+                & input {
+                  width: 65px;
+                  height: 65px;
+                  font-size: 28px;
+                }
+      
+                & span {
+                  font-size: 28px;
+                }
+              }
+      
+              &-signs {
+      
+                &__label {
+      
+                  &-custom {      
+                    width: 44px;
+                    height: 34px;
+                  }
+                }
+              }
+            }
+      
+            &__dials {      
+              width: 80%;
+              height: auto;
+              aspect-ratio: 1 / 1; 
+              border-radius: 100%;
+              background-color: var(--color-main);
+              container-type: inline-size;
+      
+              & .clock-face {
+      
+                &__number {
+                  --radius: 41cqi;
+      
+                  width: 14cqi;
+                  height: 14cqi;
+
+                  margin: -7cqi 0 0 -7cqi;
+      
+                  font-size: 18px;
+      
+                  &.is-tick {
+                    width: 30px;
+                    height: 30px;
+                  }
+
+                  &:hover {
+                    background-color: transparent;
+                    color: var(--color-text-main);
+                  }
+                }
+      
+                &__pivot {   
+                  width: 16px;
+                  height: 16px;
+                }
+      
+                &__hand {
+                  --hour-hand-length: 23cqi;
+                  --minute-hand-length: 30cqi;
+      
+                  &::before {
+                    content: '';
+                    
+                    width: 5px;
+      
+                    margin-left: -2.5px;
+                  }
+                }
+      
+              }
+      
+            }
+      
+            &__bottom {
+              display: grid;
+              grid-template-columns: repeat(2, 1fr);
+              margin-top: auto;
+              padding: 0;
+      
+              & button {
+                padding: 6px 8px;
+                
+                &:nth-child(2) {
+                  color: var(--color-main);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      &__error {
+        margin-top: 5px;
+        font-size: var(--text-body-sm);
+      }
+    }
+  }
+
   .clock-face-anim-enter-active,
   .clock-face-anim-leave-active {
     transition: opacity 0.3s ease, transform 0.3s ease;
@@ -971,6 +1238,23 @@
   .clock-face-anim-leave-from {
     opacity: 1;
     transform: scale(1);
+  }
+
+  .time-selector-mobile-enter-active,
+  .time-selector-mobile-leave-active {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+
+  .time-selector-mobile-enter-from,
+  .time-selector-mobile-leave-to {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  .time-selector-mobile-enter-to,
+  .time-selector-mobile-leave-from {
+    opacity: 1;
+    transform: translateY(0);
   }
 
 </style>
