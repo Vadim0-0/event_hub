@@ -41,7 +41,9 @@
   <div 
     class="fixed z-100 top-0 left-0 
       flex flex-col items-center p-3
-      overflow-hidden w-full h-full"
+      overflow-hidden w-full h-full
+     max-sm:p-0 max-sm:bg-overlay
+    "
     @click.self="closeModal"
   >
     <div class="
@@ -49,10 +51,16 @@
       flex flex-col w-full max-w-200 min-h-100
       bg-third rounded-md border border-solid border-fifth/50
       shadow-lg
+      max-sm:flex-1 max-sm:shadow-none max-sm:rounded-none 
       "
       :class="{ active: isPanelActive }"
     >
-      <div class="flex items-center justify-between gap-1.5 px-5 py-3.5">
+      <div 
+        class="
+          flex items-center justify-between gap-1.5 px-5 py-3.5
+          max-sm:px-4 max-sm:py-2
+        "
+      >
         <h2 class="text-xl font-semibold text-text-main">
           {{ content.title }}
         </h2>
@@ -64,12 +72,15 @@
 
       <div 
         class="
-          relative overflow-hidden
-          flex gap-2.5 px-5 py-5
+          relative
+          flex justify-start gap-2.5 px-5 py-5
           bg-main rounded-md shadow-sm
+
+          max-sm:flex-1 max-sm:flex-col-reverse max-sm:justify-start max-sm:px-4
         "
+        :class="verifyVisible ? 'overflow-hidden' : 'overflow-y-auto'"
       >
-        <div class="flex flex-col gap-2.5 w-full">
+        <div class="flex flex-col flex-1 gap-2.5 w-full">
           <form @submit.prevent="onSubmit" class="flex flex-col gap-2.5 w-full">
             <UiInput
               v-model="username"
@@ -84,13 +95,13 @@
               :options="timezoneOptions"
               :label="content.timezoneInput.label"
 
-              button-style="!bg-third !border-0 !min-h-[61px]"
+              button-style="!bg-third !border-0 !min-h-[61px] max-sm:!min-h-[54px]"
               
               list-layout="bottom"
               list-style="!bg-third !border-0"
-              list-button-style="!min-h-[61px]"
+              list-button-style="!min-h-[61px] max-sm:!min-h-[54px]"
 
-              search-style="!min-h-[61px]"
+              search-style="!min-h-[61px] max-sm:!min-h-[54px]"
               search-visible
               search-placeholder="Search timezone..."
 
@@ -126,7 +137,12 @@
           </p>
         </div>
 
-        <div class="flex flex-col items-center justify-center gap-4 w-full max-w-[30%]">
+        <div 
+          class="
+            flex flex-col items-center justify-center gap-4 w-full max-w-[30%]
+            max-sm:max-w-full
+          "
+        >
 
           <div class="flex flex-col items-center gap-0.5">
             <p class="text-center text-sm font-medium text-text-main">
@@ -174,19 +190,19 @@
             class="
               absolute top-0 left-0 w-full h-full z-10
               flex flex-col items-center justify-center p-3
-              
+              bg-main rounded-md 
             "
+
           >
             <div 
               class="flex flex-col justify-center w-full h-full p-3
-              bg-main rounded-md 
               "
             >
               <div class="flex flex-col gap-0.5 mb-8">
-                <h2 class="text-3xl font-bold text-text-main">
+                <h2 class="text-3xl font-bold text-text-main max-sm:text-2xl">
                   {{ content.otpVerification }}
                 </h2>
-                <p class="text-lg text-text-main">
+                <p class="text-lg text-text-main max-sm:text-body-sm">
                   {{ content.enterCode }} <span class="font-semibold">{{ pendingNewEmail }}</span>
                 </p>
               </div>
@@ -202,14 +218,20 @@
           </div>
         </Transition>
       </div>
-      <div class="flex items-center justify-end gap-2.5 px-5 py-3.5">
-        <UiButton style-type="cancel" @click="closeModal">
+      <div 
+        class="
+          flex items-center justify-end gap-2.5 px-5 py-3.5
+          max-sm:px-4 max-sm:py-2 max-sm:
+        "
+      >
+        <UiButton style-type="cancel" @click="closeModal" class="max-sm:flex-1">
           {{ content.cancelButton }}
         </UiButton>
         <UiButton
           style-type="primary"
           :disabled="isSubmitDisabled"
           @click="onSubmit"
+          class="max-sm:flex-1"
         >
           {{ submitButtonLabel }}
         </UiButton>

@@ -25,19 +25,19 @@
     :class="isMine ? 'justify-end' : 'justify-start'"
   >
     <div
-      class="flex flex-col items-end gap-1 max-w-3/5 min-w-52 p-2 rounded-sm"
+      class="flex flex-col items-end gap-1 max-w-3/5 min-w-52 p-2 rounded-sm max-sm:p-1 max-sm:px-2 max-sm:max-w-4/5"
       :class="isMine ? 'bg-primary' : 'bg-third'"
     >
       <p
         v-if="isMine"
-        class="w-full text-body-sm font-medium text-main"
+        class="w-full text-body-sm font-medium text-main max-sm:text-sm"
       >
         {{ body }}
       </p>
 
       <div
         v-else
-        class="ai-chat-message__markdown w-full text-body-sm font-medium text-text-main"
+        class="ai-chat-message__markdown w-full text-body-sm font-medium text-text-main max-sm:text-sm"
         v-html="html"
       />
 

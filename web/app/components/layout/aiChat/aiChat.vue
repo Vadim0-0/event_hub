@@ -6,7 +6,6 @@
   import type { AiChatRaw } from '~/types/i18n/components/aiChat';
 
   const { locale } = useI18n();
-  
   const content = computed(() =>
     mapAiChat((aiChatRaw as AiChatRaw[])[0]!, locale.value),
   );
@@ -28,7 +27,7 @@
   const panelRef = ref<HTMLElement | null>(null);
   const savedPanel = loadPanelState();
 
-  const pos = ref(savedPanel?.pos ?? { x: 8, y: 0 });
+  const pos = ref(savedPanel?.pos ?? { x: 8, y: 8 });
   const size = ref(savedPanel?.size ?? { width: 400, height: 400 });
 
   const isDragging = ref(false);
@@ -39,6 +38,7 @@
 
   const isAnimating = ref(false);
   const runtimePanelStyle = ref<PanelAnimStyle | null>(null);
+
 
   // --- Chat state ---
   const draft = ref('');
@@ -102,6 +102,32 @@
     return Math.min(Math.max(v, min), max);
   };
 
+  function clampPanelToViewport() {
+    if (!import.meta.client) return;
+
+    const maxW = window.innerWidth;
+    const maxH = window.innerHeight;
+
+    size.value = {
+      width: clamp(size.value.width, MIN_W, maxW),
+      height: clamp(size.value.height, MIN_H, maxH),
+    };
+
+    pos.value = {
+      x: clamp(pos.value.x, 0, Math.max(0, maxW - size.value.width)),
+      y: clamp(pos.value.y, 0, Math.max(0, maxH - size.value.height)),
+    };
+  };
+
+  function getPanelRect() {
+    return {
+      x: pos.value.x,
+      y: pos.value.y,
+      width: size.value.width,
+      height: size.value.height,
+    };
+  };
+
   function getPanelRectStyle(
     rect: { x: number; y: number; width: number; height: number },
     radius = '8px',
@@ -123,6 +149,7 @@
     if (style.top) pos.value.y = parsePx(style.top);
     if (style.width) size.value.width = parsePx(style.width);
     if (style.height) size.value.height = parsePx(style.height);
+    clampPanelToViewport();
   };
 
 
@@ -165,15 +192,12 @@
   };
 
   async function animateOpenFromButton() {
+    clampPanelToViewport();
+
     const origin = aiChatStore.launchOrigin;
     if (!origin) return;
 
-    const target = {
-      x: pos.value.x,
-      y: pos.value.y,
-      width: size.value.width,
-      height: size.value.height,
-    };
+    const target = getPanelRect();
 
     await animatePanel(
       {
@@ -218,8 +242,10 @@
 
 
   // --- Panel drag ---
-  function startDrag(e: MouseEvent) {
+  function startDrag(e: PointerEvent) {
     if (e.button !== 0 || isAnimating.value) return;
+
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
 
     isDragging.value = true;
     dragOffset.value = {
@@ -227,13 +253,16 @@
       y: e.clientY - pos.value.y,
     };
 
-    document.addEventListener('mousemove', onDrag);
-    document.addEventListener('mouseup', stopDrag);
+    document.addEventListener('pointermove', onDrag);
+    document.addEventListener('pointerup', stopDrag);
+    document.addEventListener('pointercancel', stopDrag);
     document.body.style.userSelect = 'none';
   };
 
-  function onDrag(e: MouseEvent) {
+  function onDrag(e: PointerEvent) {
     if (!isDragging.value) return;
+
+    e.preventDefault();
 
     const maxX = window.innerWidth - size.value.width;
     const maxY = window.innerHeight - size.value.height;
@@ -244,18 +273,29 @@
     };
   };
 
-  function stopDrag() {
+  function stopDrag(e?: PointerEvent) {
     isDragging.value = false;
-    document.removeEventListener('mousemove', onDrag);
-    document.removeEventListener('mouseup', stopDrag);
+    document.removeEventListener('pointermove', onDrag);
+    document.removeEventListener('pointerup', stopDrag);
+    document.removeEventListener('pointercancel', stopDrag);
     document.body.style.userSelect = '';
+
+    if (e?.currentTarget instanceof HTMLElement) {
+      try {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      } catch {}
+    }
+
+    clampPanelToViewport();
     savePanelState();
   };
 
 
   // --- Panel resize ---
-  function startResize(e: MouseEvent) {
+  function startResize(e: PointerEvent) {
     if (e.button !== 0 || isAnimating.value) return;
+
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
 
     isResizing.value = true;
     resizeStart.value = {
@@ -264,13 +304,16 @@
       width: size.value.width,
       height: size.value.height,
     };
-    document.addEventListener('mousemove', onResize);
-    document.addEventListener('mouseup', stopResize);
+
+    document.addEventListener('pointermove', onResize);
+    document.addEventListener('pointerup', stopResize);
+    document.addEventListener('pointercancel', stopResize);
     document.body.style.userSelect = 'none';
   };
 
-  function onResize(e: MouseEvent) {
+  function onResize(e: PointerEvent) {
     if (!isResizing.value) return;
+    e.preventDefault();
 
     const dx = e.clientX - resizeStart.value.x;
     const dy = e.clientY - resizeStart.value.y;
@@ -283,11 +326,20 @@
     };
   };
 
-  function stopResize() {
+  function stopResize(e?: PointerEvent) {
     isResizing.value = false;
-    document.removeEventListener('mousemove', onResize);
-    document.removeEventListener('mouseup', stopResize);
+    document.removeEventListener('pointermove', onResize);
+    document.removeEventListener('pointerup', stopResize);
+    document.removeEventListener('pointercancel', stopResize);
     document.body.style.userSelect = '';
+
+    if (e?.currentTarget instanceof HTMLElement) {
+      try {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      } catch {}
+    };
+
+    clampPanelToViewport();
     savePanelState();
   };
 
@@ -304,7 +356,7 @@
       aiModel.value = data.model;
     } catch {
       isAiAvailable.value = false;
-    }
+    };
   };
 
   async function sendMessage() {
@@ -317,7 +369,7 @@
       await sendAiMessage(body);
     } catch {
       draft.value = body;
-    }
+    };
   };
 
   async function onClearChat() {
@@ -327,17 +379,29 @@
 
 
   // --- Lifecycle ---
-  onUnmounted(() => {
-    stopDrag();
-    stopResize();
-    savePanelState();
+  onBeforeMount(() => {
+    clampPanelToViewport();
   });
 
   onMounted(async () => {
+    clampPanelToViewport();
     await animateOpenFromButton();
     await checkAiHealth();
     await loadMessages();
     await scrollToBottom();
+
+    if (import.meta.client) {
+      window.addEventListener('resize', clampPanelToViewport);
+    }
+  });
+
+  onUnmounted(() => {
+    stopDrag();
+    stopResize();
+
+    if (import.meta.client) {
+      window.removeEventListener('resize', clampPanelToViewport);
+    }
   });
   
 </script>
@@ -348,15 +412,21 @@
     class="
       fixed z-200
       flex flex-col overflow-hidden
-      bg-main rounded-md border border-solid border-fifth/50
+      rounded-md border border-solid border-fifth/50
       shadow-lg bg-secondary
+
+      max-sm:min-h-full max-sm:min-w-full
+      max-sm:border-none
     "
     :style="effectivePanelStyle"
   >
     <div
-      class="relative z-2 flex items-center justify-between gap-1.5 px-5 py-2 shadow-sm rounded-md cursor-move"
+      class="
+        relative z-2 flex items-center justify-between gap-1.5 px-5 py-2 shadow-sm rounded-md cursor-move touch-none
+        max-sm:px-4 max-sm:py-2
+      "
       :class="{ 'pointer-events-none opacity-0': isAnimating }"
-      @mousedown="startDrag"
+      @pointerdown="startDrag"
     >
       <h2 class="text-xl font-semibold text-text-main">
         {{ content.title }}
@@ -364,7 +434,7 @@
 
       <button
         class="transition-all transition-300 ease-in-out hover:rotate-90"
-        @mousedown.stop
+        @pointerdown.stop
         @click="close"
       >
         <Icon name="akar-icons:cross" mode="svg" class="size-5 text-text-main" />
@@ -382,29 +452,33 @@
         ref="messagesContent"
         class="absolute top-0 left-0 w-full min-h-full flex flex-col justify-end"
       >
-        <div class="flex flex-col gap-4 px-5 py-2">
-          <p v-if="isLoadingOlder" class="text-center text-sm text-text-secondary">
+        <div 
+          class="
+            flex flex-col gap-4 px-5 py-2
+            max-sm:px-4 max-sm:gap-2
+          ">
+          <p v-if="isLoadingOlder" class="text-center text-sm text-text-secondary max-sm:mb-3">
             {{ content.loadingOlderMessages }}
           </p>
           <p
             v-else-if="hasMore === false && messages.length && !isSending"
-            class="text-center text-sm text-text-secondary"
+            class="text-center text-sm text-text-secondary max-sm:mb-3"
           >
             {{ content.beginningOfConversation }}
           </p>
 
-          <p v-if="isLoading" class="text-center text-sm text-text-secondary">
+          <p v-if="isLoading" class="text-center text-sm text-text-secondary max-sm:mb-3">
             {{ content.loadingMessages }}
           </p>
 
           <template v-else>
-            <p v-if="!isAiAvailable" class="text-center text-sm text-text-secondary">
+            <p v-if="!isAiAvailable" class="text-center text-sm text-text-secondary max-sm:mb-3">
               {{ content.aiUnavailable }}
             </p>
 
             <p
               v-else-if="!messages.length && !isSending"
-              class="text-center text-sm text-text-secondary"
+              class="text-center text-sm text-text-secondary max-sm:mb-3"
             >
               {{ content.askSomething }}
             </p>
@@ -418,9 +492,14 @@
 
               <div
                 v-if="pendingEventAction && String(pendingEventAction.assistantMessageId) === String(message.id)"
-                class="flex justify-start px-2 -mt-2 mb-2"
+                class="flex justify-start px-2 -mt-2 mb-2 max-sm:mt-0 max-sm:mb-0"
               >
-                <div class="flex gap-2 max-w-3/5 min-w-52">
+                <div 
+                  class="
+                    flex gap-2 max-w-3/5 min-w-52 max-sm:min-w-full max-sm:max-w-full
+                    max-sm:grid max-sm:grid-cols-2
+                    "
+                >
                   <UiButton
                     style-type="cancel"
                     :disabled="isCreatingEvent"
@@ -452,6 +531,7 @@
         px-5 py-2
         bg-main shadow-[0_-2px_4px_0_rgb(0_0_0/0.05)]
         rounded-md
+        max-sm:px-3 max-sm:py-2 max-sm:gap-2.5
       "
       :class="{ 'opacity-0': isAnimating }"
     >
@@ -486,9 +566,9 @@
 
     <button
       type="button"
-      class="absolute -bottom-1 right-0 w-2 h-3 bg-primary rounded-l-lg cursor-se-resize"
+      class="absolute -bottom-1 -right-0.5 w-3 h-4 bg-primary rounded-l-lg cursor-se-resize touch-none max-md:hidden"
       :class="{ 'pointer-events-none opacity-0': isAnimating }"
-      @mousedown.stop="startResize"
+      @pointerdown.stop="startResize"
     />
   </div>
 </template>

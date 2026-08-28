@@ -278,7 +278,9 @@
   class="
     fixed top-0 right-0 z-50
     flex flex-col items-end
-    w-full h-full max-w-[400px]
+    w-full h-full max-w-100
+
+    max-sm:max-w-full max-sm:w-full
     "
   >
   <div
@@ -289,11 +291,13 @@
       h-full w-full min-h-0 overflow-hidden
       transition-all transition-300 ease-in-out
     bg-main border-l-2 border-solid border-third shadow-sm rounded-l-lg
+
+      max-sm:py-3
     "
   >
     <button 
       type="button"
-      class="group ml-auto mr-7"
+      class="group ml-auto mr-7 max-sm:hidden"
       @click="emit('close')"
     >
       <Icon name="akar-icons:cross" 
@@ -305,19 +309,20 @@
       />
     </button>
 
-    <div class="mb-4 px-5">
-      <h3 class="text-3xl font-semibold text-text-main">
+    <div class="mb-4 px-5 max-sm:mb-0 max-sm:px-3">
+      <h3 class="text-3xl font-semibold text-text-main max-sm:text-3xl">
         {{ isCreateMode ? content.title.addEvent : content.title.changeEvent}}
       </h3>
     </div>
 
     <div
-      class="flex flex-col flex-1 gap-5 min-h-0 overflow-y-auto px-5"
+      class="flex flex-col flex-1 gap-5 min-h-0 overflow-y-auto px-5 max-sm:gap-3 max-sm:px-3"
       data-lenis-prevent
     >
       <div 
         class="
           flex flex-col gap-5
+          max-sm:gap-3
         "
       >
         <UiInput
@@ -337,6 +342,7 @@
       <div 
         class="
           flex flex-col gap-5
+          max-sm:gap-3
         "
       >
         <UiInput
@@ -393,6 +399,7 @@
 
     <div class="
       grid grid-cols-2 gap-2.5 px-5
+      max-sm:px-3
     ">
       <template  v-if="!isDeleteConfirmOpen">
         <UiButton style-type="cancel" @click="emit('close')" :disabled="isSaving">
