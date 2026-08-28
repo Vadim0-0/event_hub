@@ -3,16 +3,17 @@ type RealtimeHandler = (event: { type: string; payload: Record<string, unknown> 
 export function useRealtime() {
   const authStore = useAuthStore();
   const config = useRuntimeConfig();
+  const token = useCookie<string | null>('auth_token');
   const handlers = new Set<RealtimeHandler>();
   let socket: WebSocket | null = null;
   let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
   function connect() {
-    const token = useCookie<string | null>('auth_token').value;
-    if (!token || socket) return;
+    if (!import.meta.client) return;
+    if (!token.value || socket) return;
 
     const base = (config.public.apiBase as string).replace(/^http/, 'ws');
-    socket = new WebSocket(`${base}/realtime/ws?token=${token}`);
+    socket = new WebSocket(`${base}/realtime/ws?token=${token.value}`);
 
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -26,35 +27,46 @@ export function useRealtime() {
   }
 
   function scheduleReconnect() {
-    if (reconnectTimer) return
+    if (!import.meta.client) return;
+    if (reconnectTimer) return;
+
     reconnectTimer = setTimeout(() => {
-      reconnectTimer = null
-      connect()
-    }, 3000)
-  };
+      reconnectTimer = null;
+      connect();
+    }, 3000);
+  }
 
   function disconnect() {
+    if (reconnectTimer) {
+      clearTimeout(reconnectTimer);
+      reconnectTimer = null;
+    }
+
     socket?.close();
     socket = null;
-  };
+  }
 
   function onEvent(handler: RealtimeHandler) {
     handlers.add(handler);
     return () => handlers.delete(handler);
-  };
+  }
 
-  watch(
-    () => authStore.isAuthenticated,
-    (isAuth) => {
-      if (isAuth) connect()
-      else disconnect()
-    },
-    { immediate: true },
-  );
+  if (import.meta.client) {
+    watch(
+      () => authStore.isAuthenticated,
+      (isAuth) => {
+        if (isAuth) connect();
+        else disconnect();
+      },
+      { immediate: true },
+    );
 
-  return { 
-    connect, 
-    disconnect, 
+    onScopeDispose(disconnect);
+  }
+
+  return {
+    connect,
+    disconnect,
     onEvent,
   };
-};
+}

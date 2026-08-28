@@ -10,13 +10,13 @@ function getRequestUrl(request: RequestInfo) {
 
 export const useApi = () => {
   const config = useRuntimeConfig();
+  const token = useCookie<string | null>('auth_token');
 
   const api = $fetch.create({
     baseURL: config.public.apiBase as string,
 
     onRequest({ options, request }) {
       const url = getRequestUrl(request)
-      const token = useCookie<string | null>('auth_token')
 
       if (token.value && !isAuthPublicPath(url)) {
         const headers = new Headers(options.headers as HeadersInit)
@@ -27,7 +27,6 @@ export const useApi = () => {
 
     onResponseError({ response, request }) {
       const url = getRequestUrl(request)
-      const token = useCookie<string | null>('auth_token')
 
       if (response.status === 401 && token.value && !isAuthPublicPath(url)) {
         token.value = null
