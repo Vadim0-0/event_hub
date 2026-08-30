@@ -8,10 +8,11 @@
 # make ollama-pull   # download AI model into Ollama
 # make test          # run locally
 # make shell-db
+# make seed-demo     # create demo users and events
 
 
 .PHONY: help up dev down restart logs ps build clean \
-        migrate migration shell-api shell-db test test-docker \
+        migrate migration shell-api shell-db test test-docker seed-demo \
         ollama-pull lint format
 
 ifneq (,$(wildcard .env))
@@ -82,14 +83,18 @@ test: ## Run pytest locally (requires postgres + api/tests/.env.test)
 test-docker: ## Run pytest inside api container
 	$(COMPOSE) exec api pytest -v
 
+seed-demo: ## Seed demo users and events (idempotent)
+	$(COMPOSE_DEV) exec -T api sh -c "cd /app && PYTHONPATH=/app python scripts/seed_demo_data.py"
+
 # --- Ollama ---
 
 ollama-pull:
 	$(COMPOSE) exec ollama ollama pull $(AI_MODEL)
 
-# --- Ruff ---
-lint:
-	cd api && ruff check .
-	
-format:
-	cd api && ruff format .
+# --- Ruff (uses api/.venv — create with: cd api && python3.14 -m venv .venv && .venv/bin/pip install ".[dev]") ---
+
+lint: ## Ruff lint (api/.venv)
+	cd api && .venv/bin/python -m ruff check .
+
+format: ## Ruff format (api/.venv)
+	cd api && .venv/bin/python -m ruff format .
