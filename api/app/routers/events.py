@@ -163,10 +163,10 @@ async def get_event(
     except events_service.EventNotFoundError as e:
       raise HTTPException(status_code=404, detail=str(e))
     await cache_set(
-      redis,
-      cache_key,
-      event_out.model_dump(mode="json"),
-      settings.cache_ttl_seconds
+      redis=redis,
+      key=cache_key,
+      value=event_out.model_dump(mode="json"),
+      ttl=settings.cache_ttl_seconds
     )
 
   is_participant = None
@@ -320,10 +320,10 @@ async def get_participants(
     for reg in registrations
   ]
   await cache_set(
-    redis, 
-    cache_key,
-    data, 
-    settings.cache_ttl_seconds
+    redis=redis, 
+    key=cache_key,
+    value=data, 
+    ttl=settings.cache_ttl_seconds
   )
 
   return [ParticipantOut.model_validate(item) for item in data]
