@@ -61,6 +61,7 @@
     hasMore: hasMoreUsers,
     loadMore: loadMoreAvailableUsers,
     refresh: refreshAvailableUsers,
+    PAGE_SIZE: usersPageSize,
   } = useAvailableUsersList(isNewChatMode, search);
 
   const {
@@ -427,17 +428,19 @@
                 v-else-if="isNewChatMode"
                 tag="ul"
                 name="conversation-list"
+                appear
                 class="
                   absolute top-0 left-0 flex flex-col gap-2.5 w-full bg-fourth
                   max-sm:gap-2
                 "
               >
                 <ConversationItem
-                  v-for="user in users"
+                  v-for="(user, index) in users"
                   :key="user.id"
                   :conversation="mapUserToListItem(user)"
                   :show-meta="false"
                   :preview-text="content.startChatPreview"
+                  :index="index % usersPageSize"
                   @select="startChatWithUser(user.id)"
                 />
               </TransitionGroup>
@@ -447,13 +450,15 @@
                 v-else
                 tag="ul"
                 name="conversation-list"
+                appear
                 class="absolute top-0 left-0 flex flex-col gap-2.5 w-full bg-fourth"
               >
                 <ConversationItem
-                  v-for="conversation in conversations"
+                  v-for="(conversation, index) in conversations"
                   :key="conversation.id"
                   :conversation="conversation"
                   :is-active="conversation.id === selectedConversationId"
+                  :index="index"
                   @select="selectConversation(conversation)"
                 />
               </TransitionGroup>
@@ -638,6 +643,31 @@
 </template>
 
 <style scoped lang="scss">
+  .conversation-list-enter-active {
+    transition:
+      opacity 0.4s ease,
+      transform 0.4s ease;
+    transition-delay: var(--delay, 0ms);
+  }
+  .conversation-list-enter-from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+  }
+
+  .conversation-list-move {
+    transition: transform 0.4s ease;
+  }
+
+  .conversation-list-leave-active {
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    position: absolute;
+    width: 100%;
+  }
+  .conversation-list-leave-to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
   .scroll-down-btn-enter-active,
   .scroll-down-btn-leave-active {
     transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;

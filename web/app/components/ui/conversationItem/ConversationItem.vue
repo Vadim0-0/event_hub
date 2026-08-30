@@ -6,6 +6,7 @@
     isActive?: boolean
     showMeta?: boolean
     previewText?: string
+    index?: number
   }>(), {
     isActive: false,
     showMeta: true,
@@ -41,6 +42,7 @@
       hover:bg-third
     "
     :class="isActive ? 'bg-primary-light' : 'bg-transparent'"
+    :style="{ '--delay': `${(props.index ?? 0) * 100}ms` }"
   >
     <div 
       class="

@@ -30,6 +30,8 @@
 
   const removingUserId = ref<number | null>(null);
 
+    const isMobile = useMediaQuery('(max-width: 767px)');
+
 
   // --- Data ---
   const {
@@ -57,7 +59,8 @@
     loadedParticipants.value.length < (props.totalCount ?? 0),
   );
 
-  const hoveredUserId = ref<number | null>(null)
+  const hoveredUserId = ref<number | null>(null);
+  const openedUserId = ref<number | null>(null);
 
   const {
     onBeforeEnter,
@@ -71,14 +74,47 @@
     animateOpacity: true,
   });
 
-  const openedUserId = ref<number | null>(null);
-  function toggleActions(id: number) {
-    openedUserId.value = openedUserId.value === id ? null : id
-  };
-
   const selectedEventStore = useSelectedEventStore();
 
   const canRemoveParticipants = computed(() => props.isCreator && !props.readOnly);
+
+  const activeUserId = computed(() =>
+    isMobile.value ? openedUserId.value : hoveredUserId.value,
+  );
+
+  function toggleActions(userId: number) {
+    openedUserId.value = openedUserId.value === userId ? null : userId;
+  };
+
+  function onParticipantItemClick(userId: number) {
+    if (!isMobile.value) return;
+    toggleActions(userId);
+  };
+
+  function onParticipantHeaderClick(participant: Participant) {
+    if (isMobile.value) return;
+    goToUserPage(participant);
+  };
+
+  function onParticipantIconClick(participant: Participant) {
+    goToUserPage(participant);
+  };
+
+  function onParticipantMouseEnter(userId: number) {
+    if (isMobile.value) return;
+    hoveredUserId.value = userId;
+  };
+
+  function onParticipantMouseLeave() {
+    if (isMobile.value) return;
+    hoveredUserId.value = null;
+  };
+
+  const participantsListRef = ref<HTMLElement | null>(null);
+  onClickOutside(participantsListRef, () => {
+    if (!isMobile.value || openedUserId.value === null) return;
+    openedUserId.value = null;
+  });
 
 
   // --- Sync API data → accumulated list ---
@@ -174,6 +210,7 @@
     flex flex-col h-full
     px-5 py-5
     bg-main rounded-l-lg
+    max-sm:p-3
   ">
     <button
       type="button"
@@ -190,7 +227,7 @@
       />
     </button>
 
-    <div class="flex flex-col gap-5 mb-5">
+    <div class="flex flex-col gap-5 mb-5 max-sm:mb-3">
       <h3 class="text-3xl font-semibold text-text-main">
         {{ content.title }}
       </h3>
@@ -201,7 +238,7 @@
       <div 
         v-if="isInitialLoading"
         class="p-3 bg-primary-light rounded-sm">
-        <p class="text-body-xl text-text-main">
+        <p class="text-body-xl text-text-main max-sm:text-body-sm">
           {{ content.loading }}
         </p>
       </div>
@@ -209,7 +246,7 @@
       <div 
         v-else-if="error"
         class="p-3 bg-error/10 rounded-sm">
-        <p class="text-body-xl text-error">
+        <p class="text-body-xl text-error max-sm:text-body-sm">
           {{ content.error }}
         </p>
       </div>
@@ -217,12 +254,12 @@
       <div 
         v-else-if="isEmpty"
         class="p-3 bg-primary-light rounded-sm">
-        <p class="text-body-xl text-text-main">
+        <p class="text-body-xl text-text-main max-sm:text-body-sm">
           {{ content.empty }}
         </p>
       </div>
 
-      <ul v-else class="flex flex-col gap-1.5">
+      <ul v-else ref="participantsListRef" class="flex flex-col gap-1.5">
         <li 
           v-for="participant in loadedParticipants"
           :key="participant.user.id"
@@ -232,16 +269,17 @@
             transition-all transition-300 ease-in-out
             hover:shadow-[0px_-3px_21px_-2px_rgba(46,46,46,0.15)]
           "
-          @mouseenter="hoveredUserId = participant.user.id"
-          @mouseleave="hoveredUserId = null"
+          @mouseenter="onParticipantMouseEnter(participant.user.id)"
+          @mouseleave="onParticipantMouseLeave"
+          @click="onParticipantItemClick(participant.user.id)"
         >
-          <div 
-            @click="goToUserPage(participant)"
+          <div
             class="flex items-center gap-2"
+            @click="onParticipantHeaderClick(participant)"
           >
             <div 
               class="
-                flex items-center justify-center overflow-hidden rounded-[50%] flex-shrink-0 w-10 h-10
+                flex items-center justify-center overflow-hidden rounded-[50%] shrink-0 w-10 h-10
                 bg-main border-r-2 border-solid border-third
               "
             >
@@ -267,7 +305,9 @@
             </div>
 
             <button
-              class="ml-auto w-10"
+              type="button"
+              class="ml-auto w-10 shrink-0"
+              @click.stop="onParticipantIconClick(participant)"
             >
               <Icon 
                 name="material-symbols-light:face-right-rounded"
@@ -283,20 +323,22 @@
             @before-leave="onBeforeLeave"
             @leave="onLeave"
           >
-            <div 
-              v-if="hoveredUserId === participant.user.id"
-              class="grid grid-cols-2 gap-2
-              mt-2.5
-              "
+            <div
+              v-if="activeUserId === participant.user.id"
+              class="grid grid-cols-2 gap-2 mt-2.5"
+              @click.stop
             >
-              <UiButton @click="copyParticipantEmail(participant)" style-type="cancel">
+              <UiButton
+                style-type="cancel"
+                @click.stop="copyParticipantEmail(participant)"
+              >
                 {{ copiedUserId === participant.user.id ? content.copyButton.coping : content.copyButton.copy }}
               </UiButton>
               <UiButton 
                 v-if="isCreator"
                 style-type="delete"
                 :disabled="!canRemoveParticipants"
-                @click="removeParticipant(participant)"
+                @click.stop="removeParticipant(participant)"
               >
                 {{ removingUserId === participant.user.id ? content.deleteButton.removing : content.deleteButton.delete }}
               </UiButton>

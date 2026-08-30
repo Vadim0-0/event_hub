@@ -30,6 +30,7 @@
   usePageScrollLockWhen(() => confirmStore.isOpen, { mobileOnly: true });
   usePageScrollLockWhen(() => mapStore.isOpen, { mobileOnly: true });
   usePageScrollLockWhen(() => eventSetupStore.isOpen, { mobileOnly: true });
+  usePageScrollLockWhen(() => selectedEventStore.isOpen, { mobileOnly: true });
   usePageScrollLockWhen(() => aiChatStore.isOpen, { mobileOnly: true });
 
   let resizeObserver: ResizeObserver | null = null;

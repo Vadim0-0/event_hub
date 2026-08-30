@@ -171,16 +171,21 @@
 </script>
 
 <template>
-  <div class="fixed top-0 left-0 w-full h-full z-100 p-10 bg-overlay">
+  <div 
+    class="
+      fixed top-0 left-0 w-full h-full z-100 p-10 bg-overlay
+      max-sm:p-0
+    "
+  >
     <div 
       class="
         flex flex-col w-full h-full overflow-hidden p-4
-        bg-main rounded-sm
+        bg-main rounded-sm max-sm:rounded-none
       "
     >
       <button 
         type="button"
-        class="group ml-auto mr-2 mb-1"
+        class="group ml-auto mr-2 mb-1 max-sm:hidden"
         @click="emit('cancel')"
       >
         <Icon name="akar-icons:cross" 
@@ -214,7 +219,12 @@
         <div ref="mapContainer" class="w-full h-full" />
       </div>
 
-      <div class="flex justify-end gap-2">
+      <div 
+        class="
+          flex justify-end gap-2
+          max-sm:grid max-sm:grid-cols-2
+        "
+      >
         <UiButton style-type="cancel" @click="emit('cancel')">
           {{ content.cancelButton}}
         </UiButton>

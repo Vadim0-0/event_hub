@@ -1,15 +1,16 @@
 <script setup lang="ts">
 
   import type { UserListItem } from '~/types/domain/user';
+  import type { MappedLoadMoreBtn } from '~/types/i18n/pages/events/loadMoreBtn';
 
   const props = defineProps<{
     user: UserListItem
     index?: number
+    loadMoreBtn: MappedLoadMoreBtn
   }>();
 
   const isOpen = ref(false);
   const isBodyVisible = ref(false);
-  const eventsPage = ref(1);
   const eventsSort = ref<'asc' | 'desc'>('asc');
 
   const isEventsEnabled = computed(() => isOpen.value);
@@ -17,11 +18,13 @@
   const {
     events,
     total: eventsTotal,
-    totalPages: eventsTotalPages,
     pending: eventsPending,
+    isLoadingMore: eventsIsLoadingMore,
+    hasMore: eventsHasMore,
+    loadMore: loadMoreEvents,
+    PAGE_SIZE: eventsPageSize,
   } = useUserEventsList(computed(() => props.user.id),
     isEventsEnabled,
-    eventsPage,
     eventsSort,
   );
 
@@ -43,12 +46,10 @@
 
   function onBodyAfterLeave() {
     isOpen.value = false;
-    eventsPage.value = 1;
   };
 
   function toggleEventsSort() {
     eventsSort.value = eventsSort.value === 'asc' ? 'desc' : 'asc';
-    eventsPage.value = 1;
   };
 
   const sortIcon = computed(() => {
@@ -79,6 +80,7 @@
       hover:shadow-lg hover:shadow-third
     "
     :class="{ 'is-open': isBodyVisible }"
+    :style="{ '--delay': `${(props.index ?? 0) * 100}ms` }"
   >
     <div 
       class="flex items-center gap-3.5 w-full p-2.5 cursor-pointer max-sm:gap-2.5 max-sm:p-2"
@@ -174,16 +176,33 @@
                 v-for="(event, index) in events"
                 :key="event.id"
                 :event="event"
-                :index="index"
+                :index="index % eventsPageSize"
               />
-            </ul>
-          </div>
 
-          <div v-if="eventsTotalPages > 1" class="px-4.5 py-2">
-            <LayoutPagination 
-              v-model:page="eventsPage"
-              :total-pages="eventsTotalPages"
-            />
+              <UiButton
+                v-if="eventsHasMore || eventsIsLoadingMore"
+                key="user-events-load-more"
+                class="
+                  !p-2.5
+                  col-span-6
+                  max-2xl:col-span-5
+                  max-xl:col-span-4
+                  max-lg:col-span-3
+                  max-md:col-span-2
+                  max-sm:col-span-1 max-sm:p-1.5
+                "
+                :disabled="eventsIsLoadingMore"
+                @click.stop="loadMoreEvents"
+              >
+                {{ eventsIsLoadingMore ? loadMoreBtn.loading : loadMoreBtn.loadMore }}
+                <Icon
+                  name="fluent:arrow-sync-24-filled"
+                  mode="svg"
+                  class="size-6"
+                  :class="{ 'animate-spin': eventsIsLoadingMore }"
+                />
+              </UiButton>
+            </ul>
           </div>
   
         </div>

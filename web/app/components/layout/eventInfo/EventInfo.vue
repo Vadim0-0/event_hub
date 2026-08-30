@@ -210,24 +210,26 @@
     class="
       fixed top-0 right-0 z-50
       flex flex-col items-end
-      w-full h-full max-w-[400px]
+      w-full h-full max-w-100
       
+      max-sm:max-w-full
     "
   >
     <div 
       class="
         relative
-        flex flex-col flex-1 gap-3
-        px-5 py-5
+        flex flex-col flex-1
         h-full w-full
         transition-all transition-300 ease-in-out
       bg-main border-l-2 border-solid border-third shadow-sm rounded-l-lg
+
+        max-sm:border-none max-sm:rounded-none
       "
     >
       <button 
         type="button"
         @click="emit('close')"
-        class="group ml-auto mr-2"
+        class="group ml-auto mt-5 mr-7 max-sm:hidden"
       >
         <Icon name="akar-icons:cross" 
           class="
@@ -238,17 +240,17 @@
         />
       </button>
       <div
-        class="flex flex-col flex-1 overflow-y-auto mb-4"
+        class="flex flex-col flex-1 gap-5 min-h-0 overflow-y-auto p-5 max-sm:gap-3 max-sm:p-3"
       >
         <div
-          class="flex flex-col flex-1 gap-5 mb-4"
+          class="flex flex-col flex-1 gap-5 mb-4 max-sm:gap-2"
         >
           <h3
-            class="text-3xl font-semibold text-text-main"
+            class="text-3xl font-semibold text-text-main max-sm:text-2xl"
           >
             {{ currentEvent.title }}
           </h3>
-          <p class="text-xl font-normal text-text-secondary min-h-[200px]">
+          <p class="text-xl font-normal text-text-secondary min-h-50 max-sm:text-body-xl">
             {{ currentEvent.description }}
           </p>
         </div>
@@ -256,6 +258,7 @@
           class="
             flex flex-col gap-2 text-body-xl font-normal text-text-main
             [&_span]:pl-2
+            max-sm:text-body-sm
           "
         >
           <p>
@@ -311,8 +314,22 @@
 
 
       <div
-        class="grid grid-cols-2 gap-2"
+        class="
+          relative z-2
+          grid grid-cols-2 gap-2.5 px-5 py-3
+          shadow-[0_-2px_4px_0_rgb(0_0_0/0.2)]
+          max-sm:p-3 max-sm:bg-third rounded-t-lg
+        "
       >
+        <UiButton
+          class="col-span-2"
+          style-type="cancel"
+          v-if="showChangeEventButton"
+          @click="handleChangeEvent"
+        >
+          {{ content.changeButton }}
+        </UiButton>
+
         <UiButton 
           style-type="cancel"
           @click="emit('close')">
@@ -332,14 +349,6 @@
           </template>
         </UiButton>
 
-        <UiButton
-          class="col-span-2"
-          style-type="cancel"
-          v-if="showChangeEventButton"
-          @click="handleChangeEvent"
-        >
-          {{ content.changeButton }}
-        </UiButton>
       </div>
 
       <Transition name="slide">

@@ -12,6 +12,8 @@
       flex flex-col items-center justify-center
       p-10
       bg-overlay
+
+      max-sm:p-5
     "
     @click.self="confirmStore.close()"
   >

@@ -21,8 +21,8 @@
 <template>
   <div 
     class="
-      absolute z-3 bottom-1 right-1 flex gap-1
-      max-sm:fixed max-sm:bottom-1 max-sm:right-1
+      flex gap-1
+      max-sm:right-1
     "
   >
     <Transition name="ai-btn-hide">

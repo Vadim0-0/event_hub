@@ -39,7 +39,7 @@
 
 <template>
   <div 
-    class="fixed z-100 top-0 left-0 
+    class="fixed z-10 top-0 left-0 
       flex flex-col items-center p-3
       overflow-hidden w-full h-full
      max-sm:p-0 max-sm:bg-overlay
