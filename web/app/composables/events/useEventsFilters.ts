@@ -14,22 +14,8 @@ export function useEventsFilters() {
 
   watch(search, (value) => applySearch(value));
 
-  function buildQuery(pageValue: number) {
-    return {
-      ...(debouncedSearch.value ? { search: debouncedSearch.value } : {}),
-      ...(sort.value !== 'asc' ? { sort: sort.value } : {}),
-      ...(pageValue > 1 ? { page: pageValue } : {}),
-    }
-  };
-
-  const page = computed({
-    get: () => Number(route.query.page ?? 1),
-    set: (value) => navigateTo({ path: route.path, query: buildQuery(value) }),
-  });
-
   watch([debouncedSearch, sort], () => {
     selectedEventStore.close();
-    if (page.value !== 1) page.value = 1;
   });
 
   function toggleSort() {
@@ -40,7 +26,6 @@ export function useEventsFilters() {
     search,
     sort,
     debouncedSearch,
-    page,
     toggleSort,
   };
 }

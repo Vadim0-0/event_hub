@@ -1,5 +1,6 @@
 import { pickScalar } from '~/composables/i18n/useLocalization';
 import type { UsersPageRaw } from '~/types/i18n/pages/events/usersPage';
+import { mapLoadMoreBtn } from '~/mappers/pages/events/loadMoreBtn';
 
 export function mapUsersPage(data: UsersPageRaw, locale: string) {
   return {
@@ -7,5 +8,6 @@ export function mapUsersPage(data: UsersPageRaw, locale: string) {
     infoText: pickScalar(data.infoText, locale),
     loadingErrorText: pickScalar(data.loadingErrorText, locale),
     emptyText: pickScalar(data.emptyText, locale),
-  }
-};
+    loadMoreBtn: mapLoadMoreBtn(data.loadMoreBtn, locale),
+  };
+}

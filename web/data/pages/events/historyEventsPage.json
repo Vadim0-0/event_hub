@@ -19,6 +19,16 @@
     "emptyText": {
       "ru": "Пусто",
       "en": "Empty"
+    },
+    "loadMoreBtn": {
+      "loadMore": {
+        "ru": "Загрузить ещё",
+        "en": "Load More"
+      },
+      "loading": {
+        "ru": "Загрузка...",
+        "en": "Loading..."
+      }
     }
   }
 ]

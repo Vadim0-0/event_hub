@@ -17,6 +17,7 @@
   import type { JoinedEventsPageRaw } from '~/types/i18n/pages/events/joinedEventsPage';
   import type { HistoryEventsPageRaw } from '~/types/i18n/pages/events/historyEventsPage';
   import type { UsersPageRaw } from '~/types/i18n/pages/events/usersPage';
+  import type { MappedLoadMoreBtn } from '~/types/i18n/pages/events/loadMoreBtn';
 
 
   // --- Meta ---
@@ -67,6 +68,7 @@
     infoText: string
     emptyText: string
     loadingErrorText: string
+    loadMoreBtn: MappedLoadMoreBtn
     sortingButtonText?: string
   };
 
@@ -105,19 +107,18 @@
       default:
         return null
     }
-  })
+  });
 
   useHead({
     title: computed(() => pageContent.value?.title ?? pageConfig.value.title),
   });
 
 
-  // --- Filters & pagination ---
+  // --- Filters ---
   const {
     search,
     sort,
     debouncedSearch,
-    page,
     toggleSort,
   } = useEventsFilters();
 
@@ -132,44 +133,59 @@
   const {
     events,
     total,
-    totalPages,
     pending,
     error,
-  } = useEventsList(page, isAllEventsPage, debouncedSearch, sort);
+    hasMore: eventsHasMore,
+    isLoadingMore: eventsIsLoadingMore,
+    loadMore: loadMoreEvents,
+    PAGE_SIZE: eventsPageSize,
+  } = useEventsList(isAllEventsPage, debouncedSearch, sort);
 
   const {
     events: myEvents,
     total: myTotal,
-    totalPages: myTotalPages,
     pending: myPending,
     error: myError,
-  } = useMyEventsList(page, isMyEventsPage, debouncedSearch, sort);
+    hasMore: myEventsHasMore,
+    isLoadingMore: myEventsIsLoadingMore,
+    loadMore: loadMoreMyEvents,
+    PAGE_SIZE: myEventsPageSize,
+  } = useMyEventsList(isMyEventsPage, debouncedSearch, sort);
 
   const {
     events: joinedEvents,
     total: joinedTotal,
-    totalPages: joinedTotalPages,
     pending: joinedPending,
     error: joinedError,
-  } = useJoinedEventsList(page, isJoinedEventsPage, debouncedSearch, sort);
+    hasMore: joinedEventsHasMore,
+    isLoadingMore: joinedEventsIsLoadingMore,
+    loadMore: loadMoreJoinedEvents,
+    PAGE_SIZE: joinedEventsPageSize,
+  } = useJoinedEventsList(isJoinedEventsPage, debouncedSearch, sort);
 
   const {
     events: historyEvents,
     total: historyTotal,
-    totalPages: historyTotalPages,
     pending: historyPending,
     error: historyError,
-  } = useHistoryEventsList(page, isHistoryEventsPage, debouncedSearch, sort);
+    hasMore: historyEventsHasMore,
+    isLoadingMore: historyEventsIsLoadingMore,
+    loadMore: loadMoreHistoryEvents,
+    PAGE_SIZE: historyEventsPageSize,
+  } = useHistoryEventsList(isHistoryEventsPage, debouncedSearch, sort);
 
 
   // --- Users data ---
   const {
     users,
     total: usersTotal,
-    totalPages: usersTotalPages,
     pending: usersPending,
     error: usersError,
-  } = useUsersList(page, isUsersPage, debouncedSearch);
+    hasMore: usersHasMore,
+    isLoadingMore: usersIsLoadingMore,
+    loadMore: loadMoreUsers,
+    PAGE_SIZE: usersPageSize,
+  } = useUsersList(isUsersPage, debouncedSearch);
 
 
   // --- Active events (all / my / joined) ---
@@ -189,13 +205,36 @@
     return 0;
   });
 
-  const activeTotalPages = computed(() => {
-    if (isAllEventsPage.value) return totalPages.value;
-    if (isMyEventsPage.value) return myTotalPages.value;
-    if (isJoinedEventsPage.value) return joinedTotalPages.value;
-    if (isHistoryEventsPage.value) return historyTotalPages.value;
-    return 1;
+  const activeHasMore = computed(() => {
+    if (isAllEventsPage.value) return eventsHasMore.value;
+    if (isMyEventsPage.value) return myEventsHasMore.value;
+    if (isJoinedEventsPage.value) return joinedEventsHasMore.value;
+    if (isHistoryEventsPage.value) return historyEventsHasMore.value;
+    return false;
   });
+
+  const activeIsLoadingMore = computed(() => {
+    if (isAllEventsPage.value) return eventsIsLoadingMore.value;
+    if (isMyEventsPage.value) return myEventsIsLoadingMore.value;
+    if (isJoinedEventsPage.value) return joinedEventsIsLoadingMore.value;
+    if (isHistoryEventsPage.value) return historyEventsIsLoadingMore.value;
+    return false;
+  });
+
+  const activePageSize = computed(() => {
+    if (isAllEventsPage.value) return eventsPageSize;
+    if (isMyEventsPage.value) return myEventsPageSize;
+    if (isJoinedEventsPage.value) return joinedEventsPageSize;
+    if (isHistoryEventsPage.value) return historyEventsPageSize;
+    return eventsPageSize;
+  });
+
+  function loadMoreActive() {
+    if (isAllEventsPage.value) void loadMoreEvents();
+    else if (isMyEventsPage.value) void loadMoreMyEvents();
+    else if (isJoinedEventsPage.value) void loadMoreJoinedEvents();
+    else if (isHistoryEventsPage.value) void loadMoreHistoryEvents();
+  }
 
   const activePending = computed(() => {
     if (isAllEventsPage.value) return pending.value;
@@ -260,19 +299,19 @@
     isJoinedEventsPage.value,
   );
 
-
 </script>
 
 <template>
   <section
     class="
-      relative flex flex-col flex-1 py-10
+      relative flex flex-col flex-1 py-10 pb-2
       bg-fourth
-      max-md:py-5
+      max-md:py-5 max-md:pb-2
     "
   >
     <div 
       class="
+        relative
         container mx-auto flex flex-col flex-1 px-8
         max-md:px-4
         max-sm:px-3
@@ -313,8 +352,9 @@
       <div 
         class="
           flex items-center justify-between gap-2
-          mb-3
+          max-sm:mb-3
         "
+        :class="hasUsers ? 'mb-3' : ''"
       >
         <div
           class="
@@ -370,21 +410,45 @@
             appear
             class="
               absolute top-0 left-0 w-full
-              grid grid-cols-6 gap-4
+              grid grid-cols-6 gap-4 p-4 pb-20
               z-2
               max-2xl:grid-cols-5
               max-xl:grid-cols-4
               max-lg:grid-cols-3 max-lg:gap-3
               max-md:grid-cols-2 max-md:gap-2
-              max-sm:relative max-sm:grid-cols-1 
+              max-sm:relative max-sm:grid-cols-1 max-sm:p-0 max-sm:pb-12
             "
           >
             <EventCard 
               v-for="(event, index) in activeEvents"
               :key="event.id"
               :event="event"
-              :index="index"
+              :index="index % activePageSize"
             />
+
+            <UiButton
+              v-if="activeHasMore || activeIsLoadingMore"
+              key="events-load-more"
+              class="
+                !p-2.5
+                col-span-6
+                max-2xl:col-span-5
+                max-xl:col-span-4
+                max-lg:col-span-3
+                max-md:col-span-2
+                max-sm:col-span-1 max-sm:p-1.5
+              "
+              :disabled="activeIsLoadingMore"
+              @click="loadMoreActive"
+            >
+              {{ activeIsLoadingMore ? pageContent?.loadMoreBtn.loading : pageContent?.loadMoreBtn.loadMore }}
+              <Icon
+                name="fluent:arrow-sync-24-filled"
+                mode="svg"
+                class="size-6"
+                :class="{ 'animate-spin': activeIsLoadingMore }"
+              />
+            </UiButton>
           </TransitionGroup>
         </template>
 
@@ -394,35 +458,52 @@
             name="user-card"
             appear
             class="
-              absolute top-0 left-0 w-full
+              absolute top-0 left-0 w-full pb-20
               flex flex-col gap-2.5
               z-2
-              max-sm:relative max-sm:gap-2
+              max-sm:relative max-sm:gap-2 max-sm:pb-12
             "
           >
             <UserCard
               v-for="(user, index) in users"
               :key="user.id"
               :user="user"
-              :index="index"
+              :index="index % usersPageSize"
+              :load-more-btn="pageContent!.loadMoreBtn"
             />
+
+            <UiButton
+              v-if="usersHasMore || usersIsLoadingMore"
+              key="users-load-more"
+              class="
+                !p-2.5
+                col-span-6
+                max-2xl:col-span-5
+                max-xl:col-span-4
+                max-lg:col-span-3
+                max-md:col-span-2
+                max-sm:col-span-1 max-sm:p-1.5
+              "
+              :disabled="usersIsLoadingMore"
+              @click="loadMoreUsers"
+            >
+              {{ usersIsLoadingMore ? pageContent?.loadMoreBtn.loading : pageContent?.loadMoreBtn.loadMore }}
+              <Icon
+                name="fluent:arrow-sync-24-filled"
+                mode="svg"
+                class="size-6"
+                :class="{ 'animate-spin': usersIsLoadingMore }"
+              />
+            </UiButton>
           </TransitionGroup>
         </template>
-
-        <LayoutEventsFloatingActions :show-create-button="showCreateEventButton" />
-
       </div>
-      <div>
-        <LayoutPagination
-          v-if="isUsersPage && usersTotalPages > 1"
-          v-model:page="page"
-          :total-pages="usersTotalPages"
-        />
-        <LayoutPagination
-          v-else-if="isEventsListPage && activeTotalPages > 1"
-          v-model:page="page"
-          :total-pages="activeTotalPages"
-        />
+      <div 
+        class="
+          absolute bottom-4 right-0 z-10 mx-12
+          max-sm:fixed max-sm:bottom-1 max-sm:mx-3
+        ">
+        <LayoutEventsFloatingActions :show-create-button="showCreateEventButton" />
       </div>
     </div>
 
@@ -453,6 +534,31 @@
     position: absolute;
   }
   .event-card-leave-to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  .user-card-enter-active {
+    transition:
+      opacity 0.4s ease,
+      transform 0.4s ease;
+    transition-delay: var(--delay, 0ms);
+  }
+  .user-card-enter-from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+  }
+
+  .user-card-move {
+    transition: transform 0.4s ease;
+  }
+
+  .user-card-leave-active {
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    position: absolute;
+    width: 100%;
+  }
+  .user-card-leave-to {
     opacity: 0;
     transform: scale(0.95);
   }

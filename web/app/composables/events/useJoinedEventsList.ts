@@ -1,67 +1,52 @@
 import type { Event, EventsCount } from '~/types/domain/event';
+import { useInfiniteList } from '~/composables/events/useInfiniteList';
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 30;
 type SortOrder = 'asc' | 'desc';
 
 export function useJoinedEventsList(
-  page: Ref<number>,
   enabled: Ref<boolean>,
   search: Ref<string> = ref(''),
   sort: Ref<SortOrder> = ref('asc'),
 ) {
   const api = useApi();
-  const refreshStore = useEventsListRefreshStore();
-  const skip = computed(() => (page.value - 1) * PAGE_SIZE);
 
-  const queryParams = computed(() => {
-    const params = new URLSearchParams({
-      skip: String(skip.value),
-      limit: String(PAGE_SIZE),
-      sort: sort.value,
-    });
-    const trimmedSearch = search.value.trim();
-    if (trimmedSearch) params.set('search', trimmedSearch);
-    return params.toString();
-  });
-
-  const { data: events, pending, error, refresh } = useAsyncData(
-    () => enabled.value
-      ? `joined-events-${page.value}-${search.value}-${sort.value}`
-      : 'joined-events-disabled',
-    () => {
-      if (!enabled.value) return Promise.resolve([] as Event[]);
-      return api<Event[]>(`/users/me/joined-events?${queryParams.value}`);
-    },
-    { watch: [page, search, sort, enabled], server: false },
-  );
-
-  const { data: countData, refresh: refreshCount } = useAsyncData(
-    () => enabled.value
-      ? `joined-events-count-${search.value}`
-      : 'joined-events-count-disabled',
-    () => {
-      if (!enabled.value) return Promise.resolve({ total: 0 });
-
-      const params = new URLSearchParams();
-      const trimmedSearch = search.value.trim();
-      if (trimmedSearch) params.set('search', trimmedSearch);
-
+  const {
+    items: events,
+    total,
+    totalPages,
+    pending,
+    isLoadingMore,
+    hasMore,
+    error,
+    refresh,
+    loadMore,
+    pageSize,
+  } = useInfiniteList<Event>({
+    enabled,
+    search,
+    sort,
+    pageSize: PAGE_SIZE,
+    refreshOnStoreTick: true,
+    fetchPage: (params) =>
+      api<Event[]>(`/users/me/joined-events?${params.toString()}`),
+    fetchCount: async (params) => {
       const suffix = params.toString() ? `?${params.toString()}` : '';
-      return api<EventsCount>(`/users/me/joined-events/count${suffix}`);
+      const count = await api<EventsCount>(`/users/me/joined-events/count${suffix}`);
+      return count.total;
     },
-    { watch: [search, enabled], server: false },
-  );
-
-  const total = computed(() => countData.value?.total ?? 0);
-  const totalPages = computed(() =>
-    Math.max(1, Math.ceil(total.value / PAGE_SIZE)),
-  );
-
-  watch(() => refreshStore.tick, () => {
-    if (!enabled.value) return;
-    refresh();
-    refreshCount();
   });
 
-  return { events, total, totalPages, pending, error, refresh, PAGE_SIZE };
+  return {
+    events,
+    total,
+    totalPages,
+    pending,
+    isLoadingMore,
+    hasMore,
+    error,
+    refresh,
+    loadMore,
+    PAGE_SIZE: pageSize,
+  };
 }
