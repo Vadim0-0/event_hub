@@ -92,4 +92,10 @@
       pointer-events: none;
     }
   }
+
+  @media (max-width: 767px) {
+    .ui-btn {
+      font-weight: 500;
+    }
+  }
 </style>

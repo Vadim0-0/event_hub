@@ -345,7 +345,6 @@
             }
           }
 
-
           & button {
             position: relative;
             display: flex;
@@ -362,7 +361,8 @@
             // background-color: var(--color-main);
 
             &:hover {
-              background-color: var(--color-primary-light);
+              background-color: var(--color-primary-hover);
+              color: var(--color-main);
             }
 
             &.choose {
@@ -464,6 +464,26 @@
 
           &.active {
             transform: translateY(0);
+          }
+        }
+      }
+    }
+  }
+
+  @media (max-width: 767px) {
+    .ui-select {
+
+      &--collapsed {
+
+        & .ui-select__content {
+
+          &-btn {
+            padding: 5px 3px;
+
+            &__arrow {
+              width: 12px;
+              height: 12px;
+            }
           }
         }
       }

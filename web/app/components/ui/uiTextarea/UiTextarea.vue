@@ -37,8 +37,11 @@
   const fieldRef = ref<HTMLElement | null>(null);
   const height = ref(props.minHeight);
 
-  function startResize(event: MouseEvent) {
-    if (props.disabled) return;
+  function startResize(event: PointerEvent) {
+    if (props.disabled || event.button !== 0) return;
+
+    const handle = event.currentTarget as HTMLElement;
+    handle.setPointerCapture(event.pointerId);
 
     const textarea = fieldRef.value?.querySelector('textarea');
     if (!textarea) return;
@@ -46,22 +49,29 @@
     const startY = event.clientY;
     const startHeight = textarea.offsetHeight;
 
-    const onMouseMove = (moveEvent: MouseEvent) => {
-      const nextHeight = startHeight + (moveEvent.clientY - startY);
+    const onPointerMove = (moveEvent: PointerEvent) => {
+      moveEvent.preventDefault();
 
+      const nextHeight = startHeight + (moveEvent.clientY - startY);
       height.value = Math.min(
         props.maxHeight,
         Math.max(props.minHeight, nextHeight),
       );
     };
 
-    const onMouseUp = () => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
+    const onPointerUp = (upEvent: PointerEvent) => {
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerUp);
+
+      try {
+        handle.releasePointerCapture(upEvent.pointerId);
+      } catch {}
     };
 
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', onPointerUp);
   };
 
 </script>
@@ -90,7 +100,7 @@
       />
       <span 
         class="ui-textarea__field-resize"
-        @mousedown.prevent="startResize"
+        @pointerdown.prevent="startResize"
       ></span>
     </div>
     <p v-if="hasError" class="ui-input__error">
@@ -109,6 +119,7 @@
     border: none;
 
     &__label {
+      padding: 0 5px;
       margin-bottom: 5px;
       color: var(--color-text-main);
       font-size: var(--text-body-sm);
@@ -181,6 +192,32 @@
       & textarea {
         color: var(--color-error) !important;
         border-color: var(--color-error) !important;
+      }
+    }
+  }
+
+  @media (max-width: 767px) {
+    .ui-textarea {
+
+      &__field {
+        position: relative;
+        width: 100%;
+
+        & textarea {
+          padding: 14px 10px;
+          font-size: var(--text-body-sm);
+        }
+
+        &-resize {
+          bottom: 5px;
+          height: 6px;
+        }
+      }
+
+
+      &__error {
+        margin-top: 5px;
+        font-size: var(--text-body-sm);
       }
     }
   }

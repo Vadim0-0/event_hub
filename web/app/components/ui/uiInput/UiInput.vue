@@ -332,4 +332,40 @@
     }
   }
 
+  @media (max-width: 767px) {
+    .ui-input {
+
+      &__field {
+
+        & input {
+          padding: 14px 10px;
+          font-size: var(--text-body-sm);
+        }
+
+        &-control {
+          right: 10px;
+          opacity: 1;
+
+          &__btn {
+
+            width: 18px;
+            height: 18px;
+            background-color: var(--color-primary);
+
+            & svg {
+              width: 90%;
+              height: 90%;
+            }
+          }
+        }
+      }
+
+
+      &__error {
+        margin-top: 5px;
+        font-size: var(--text-body-sm);
+      }
+    }
+  }
+
 </style>

@@ -214,4 +214,24 @@
     }
   }
 
+  @media (max-width: 767px) {
+    .ui-verification{
+
+      &__fields {
+        gap: 8px;
+
+        & input {
+          padding: 12px 10px;
+          font-size: 24px;
+        }
+      }
+
+
+      &__error {
+        margin-top: 5px;
+        font-size: var(--text-body-sm);
+      }
+    }
+  }
+
 </style>
