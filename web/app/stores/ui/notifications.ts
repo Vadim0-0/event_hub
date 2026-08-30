@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import { DEV_PREVIEW_NOTIFICATIONS } from '~/constants/devPreview';
 
 export type NotificationType = 'success' | 'error' | 'info';
 
@@ -21,7 +22,10 @@ export const useNotificationsStore = defineStore('notifications', () => {
       items.value.shift()
     }
 
-    setTimeout(() => remove(notification.id), 5000)
+    const keepForPreview = import.meta.dev && DEV_PREVIEW_NOTIFICATIONS;
+    if (!keepForPreview) {
+      setTimeout(() => remove(notification.id), 5000);
+    }
 
     return notification.id
   };

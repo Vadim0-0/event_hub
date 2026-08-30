@@ -1,9 +1,22 @@
 <script setup lang="ts">
+  import { DEV_PREVIEW_NOTIFICATIONS, randomNotificationPayload } from '~/constants/devPreview';
+
+  const notifications = useNotificationsStore();
+
   const auth = useAuthStore();
 
   onMounted(() => {
     if (auth.isAuthenticated) {
-      auth.fetchMe()
+      auth.fetchMe();
+    };
+
+    if (!import.meta.dev || !DEV_PREVIEW_NOTIFICATIONS) return;
+
+    const count = 4;
+    
+    for (let i = 0; i < count; i++) {
+      const { type, title, message } = randomNotificationPayload();
+      notifications.push({ type, title, message });
     }
   });
 </script>
