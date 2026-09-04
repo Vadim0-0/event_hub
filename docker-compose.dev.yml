@@ -3,6 +3,10 @@ services:
     ports:
       - "${POSTGRES_PORT:-5436}:5432"
 
+  nginx:
+    ports:
+      - "8080:80"
+
   api:
     ports:
       - "8000:8000"
