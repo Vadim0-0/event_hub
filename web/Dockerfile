@@ -20,7 +20,7 @@ ENV NUXT_TELEMETRY_DISABLED=1
 RUN bun run build
 
 # --- Production ---
-FROM oven/bun:1-slim AS production
+FROM node:22-slim AS production
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -30,7 +30,7 @@ ENV PORT=3000
 COPY --from=build /app/.output ./.output
 
 EXPOSE 3000
-CMD ["bun", ".output/server/index.mjs"]
+CMD ["node", ".output/server/index.mjs"]
 
 # --- Development ---
 FROM deps AS development
