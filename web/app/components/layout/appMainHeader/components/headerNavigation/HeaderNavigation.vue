@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { storeToRefs } from 'pinia';
-  import type { HeaderNavigation } from '~/types/i18n/components/mainHeader';
-  
+  import type { HeaderNavigation } from '../../../../../types/i18n/components/mainHeader';
+
   defineProps<HeaderNavigation & { collapsed?: boolean }>()
 
   const emit = defineEmits<{

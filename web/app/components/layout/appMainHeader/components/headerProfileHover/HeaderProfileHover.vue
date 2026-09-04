@@ -1,6 +1,6 @@
 <script setup lang="ts">
-  import type { HeaderProfileHoverProps } from '~/types/i18n/components/mainHeader';
-  
+  import type { HeaderProfileHoverProps } from '../../../../../types/i18n/components/mainHeader';
+
   defineProps<HeaderProfileHoverProps>();
 
   const eventsStore = useEventsStore();
