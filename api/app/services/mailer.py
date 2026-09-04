@@ -17,6 +17,8 @@ def _send_sync(to: str, subject: str, body: str) -> None:
   with smtplib.SMTP(settings.smtp_host, settings.smtp_port) as smtp:
     if settings.smtp_use_tls:
       smtp.starttls()
+    if settings.smtp_user and settings.smtp_password:
+      smtp.login(settings.smtp_user, settings.smtp_password)
     smtp.send_message(msg)
 
 
