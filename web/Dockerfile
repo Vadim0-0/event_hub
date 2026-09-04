@@ -1,5 +1,5 @@
 # --- Dependencies ---
-FROM oven/bun:1-slim AS deps
+FROM oven/bun:1 AS deps
 WORKDIR /app
 
 COPY package.json bun.lock ./
@@ -11,9 +11,11 @@ WORKDIR /app
 
 COPY . .
 
-# URL API
 ARG NUXT_PUBLIC_API_BASE=
 ENV NUXT_PUBLIC_API_BASE=$NUXT_PUBLIC_API_BASE
+ENV NODE_ENV=production
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+ENV NUXT_TELEMETRY_DISABLED=1
 
 RUN bun run build
 

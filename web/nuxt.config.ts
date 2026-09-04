@@ -108,10 +108,22 @@ export default defineNuxtConfig({
         'tabler',
         'weui',
       ],
+      // Keep @iconify/json installed, but don't inline JSON into Nitro bundle.
+      externalizeIconsJson: true,
     },
     clientBundle: {
       scan: true,
     },
+  },
+
+  vite: {
+    build: {
+      reportCompressedSize: false,
+    },
+  },
+
+  nitro: {
+    minify: false,
   },
 
   i18n: i18nOptions,
