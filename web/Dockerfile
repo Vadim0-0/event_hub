@@ -1,5 +1,5 @@
 # --- Dependencies ---
-FROM oven/bun:1 AS deps
+FROM oven/bun:1-slim AS deps
 WORKDIR /app
 
 COPY package.json bun.lock ./
@@ -18,7 +18,7 @@ ENV NUXT_PUBLIC_API_BASE=$NUXT_PUBLIC_API_BASE
 RUN bun run build
 
 # --- Production ---
-FROM oven/bun:1 AS production
+FROM oven/bun:1-slim AS production
 WORKDIR /app
 
 ENV NODE_ENV=production

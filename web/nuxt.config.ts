@@ -4,6 +4,11 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: false },
 
+  sourcemap: {
+    server: false,
+    client: false,
+  },
+
   app: {
     head: {
       title: 'Event Hub',
@@ -44,7 +49,7 @@ export default defineNuxtConfig({
   modules: [
     '@nuxt/image',
     '@nuxt/ui',
-    '@nuxt/test-utils',
+    //'@nuxt/test-utils',
     '@nuxtjs/i18n',
     // '@nuxtjs/ionic',
     // '@nuxtjs/ngrok',
@@ -72,6 +77,41 @@ export default defineNuxtConfig({
   // Avoid clash with nginx `/api/` → FastAPI proxy
   icon: {
     localApiEndpoint: '/_nuxt_icon',
+    serverBundle: {
+      collections: [
+        'akar-icons',
+        'ant-design',
+        'bi',
+        'bitcoin-icons',
+        'boxicons',
+        'carbon',
+        'ep',
+        'eva',
+        'fe',
+        'fluent',
+        'fontisto',
+        'ic',
+        'icon-park-outline',
+        'ion',
+        'line-md',
+        'lsicon',
+        'lucide',
+        'mage',
+        'material-symbols',
+        'material-symbols-light',
+        'mdi',
+        'mingcute',
+        'mynaui',
+        'ri',
+        'solar',
+        'streamline',
+        'tabler',
+        'weui',
+      ],
+    },
+    clientBundle: {
+      scan: true,
+    },
   },
 
   i18n: i18nOptions,
