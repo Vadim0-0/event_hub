@@ -244,6 +244,12 @@
     return false;
   });
 
+  const isInitialLoading = computed(() => {
+    if (isEventsListPage.value) return activePending.value;
+    if (isUsersPage.value) return usersPending.value;
+    return false;
+  });
+
   const activeError = computed(() => {
     if (isAllEventsPage.value) return error.value;
     if (isMyEventsPage.value) return myError.value;
@@ -388,16 +394,24 @@
         " 
         
         data-lenis-prevent>
+        <div
+          v-if="isInitialLoading"
+          class="mt-2 p-3 bg-primary-light rounded-sm max-sm:mt-0"
+        >
+          <p class="text-body-xl text-text-main">
+            {{ pageContent?.loadMoreBtn.loading }}
+          </p>
+        </div>
         <div 
-          v-if="isErrorLoad"
-          class="p-3 bg-error/10 rounded-sm">
+          v-else-if="isErrorLoad"
+          class="mt-2 p-3 bg-error/10 rounded-sm max-sm:mt-0">
           <p class="text-body-xl text-error">
             {{ pageContent?.loadingErrorText }}
           </p>
         </div>
         <div 
           v-else-if="isEmpty"
-          class="p-3 bg-primary-light rounded-sm">
+          class="mt-2 p-3 bg-primary-light rounded-sm max-sm:mt-0">
           <p class="text-body-xl text-text-main">
             {{ pageContent?.emptyText }}
           </p>
@@ -501,7 +515,7 @@
       <div 
         class="
           absolute bottom-4 right-0 z-10 mx-12
-          max-sm:fixed max-sm:bottom-1 max-sm:mx-3
+          max-sm:fixed max-sm:bottom-1 max-sm:mx-3 max-sm:z-9
         ">
         <LayoutEventsFloatingActions :show-create-button="showCreateEventButton" />
       </div>
