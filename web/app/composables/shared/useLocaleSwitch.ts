@@ -16,13 +16,15 @@ export const languageOptions: LocaleSelectOption[] = locales.map((l) => ({
 
 export function useLocaleSwitch() {
   const { locale, setLocale } = useI18n();
+  const { withLoader } = useLoader();
 
   const selectedLocale = computed({
     get: () => resolveI18nLocaleCode(locale.value),
     set: (code: string) => {
-      const next = resolveI18nLocaleCode(code)
-      if (next === resolveI18nLocaleCode(locale.value)) return
-      void setLocale(next)
+      const next = resolveI18nLocaleCode(code);
+      if (next === resolveI18nLocaleCode(locale.value)) return;
+
+      void withLoader(() => setLocale(next));
     },
   });
 

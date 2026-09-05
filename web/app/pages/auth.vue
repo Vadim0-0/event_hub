@@ -6,6 +6,8 @@
   const route = useRoute();
   const router = useRouter();
 
+  const { showFor } = useLoader()
+
   type AuthMode = 'login' | 'register' | 'verify';
 
   definePageMeta({
@@ -46,24 +48,20 @@
     },
   });
 
-  function openVerify(email: string) {
-    router.replace({
-      query: {
-        ...route.query,
-        mode: 'verify',
-        email,
-      },
-    })
+  async function switchToRegister() {
+    await showFor(300);
+    mode.value = 'register';
   };
 
-  function backToLogin() {
-    router.replace({
-      query: {
-        ...route.query,
-        mode: undefined,
-        email: undefined,
-      },
-    })
+  async function openVerify(email: string) {
+    await showFor(300);
+    pendingEmail.value = email;
+    mode.value = 'verify';
+  };
+
+  async function backToLogin() {
+    await showFor(300);
+    mode.value = 'login';
   };
 
 </script>
@@ -75,7 +73,7 @@
         <AuthLogin
           v-if="mode === 'login'"
           :content="content.login"
-          @switch-to-register="mode = 'register'"
+          @switch-to-register="switchToRegister"
           @switch-to-verify="openVerify"
         />
         <AuthRegister 

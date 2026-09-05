@@ -5,6 +5,10 @@
 
   const auth = useAuthStore();
 
+  const { isVisible: isLoaderVisible } = useLoader();
+
+  usePageScrollLockWhen(isLoaderVisible, { mobileOnly: false });
+
   onMounted(() => {
     if (auth.isAuthenticated) {
       auth.fetchMe();
@@ -30,7 +34,7 @@
   <LayoutNotifications />
 
   <Transition name="loader">
-    <LayoutLoader v-if="auth.isLoading"/>
+    <LayoutLoader v-if="isLoaderVisible" />
   </Transition>
 </template>
 

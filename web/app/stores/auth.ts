@@ -5,7 +5,11 @@ export const useAuthStore = defineStore('auth', () => {
   const token = useCookie<string | null>('auth_token', { maxAge: 60 * 60 * 24 * 7 });
   const user = ref<User | null>(null);
 
-  const isLoading = ref(false)
+  const isLoading = ref(false);
+
+  const { registerSource } = useLoader();
+  registerSource('auth', isLoading);
+
   const api = useApi()
 
   const isAuthenticated = computed(() => !!token.value);
