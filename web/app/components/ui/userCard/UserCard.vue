@@ -159,7 +159,7 @@
           </div>
   
           <div
-            class="relative w-full max-h-75 overflow-y-auto"
+            class="relative w-full max-h-120 overflow-y-auto"
           >
             <ul 
               class="
