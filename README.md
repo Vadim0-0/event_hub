@@ -1,10 +1,21 @@
 # Event Hub
 
+> **Live demo:** [event-hub.codewithvadim.dev](https://event-hub.codewithvadim.dev)
+
 > [Русская версия](README-RU.md)
 
 Event management platform: user registration, event creation with map locations, participant enrollment, direct messaging, AI assistant, and real-time notifications.
 
 A learning pet project showcasing async Python, SQLAlchemy 2.0, background jobs, WebSockets, and a full Docker-based stack.
+
+## Live Demo
+
+| Resource | URL |
+|----------|-----|
+| Website | [event-hub.codewithvadim.dev](https://event-hub.codewithvadim.dev) |
+| API | [event-hub.codewithvadim.dev/api](https://event-hub.codewithvadim.dev/api) |
+| Swagger | [event-hub.codewithvadim.dev/api/docs](https://event-hub.codewithvadim.dev/api/docs) |
+| Health check | [event-hub.codewithvadim.dev/health](https://event-hub.codewithvadim.dev/health) |
 
 ## Features
 
@@ -112,7 +123,7 @@ The assistant also answers UI questions (*"how to create an event"*, *"куда 
    make ollama-pull
    ```
 
-5. **Verify everything is running:**
+5. **Verify everything is running (local):**
 
    | Service | URL |
    |---------|-----|
@@ -185,6 +196,9 @@ To run pytest locally without Docker, configure `api/tests/.env.test` using `api
 | `PGADMIN_DEFAULT_EMAIL` | pgAdmin email (dev) | `admin@local.dev` |
 | `PGADMIN_DEFAULT_PASSWORD` | pgAdmin password (dev) | `admin` |
 | `NUXT_PUBLIC_API_BASE` | API base URL for the frontend | `http://localhost/api` |
+| `WEB_APP_BASE_URL` | Public website URL (emails, links) | `https://event-hub.codewithvadim.dev` |
+| `DOMAIN` | Public domain | `event-hub.codewithvadim.dev` |
+| `CORS_ORIGINS` | Allowed CORS origins (comma-separated) | `https://event-hub.codewithvadim.dev` |
 | `NUXT_PUBLIC_GEOAPIFY_API_KEY` | Geoapify API key for maps | `your-key` |
 
 ## API Overview

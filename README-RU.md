@@ -1,10 +1,21 @@
 # Event Hub
 
+> **Демо:** [event-hub.codewithvadim.dev](https://event-hub.codewithvadim.dev)
+
 > [English version](README.md)
 
 Платформа для управления мероприятиями: регистрация пользователей, создание событий с картой, запись участников, личные сообщения, AI-ассистент и realtime-уведомления.
 
 Учебный pet-проект, демонстрирующий асинхронный Python, SQLAlchemy 2.0, фоновые задачи, WebSockets и полный стек с Docker.
+
+## Live Demo
+
+| Ресурс | URL |
+|--------|-----|
+| Сайт | [event-hub.codewithvadim.dev](https://event-hub.codewithvadim.dev) |
+| API | [event-hub.codewithvadim.dev/api](https://event-hub.codewithvadim.dev/api) |
+| Swagger | [event-hub.codewithvadim.dev/api/docs](https://event-hub.codewithvadim.dev/api/docs) |
+| Health check | [event-hub.codewithvadim.dev/health](https://event-hub.codewithvadim.dev/health) |
 
 ## Features
 
@@ -42,7 +53,7 @@
 - Опциональный помощник для авторизованных пользователей на базе [Ollama](https://ollama.com/).
 - История чата сохраняется per user; контекст передаётся модели при каждом запросе.
 - Можно отключить через `AI_ENABLED=false`, если Ollama не нужен.
-- Модель по умолчанию: `qwen2.5:3b`` (настраивается через `AI_MODEL`).
+- Модель по умолчанию: `qwen2.5:3b` (настраивается через `AI_MODEL`).
 
 **Создание события через AI-чат**
 
@@ -112,7 +123,7 @@
    make ollama-pull
    ```
 
-5. **Проверка работоспособности:**
+5. **Проверка работоспособности (локально):**
 
    | Сервис | URL |
    |--------|-----|
@@ -185,6 +196,9 @@ make migrate
 | `PGADMIN_DEFAULT_EMAIL` | Email pgAdmin (dev) | `admin@local.dev` |
 | `PGADMIN_DEFAULT_PASSWORD` | Пароль pgAdmin (dev) | `admin` |
 | `NUXT_PUBLIC_API_BASE` | Базовый URL API для фронтенда | `http://localhost/api` |
+| `WEB_APP_BASE_URL` | Публичный URL сайта (письма, ссылки) | `https://event-hub.codewithvadim.dev` |
+| `DOMAIN` | Публичный домен | `event-hub.codewithvadim.dev` |
+| `CORS_ORIGINS` | Разрешённые CORS origins (через запятую) | `https://event-hub.codewithvadim.dev` |
 | `NUXT_PUBLIC_GEOAPIFY_API_KEY` | API-ключ Geoapify для карт | `your-key` |
 
 ## API Overview
