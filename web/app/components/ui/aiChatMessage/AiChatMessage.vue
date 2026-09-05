@@ -1,22 +1,38 @@
 <script setup lang="ts">
-  import DOMPurify from 'isomorphic-dompurify';
-  import { marked } from 'marked';
-
   const props = defineProps<{
     body: string
     isMine: boolean
     time: string
   }>();
 
-  marked.setOptions({
-    breaks: true,
-  });
+  const html = ref('');
 
-  const html = computed(() => {
-    if (props.isMine) return '';
-    const raw = marked.parse(props.body) as string;
-    return DOMPurify.sanitize(raw);
-  });
+  async function renderMarkdown(body: string) {
+    if (import.meta.server) return;
+
+    const [{ default: DOMPurify }, { marked }] = await Promise.all([
+      import('isomorphic-dompurify'),
+      import('marked'),
+    ]);
+
+    marked.setOptions({ breaks: true });
+
+    const raw = marked.parse(body) as string;
+    html.value = DOMPurify.sanitize(raw);
+  }
+
+  watch(
+    () => props.body,
+    (body) => {
+      if (props.isMine) {
+        html.value = '';
+        return;
+      }
+
+      void renderMarkdown(body);
+    },
+    { immediate: true },
+  );
 </script>
 
 <template>
@@ -31,6 +47,13 @@
       <p
         v-if="isMine"
         class="w-full text-body-sm font-medium text-main max-sm:text-sm"
+      >
+        {{ body }}
+      </p>
+
+      <p
+        v-else-if="!html"
+        class="w-full text-body-sm font-medium text-text-main whitespace-pre-wrap max-sm:text-sm"
       >
         {{ body }}
       </p>
