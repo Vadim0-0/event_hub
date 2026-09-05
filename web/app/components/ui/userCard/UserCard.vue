@@ -53,8 +53,8 @@
   };
 
   const sortIcon = computed(() => {
-    if (eventsSort.value === 'asc') return 'fluent:arrow-sort-up-16-regular';
-    if (eventsSort.value === 'desc') return 'fluent:arrow-sort-down-16-regular';
+    if (eventsSort.value === 'asc') return 'fluent:arrow-sort-down-16-regular';
+    if (eventsSort.value === 'desc') return 'fluent:arrow-sort-up-16-regular';
     return 'fluent:arrow-sort-16-regular';
   });
 
