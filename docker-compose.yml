@@ -62,6 +62,9 @@ services:
       # Web UI
       WEB_APP_BASE_URL: ${WEB_APP_BASE_URL:-}
 
+      # CORS
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost,http://localhost:3000}
+
       # AI
       AI_ENABLED: ${AI_ENABLED:-true}
       AI_BASE_URL: http://ollama:11434

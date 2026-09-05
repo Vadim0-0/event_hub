@@ -1,8 +1,9 @@
 from functools import lru_cache
 from pathlib import Path
+from typing import Annotated, Any
 
-from pydantic import computed_field
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import computed_field, field_validator
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
 
@@ -71,7 +72,20 @@ class Settings(BaseSettings):
     return f"redis://{self.redis_host}:{self.redis_port}/{self.arq_redis_db}"
 
   # CORS
-  cors_origins: list[str] = ["http://localhost","http://localhost:3000"]
+  cors_origins: Annotated[list[str], NoDecode] = [
+    "http://localhost",
+    "http://localhost:3000",
+  ]
+
+  @field_validator("cors_origins", mode="before")
+  @classmethod
+  def parse_cors_origins(cls, value: Any) -> list[str]:
+    if isinstance(value, str):
+      origins = [origin.strip() for origin in value.split(",") if origin.strip()]
+      if not origins:
+        raise ValueError("cors_origins must contain at least one origin")
+      return origins
+    return value
 
   # --- Email verification ---
   email_verification_code_ttl_seconds: int = 900   # 15 minutes
