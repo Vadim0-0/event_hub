@@ -19,6 +19,12 @@ class User(Base):
     default=False,
     server_default="false",
   )
+
+  is_demo: Mapped[bool] = mapped_column(
+    Boolean,
+    default=False,
+    server_default="false",
+  )
   
   created_events: Mapped[list["Event"]] = relationship(back_populates="creator")
   registrations: Mapped[list["EventRegistration"]] = relationship(back_populates="user")

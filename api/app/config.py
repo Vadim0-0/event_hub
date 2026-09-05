@@ -98,6 +98,11 @@ class Settings(BaseSettings):
   ai_model: str = "qwen2.5:3b"
   ai_timeout_seconds: float = 120.0
 
+  # --- Demo simulator ---
+  demo_simulator_enabled: bool = False
+  demo_simulator_interval_minutes: int = 15
+  demo_simulator_max_users: int = 200
+
 # Caching result
 @lru_cache
 def get_settings() -> Settings:

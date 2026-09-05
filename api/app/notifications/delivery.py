@@ -6,11 +6,25 @@ from sqlalchemy import select
 
 from ..models.user import User
 from ..database import AsyncSessionLocal
+from ..services.demo.data import is_demo_email
 from ..services.mailer import deliver_email
 from ..services import notifications as notifications_service
 from . import types
 
 logger = logging.getLogger(__name__)
+
+
+async def _is_demo_recipient(db, *, to: str, user_id: int | None) -> bool:
+  if is_demo_email(to):
+    return True
+
+  if user_id is not None:
+    user = await db.get(User, user_id)
+    return user is not None and user.is_demo
+
+  result = await db.execute(select(User.is_demo).where(User.email == to))
+  is_demo = result.scalar_one_or_none()
+  return is_demo is True
 
 
 async def send(
@@ -24,16 +38,20 @@ async def send(
   user_id: int | None = None,
   event_id: UUID | None = None,
 ) -> None:
-  status = types.NotificationStatus.SENT
-
-  try:
-    await deliver_email(to, subject, body)
-    logger.info("EMAIL sent to=%s subject=%s", to, subject)
-  except Exception:
-    logger.exception("Failed to send email to=%s", to)
-    status = types.NotificationStatus.FAILED
-
   async with AsyncSessionLocal() as db:
+    if await _is_demo_recipient(db, to=to, user_id=user_id):
+      logger.info("Skip notification for demo recipient: %s", to)
+      return
+
+    status = types.NotificationStatus.SENT
+
+    try:
+      await deliver_email(to, subject, body)
+      logger.info("EMAIL sent to=%s subject=%s", to, subject)
+    except Exception:
+      logger.exception("Failed to send email to=%s", to)
+      status = types.NotificationStatus.FAILED
+
     await notifications_service.save_notification(
       db,
       type=notification_type,

@@ -1,5 +1,7 @@
 from arq.connections import RedisSettings
+from arq import cron
 
+from .demo_simulator import demo_simulator_tick
 from ..config import settings
 from ..redis_client import init_redis, close_redis
 
@@ -32,6 +34,9 @@ async def startup(ctx):
     conversation,
     message,
     conversation_read,
+    ai_message,
+    conversation_user_state,
+    message_user_hide,
   )
   
   await init_redis()
@@ -63,5 +68,15 @@ class WorkerSettings:
     notify_leave_confirmed,
     notify_participant_left,
     notify_participant_removed,
-     notify_new_message,
+    notify_new_message,
+    demo_simulator_tick,
+  ]
+
+  cron_jobs = [
+  cron(
+    demo_simulator_tick,
+    minute=set(range(0, 60, settings.demo_simulator_interval_minutes)),
+    run_at_startup=True,
+    unique=True,
+  ),
   ]
