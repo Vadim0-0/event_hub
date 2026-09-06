@@ -51,7 +51,7 @@
       flex flex-col w-full max-w-200 min-h-100
       bg-third rounded-md border border-solid border-fifth/50
       shadow-lg
-      max-sm:flex-1 max-sm:shadow-none max-sm:rounded-none 
+      max-sm:flex-1 max-sm:shadow-none max-sm:rounded-none max-sm:pb-[env(safe-area-inset-bottom)]
       "
       :class="{ active: isPanelActive }"
     >

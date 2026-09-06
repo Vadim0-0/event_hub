@@ -312,7 +312,7 @@
     class="
       relative flex flex-col flex-1 py-10 pb-2
       bg-fourth
-      max-md:py-5 max-md:pb-2
+      max-md:py-2.5 max-md:pb-2
     "
   >
     <div 
@@ -430,7 +430,7 @@
               max-xl:grid-cols-4
               max-lg:grid-cols-3 max-lg:gap-3
               max-md:grid-cols-2 max-md:gap-2
-              max-sm:relative max-sm:grid-cols-1 max-sm:p-0 max-sm:pb-12
+              max-sm:relative max-sm:grid-cols-1 max-sm:bottom-0 max-sm:p-0 max-sm:pb-[calc(env(safe-area-inset-bottom)+52px)]
             "
           >
             <EventCard 
@@ -475,7 +475,7 @@
               absolute top-0 left-0 w-full pb-20
               flex flex-col gap-2.5
               z-2
-              max-sm:relative max-sm:gap-2 max-sm:pb-12
+              max-sm:relative max-sm:gap-2 max-sm:bottom-0 max-sm:pb-[calc(env(safe-area-inset-bottom)+52px)]
             "
           >
             <UserCard
@@ -515,7 +515,8 @@
       <div 
         class="
           absolute bottom-4 right-0 z-10 mx-12
-          max-sm:fixed max-sm:bottom-1 max-sm:mx-3 max-sm:z-9
+          max-sm:fixed max-sm:mx-3 max-sm:z-9 bot
+          max-sm:bottom-[calc(env(safe-area-inset-bottom)+10px)]
         ">
         <LayoutEventsFloatingActions :show-create-button="showCreateEventButton" />
       </div>

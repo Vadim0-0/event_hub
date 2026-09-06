@@ -24,6 +24,7 @@
 
 
   // --- Panel state ---
+  const isMobilePanel = useMediaQuery('(max-width: 767px)');
   const panelRef = ref<HTMLElement | null>(null);
   const savedPanel = loadPanelState();
 
@@ -107,6 +108,12 @@
 
     const maxW = window.innerWidth;
     const maxH = window.innerHeight;
+
+    if (isMobilePanel.value) {
+      pos.value = { x: 0, y: 0 };
+      size.value = { width: maxW, height: maxH };
+      return;
+    }
 
     size.value = {
       width: clamp(size.value.width, MIN_W, maxW),
@@ -243,7 +250,7 @@
 
   // --- Panel drag ---
   function startDrag(e: PointerEvent) {
-    if (e.button !== 0 || isAnimating.value) return;
+    if (isMobilePanel.value || e.button !== 0 || isAnimating.value) return;
 
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
 
@@ -293,7 +300,7 @@
 
   // --- Panel resize ---
   function startResize(e: PointerEvent) {
-    if (e.button !== 0 || isAnimating.value) return;
+    if (isMobilePanel.value || e.button !== 0 || isAnimating.value) return;
 
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
 
@@ -378,6 +385,13 @@
   };
 
 
+  watch(isMobilePanel, () => {
+    stopDrag();
+    stopResize();
+    clampPanelToViewport();
+  });
+
+
   // --- Lifecycle ---
   onBeforeMount(() => {
     clampPanelToViewport();
@@ -422,8 +436,10 @@
   >
     <div
       class="
-        relative z-2 flex items-center justify-between gap-1.5 px-5 py-2 shadow-sm rounded-md cursor-move touch-none
+        relative z-2 flex items-center justify-between gap-1.5 px-5 py-2 shadow-sm rounded-md
         max-sm:px-4 max-sm:py-2
+        max-md:cursor-default max-md:touch-auto
+        md:cursor-move md:touch-none
       "
       :class="{ 'pointer-events-none opacity-0': isAnimating }"
       @pointerdown="startDrag"
@@ -531,7 +547,7 @@
         px-5 py-2
         bg-main shadow-[0_-2px_4px_0_rgb(0_0_0/0.05)]
         rounded-md
-        max-sm:px-3 max-sm:py-2 max-sm:gap-2.5
+        max-sm:px-3 max-sm:py-2 max-sm:gap-2.5 max-sm:pb-[calc(env(safe-area-inset-bottom)+10px)]
       "
       :class="{ 'opacity-0': isAnimating }"
     >

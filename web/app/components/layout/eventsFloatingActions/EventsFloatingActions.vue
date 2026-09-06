@@ -22,7 +22,7 @@
   <div 
     class="
       flex gap-1
-      max-sm:right-1
+      
     "
   >
     <Transition name="ai-btn-hide">

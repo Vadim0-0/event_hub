@@ -210,7 +210,7 @@
     flex flex-col h-full
     px-5 py-5
     bg-main rounded-l-lg
-    max-sm:p-3
+    max-sm:p-3 max-sm:pb-[calc(env(safe-area-inset-bottom)+12px)]
   ">
     <button
       type="button"

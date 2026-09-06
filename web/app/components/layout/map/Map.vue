@@ -180,7 +180,7 @@
     <div 
       class="
         flex flex-col w-full h-full overflow-hidden p-4
-        bg-main rounded-sm max-sm:rounded-none
+        bg-main rounded-sm max-sm:rounded-none max-sm:pb-[calc(env(safe-area-inset-bottom)+16px)]
       "
     >
       <button 

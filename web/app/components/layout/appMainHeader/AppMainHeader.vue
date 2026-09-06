@@ -191,6 +191,7 @@
       bg-main border-r-2 border-solid border-third shadow-sm
       touch-action: pan-y;
       max-sm:border-r
+      pb-[calc(env(safe-area-inset-bottom)+10px)]
     "
     :class="isCollapsed ? 'w-18 px-2 max-sm:w-15 max-sm:px-1.5' : 'w-75 px-4 max-sm:px-2.5'"
   >

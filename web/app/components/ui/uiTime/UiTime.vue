@@ -1107,8 +1107,8 @@
 
           & .time-selector {
             flex: 1;
-           
             gap: 20px;
+            padding-bottom: calc(env(safe-area-inset-bottom) + 10px);
 
             &__top {
               margin-bottom: auto;

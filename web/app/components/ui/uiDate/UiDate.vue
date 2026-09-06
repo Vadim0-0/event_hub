@@ -651,6 +651,7 @@
             flex: 1;
             gap: 0;
             padding: 10px;
+            padding-bottom: calc(env(safe-area-inset-bottom) + 10px);
 
             &__top {
               gap: 5px;

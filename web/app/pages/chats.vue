@@ -342,7 +342,7 @@
   <section class="
     relative flex flex-col flex-1 py-10
     bg-fourth
-    max-md:py-5
+    max-md:py-2.5 max-sm:pb-[calc(env(safe-area-inset-bottom)+10px)]
     "
   >
     <div class="container mx-auto flex flex-col flex-1 px-8

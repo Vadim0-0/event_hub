@@ -8,7 +8,7 @@
   <main class="flex flex-col flex-1 h-dvh">
     <slot />
   </main>
-  <div class="fixed left-2.5 bottom-2.5 w-52">
+  <div class="fixed left-2.5 bottom-2.5 w-52 max-sm:bottom-[calc(env(safe-area-inset-bottom)+10px)]">
     <UiSelect
       v-model="selectedLocale"
       :options="languageOptions"

@@ -91,7 +91,7 @@
     >
       <div 
         class="
-          flex items-center justify-center overflow-hidden rounded-sm flex-shrink-0
+          flex items-center justify-center overflow-hidden rounded-sm shrink-0
           w-12 h-12
           max-sm:w-10 max-sm:h-10
         "
@@ -136,7 +136,7 @@
         <div 
           class="flex flex-col pt-2"  
         >
-          <div class="flex items-center justify-between gap-2.5 px-4.5 max-sm:px-2">
+          <div class="flex items-center justify-between gap-2.5 px-4.5 max-sm:px-2 max-sm:mb-2">
             <div
               class="
                 text-text-main text-body-xl

@@ -28,10 +28,13 @@
   );
 
   const cardRef = ref<HTMLElement | null>(null);
+  const canTilt = useMediaQuery('(min-width: 768px) and (pointer: fine)');
   const defaultTransformStyle = 'perspective(800px) rotateX(0deg) rotateY(0deg) scale(1)';
   const transformStyle = ref(defaultTransformStyle);
 
   function onMouseMove(e: MouseEvent) {
+    if (!canTilt.value) return;
+
     const el = cardRef.value;
     if (!el) return;
 
@@ -85,13 +88,13 @@
       relative
       flex flex-col
       p-2.5
-      min-h-[200px]
+      min-h-50
  
       bg-primary shadow-md shadow-primary/20 rounded-sm
       transition-transform duration-300 ease-out
       will-change-transform
     "
-    :class="{'!scale-[1.08]': isOpen}"
+    :class="{ 'md:!scale-[1.05]': isOpen }"
     :style="{ 
       transform: transformStyle,
       '--delay': `${(props.index ?? 0) * 100}ms`

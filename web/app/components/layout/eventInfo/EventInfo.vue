@@ -318,7 +318,7 @@
           relative z-2
           grid grid-cols-2 gap-2.5 px-5 py-3
           shadow-[0_-2px_4px_0_rgb(0_0_0/0.2)]
-          max-sm:p-3 max-sm:bg-third rounded-t-lg
+          max-sm:p-3 max-sm:bg-third rounded-t-lg max-sm:pb-[calc(env(safe-area-inset-bottom)+12px)]
         "
       >
         <UiButton

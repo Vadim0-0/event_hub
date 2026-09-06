@@ -30,11 +30,11 @@
   <div
     class="
       flex flex-col items-center gap-1
-      p-2.5 w-[250px]
+      p-2.5 w-62.5
       bg-main rounded-xl
       border border-solid border-third shadow-sm
 
-      max-sm:w-full max-sm:px-4 max-sm:py-6 max-sm:border-b-0 max-sm:rounded-b-none
+      max-sm:w-full max-sm:px-4 max-sm:py-6 max-sm:border-b-0 max-sm:rounded-b-none max-sm:pb-[calc(env(safe-area-inset-bottom)+24px)]
     "
   >
     <div 
