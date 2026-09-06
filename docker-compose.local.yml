@@ -1,0 +1,6 @@
+# Local overrides: publish nginx to the host for PWA testing.
+# Used by `make up` only. Dokploy deploys docker-compose.yml without this file.
+services:
+  nginx:
+    ports:
+      - "${NGINX_PORT:-80}:80"

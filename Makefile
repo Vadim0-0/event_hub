@@ -11,7 +11,7 @@
 # make seed-demo     # create demo users and events
 
 
-.PHONY: help up dev down restart logs ps build clean \
+.PHONY: help up down-prod dev down restart logs ps build clean \
         migrate migration shell-api shell-db test test-docker seed-demo \
         ollama-pull lint format
 
@@ -22,6 +22,7 @@ endif
 
 COMPOSE      = docker compose
 COMPOSE_DEV  = $(COMPOSE) -f docker-compose.yml -f docker-compose.dev.yml
+COMPOSE_LOCAL = $(COMPOSE) -f docker-compose.yml -f docker-compose.local.yml
 API_CONTAINER = event_hub_api
 DB_CONTAINER  = event_hub_postgres
 AI_MODEL     ?= qwen2.5:3b
@@ -32,8 +33,11 @@ help: ## Show available commands
 
 # --- Docker ---
 
-up: ## Production stack (nginx + api + worker + db + redis)
-	$(COMPOSE) up -d --build
+up: ## Production stack locally (nginx on :80, for PWA testing)
+	$(COMPOSE_LOCAL) up -d --build
+
+down-prod: ## Stop production local stack
+	$(COMPOSE_LOCAL) down
 
 dev: ## Dev mode: hot reload, pgAdmin, port 8000
 	$(COMPOSE_DEV) up -d --build
