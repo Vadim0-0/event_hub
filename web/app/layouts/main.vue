@@ -13,6 +13,7 @@
   const { onEvent } = useRealtime();
   const confirmStore = useConfirmStore();
   const aiChatStore = useAiChatStore();
+  const { schedulePrompt } = usePwaInstallPrompt();
 
 
   // --- Layout ---
@@ -132,7 +133,9 @@
         'Error',
         parsed.formError || 'Unable to load events',
       );
-    }
+    };
+
+    schedulePrompt();
   });
 
   onUnmounted(() => {

@@ -1,7 +1,12 @@
 @layer base {
+  
+  html {
+    background-color: var(--color-fourth);
+  }
 
   body {
     overflow-x: hidden;
+    background-color: var(--color-fourth);
   }
 
   input, select, textarea {

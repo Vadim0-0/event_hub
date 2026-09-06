@@ -15,6 +15,18 @@ export default defineNuxtConfig({
       titleTemplate: '%s | Event Hub',
       link: [
         { rel: 'icon', type: 'image/svg', href: '/favicon.svg' },
+        { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' },
+      ],
+      meta: [
+        { name: 'theme-color', content: '#FAFAFA' },
+        { name: 'mobile-web-app-capable', content: 'yes' },
+        { name: 'apple-mobile-web-app-capable', content: 'yes' },
+        { name: 'apple-mobile-web-app-title', content: 'Event Hub' },
+        { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
+        {
+          name: 'viewport',
+          content: 'width=device-width, initial-scale=1, viewport-fit=cover',
+        },
       ],
       htmlAttrs: {
         lang: 'en',
@@ -59,6 +71,7 @@ export default defineNuxtConfig({
     'dayjs-nuxt',
     // '@nuxtjs/eslint-module',
     'lenis/nuxt',
+    '@vite-pwa/nuxt',
   ],
   pinia: {
     storesDirs: ['stores/**'],
@@ -71,6 +84,56 @@ export default defineNuxtConfig({
       defaultVariants: {
         variant: 'none',
       },
+    },
+  },
+
+  // PWA
+  pwa: {
+    registerType: 'autoUpdate',
+    registerWebManifestInRouteRules: true,
+    manifest: {
+      name: 'Event Hub',
+      short_name: 'Event Hub',
+      description: 'Event management platform',
+      theme_color: '#FAFAFA',
+      background_color: '#FAFAFA',
+      display: 'standalone',
+      scope: '/',
+      id: '/',
+      start_url: '/?source=pwa',
+      icons: [
+        { src: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+        { src: '/pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+        { src: '/pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+        { src: '/pwa-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+      ],
+    },
+    includeAssets: [
+      'favicon.svg',
+      'apple-touch-icon.png',
+      'pwa-192x192.png',
+      'pwa-512x512.png',
+    ],
+    workbox: {
+      mode: 'development',
+      navigateFallback: '/',
+      cleanupOutdatedCaches: true,
+      clientsClaim: true,
+      skipWaiting: true,
+      globPatterns: ['**/*.{js,css,html,png,svg,ico,woff,woff2}'],
+      runtimeCaching: [
+        {
+          urlPattern: /^https?:\/\/.*\/api\/.*/i,
+          handler: 'NetworkOnly',
+        },
+      ],
+    },
+    client: {
+      installPrompt: true,
+    },
+    devOptions: {
+      enabled: process.env.NODE_ENV !== 'production',
+      type: 'module',
     },
   },
 
