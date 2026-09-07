@@ -10,7 +10,12 @@
   usePageScrollLockWhen(isLoaderVisible, { mobileOnly: false });
 
   const i18nHead = useLocaleHead();
-  useHead(i18nHead);
+
+  useHead(() => ({
+    htmlAttrs: i18nHead.value.htmlAttrs,
+    link: i18nHead.value.link,
+    meta: i18nHead.value.meta,
+  }));
 
   onMounted(() => {
     if (auth.isAuthenticated) {

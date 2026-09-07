@@ -13,17 +13,21 @@ function applyDayjsLocale(dayjs: ReturnType<typeof useDayjs>, locale: string) {
   dayjs.locale(code, localeData[code]);
 }
 
-export default defineNuxtPlugin((nuxtApp) => {
-  const dayjs = useDayjs();
-  const i18n = nuxtApp.$i18n;
+export default defineNuxtPlugin({
+  name: 'dayjs-i18n',
+  dependsOn: ['i18n:plugin'],
+  setup(nuxtApp) {
+    const dayjs = useDayjs();
+    const { locale } = useI18n();
 
-  applyDayjsLocale(dayjs, i18n.locale.value);
+    applyDayjsLocale(dayjs, locale.value);
 
-  nuxtApp.hook('app:created', () => {
-    applyDayjsLocale(dayjs, i18n.locale.value);
-  });
+    nuxtApp.hook('app:created', () => {
+      applyDayjsLocale(dayjs, locale.value);
+    });
 
-  nuxtApp.hook('i18n:localeSwitched', ({ newLocale }) => {
-    applyDayjsLocale(dayjs, newLocale);
-  });
+    nuxtApp.hook('i18n:localeSwitched', ({ newLocale }) => {
+      applyDayjsLocale(dayjs, newLocale);
+    });
+  },
 });
