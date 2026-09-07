@@ -69,7 +69,7 @@
   <div
     class="
       flex flex-col items-center gap-1
-      p-2.5 w-62.5
+      p-2.5 w-65
       bg-main rounded-xl
       border border-solid border-third shadow-sm
 
