@@ -4,7 +4,7 @@
 
 > [Русская версия](README-RU.md)
 
-Event management platform: user registration, event creation with map locations, participant enrollment, direct messaging, AI assistant, and real-time notifications.
+Event management platform: user registration, event creation with map locations, participant enrollment, direct messaging, AI assistant, PWA with push notifications, and real-time updates.
 
 A learning pet project showcasing async Python, SQLAlchemy 2.0, background jobs, WebSockets, and a full Docker-based stack.
 
@@ -28,7 +28,9 @@ A learning pet project showcasing async Python, SQLAlchemy 2.0, background jobs,
 - **Messaging** — 1-on-1 chats: conversations, history, read status, unread counter, clear/delete
 - **Realtime** — WebSocket updates for new messages and unread counts (Redis pub/sub)
 - **AI assistant** — personal chat powered by Ollama with conversation memory; can create events directly in chat
-- **Notifications** — background processing via ARQ worker and Redis (including new messages)
+- **Notifications** — in-app notifications via ARQ worker and Redis; optional Web Push for messages, events, and registrations
+- **PWA** — installable app (`@vite-pwa/nuxt` + Workbox), offline shell, install prompt on mobile
+- **Web Push** — browser push notifications via VAPID; on iOS requires installing the PWA to Home Screen
 - **Caching** — Redis for frequently accessed data (events, conversations, unread counts)
 - **Frontend** — Nuxt 4 SPA with Pinia and i18n (`/chats` page for user and AI chat)
 - **Testing** — pytest + httpx for core API logic
@@ -71,6 +73,25 @@ The assistant also answers UI questions (*"how to create an event"*, *"куда 
 - The frontend uses Geoapify for geocoding, autocomplete, and map tiles.
 - Requires `NUXT_PUBLIC_GEOAPIFY_API_KEY` for map features in the web UI.
 
+### PWA & Web Push
+
+- The web app is a **Progressive Web App**: installable on desktop and mobile, `standalone` display mode, auto-updating service worker.
+- Static assets are cached via **Workbox**; API requests use `NetworkOnly` (no stale API data).
+- **Install prompt** — shown on mobile when the browser supports `beforeinstallprompt`; users can add Event Hub to Home Screen.
+- **Push notifications** — optional, enabled with `PUSH_ENABLED=true` and VAPID keys. Subscriptions are stored in PostgreSQL.
+- Push is sent from the ARQ worker for: new messages, event updates, registration changes.
+- Custom handler in `web/public/push-sw.js` shows notifications and opens the target URL on click.
+- **iOS note:** Web Push works only in the installed PWA (Safari → Share → Add to Home Screen), not in a regular browser tab.
+
+**Generate VAPID keys:**
+
+```bash
+pip install py-vapid
+vapid --gen
+# Public key  → VAPID_PUBLIC_KEY
+# Private key → VAPID_PRIVATE_KEY (base64, no PEM headers)
+```
+
 ## Tech Stack
 
 | Layer | Technologies |
@@ -83,7 +104,8 @@ The assistant also answers UI questions (*"how to create an event"*, *"куда 
 | Realtime | WebSockets, Redis pub/sub |
 | Maps | Geoapify, Leaflet (frontend) |
 | Email (dev) | MailHog |
-| Frontend | Nuxt 4, Vue 3, Pinia, Tailwind CSS |
+| Frontend | Nuxt 4, Vue 3, Pinia, Tailwind CSS, @vite-pwa/nuxt |
+| Push | Web Push (VAPID), pywebpush, Service Worker |
 | Tests | pytest, pytest-asyncio, httpx |
 | Infra | Docker, Docker Compose, Nginx |
 
@@ -199,6 +221,10 @@ To run pytest locally without Docker, configure `api/tests/.env.test` using `api
 | `WEB_APP_BASE_URL` | Public website URL (emails, links) | `https://event-hub.codewithvadim.dev` |
 | `DOMAIN` | Public domain | `event-hub.codewithvadim.dev` |
 | `CORS_ORIGINS` | Allowed CORS origins (comma-separated) | `https://event-hub.codewithvadim.dev` |
+| `PUSH_ENABLED` | Enable Web Push notifications | `true` |
+| `VAPID_PUBLIC_KEY` | VAPID public key for push subscriptions | base64url string |
+| `VAPID_PRIVATE_KEY` | VAPID private key (no PEM headers) | base64 string |
+| `VAPID_SUBJECT` | VAPID contact (mailto or https URL) | `mailto:noreply@eventhub.local` |
 | `NUXT_PUBLIC_GEOAPIFY_API_KEY` | Geoapify API key for maps | `your-key` |
 
 ## API Overview
@@ -264,6 +290,14 @@ Full documentation is available in Swagger (`/docs`). Summary:
 |----------|------|-------------|
 | WebSocket | `/realtime/ws?token=<JWT>` | Live updates: `message.new`, `unread.updated` |
 
+### Push
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/push/vapid-public-key` | VAPID public key and push status |
+| POST | `/push/subscribe` | Save browser push subscription |
+| DELETE | `/push/subscribe` | Remove push subscription |
+
 ### Other
 
 | Method | Path | Description |
@@ -276,7 +310,8 @@ Full documentation is available in Swagger (`/docs`). Summary:
 ```
 event_hub/
 ├── api/           # FastAPI backend, migrations, tests, ARQ worker, AI & realtime
-├── web/           # Nuxt frontend (events, chats, map, AI widget)
+├── web/           # Nuxt frontend (events, chats, map, AI widget, PWA)
+├── web/public/    # PWA icons, push-sw.js
 ├── nginx/         # Reverse proxy (API + Web + WebSocket upgrade)
 ├── docker/        # PostgreSQL init scripts
 ├── docker-compose.yml

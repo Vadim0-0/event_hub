@@ -4,7 +4,7 @@
 
 > [English version](README.md)
 
-Платформа для управления мероприятиями: регистрация пользователей, создание событий с картой, запись участников, личные сообщения, AI-ассистент и realtime-уведомления.
+Платформа для управления мероприятиями: регистрация пользователей, создание событий с картой, запись участников, личные сообщения, AI-ассистент, PWA с push-уведомлениями и realtime-обновления.
 
 Учебный pet-проект, демонстрирующий асинхронный Python, SQLAlchemy 2.0, фоновые задачи, WebSockets и полный стек с Docker.
 
@@ -28,7 +28,9 @@
 - **Сообщения** — личные чаты 1-на-1: диалоги, история, unread, очистка и удаление
 - **Realtime** — WebSocket-обновления новых сообщений и счётчика unread (Redis pub/sub)
 - **AI-ассистент** — личный чат на базе Ollama с памятью диалога; умеет создавать события прямо в чате
-- **Уведомления** — фоновая обработка через ARQ worker и Redis (в том числе о новых сообщениях)
+- **Уведомления** — in-app через ARQ worker и Redis; опционально Web Push для сообщений, событий и регистраций
+- **PWA** — устанавливаемое приложение (`@vite-pwa/nuxt` + Workbox), offline shell, install prompt на mobile
+- **Web Push** — push в браузере через VAPID; на iOS работает только в установленном PWA
 - **Кэширование** — Redis для часто запрашиваемых данных (события, диалоги, unread)
 - **Frontend** — Nuxt 4 SPA с Pinia и i18n (страница `/chats` для user- и AI-чата)
 - **Тестирование** — pytest + httpx для ключевой логики API
@@ -71,6 +73,25 @@
 - На фронтенде используется Geoapify для геокодинга, автодополнения и тайлов карты.
 - Для карт в UI нужен `NUXT_PUBLIC_GEOAPIFY_API_KEY`.
 
+### PWA и Web Push
+
+- Веб-приложение — **Progressive Web App**: установка на desktop и mobile, режим `standalone`, service worker с auto-update.
+- Статика кэшируется через **Workbox**; запросы к API идут по стратегии `NetworkOnly` (без устаревших данных).
+- **Install prompt** — на mobile, если браузер поддерживает `beforeinstallprompt`; можно добавить Event Hub на Home Screen.
+- **Push-уведомления** — опционально, включаются через `PUSH_ENABLED=true` и VAPID-ключи. Подписки хранятся в PostgreSQL.
+- Push отправляется из ARQ worker: новые сообщения, изменения событий, обновления регистраций.
+- Кастомный обработчик в `web/public/push-sw.js` показывает уведомления и открывает нужный URL по клику.
+- **iOS:** Web Push работает только в установленном PWA (Safari → Поделиться → На экран «Домой»), не во вкладке браузера.
+
+**Генерация VAPID-ключей:**
+
+```bash
+pip install py-vapid
+vapid --gen
+# Public key  → VAPID_PUBLIC_KEY
+# Private key → VAPID_PRIVATE_KEY (base64, без PEM-заголовков)
+```
+
 ## Tech Stack
 
 | Слой | Технологии |
@@ -83,7 +104,8 @@
 | Realtime | WebSockets, Redis pub/sub |
 | Maps | Geoapify, Leaflet (frontend) |
 | Email (dev) | MailHog |
-| Frontend | Nuxt 4, Vue 3, Pinia, Tailwind CSS |
+| Frontend | Nuxt 4, Vue 3, Pinia, Tailwind CSS, @vite-pwa/nuxt |
+| Push | Web Push (VAPID), pywebpush, Service Worker |
 | Tests | pytest, pytest-asyncio, httpx |
 | Infra | Docker, Docker Compose, Nginx |
 
@@ -199,6 +221,10 @@ make migrate
 | `WEB_APP_BASE_URL` | Публичный URL сайта (письма, ссылки) | `https://event-hub.codewithvadim.dev` |
 | `DOMAIN` | Публичный домен | `event-hub.codewithvadim.dev` |
 | `CORS_ORIGINS` | Разрешённые CORS origins (через запятую) | `https://event-hub.codewithvadim.dev` |
+| `PUSH_ENABLED` | Включить Web Push | `true` |
+| `VAPID_PUBLIC_KEY` | Публичный VAPID-ключ для push-подписок | base64url строка |
+| `VAPID_PRIVATE_KEY` | Приватный VAPID-ключ (без PEM-заголовков) | base64 строка |
+| `VAPID_SUBJECT` | VAPID contact (mailto или https URL) | `mailto:noreply@eventhub.local` |
 | `NUXT_PUBLIC_GEOAPIFY_API_KEY` | API-ключ Geoapify для карт | `your-key` |
 
 ## API Overview
@@ -264,6 +290,14 @@ make migrate
 |----------|------|----------|
 | WebSocket | `/realtime/ws?token=<JWT>` | Live-обновления: `message.new`, `unread.updated` |
 
+### Push
+
+| Метод | Путь | Описание |
+|-------|------|----------|
+| GET | `/push/vapid-public-key` | Публичный VAPID-ключ и статус push |
+| POST | `/push/subscribe` | Сохранить push-подписку браузера |
+| DELETE | `/push/subscribe` | Удалить push-подписку |
+
 ### Прочее
 
 | Метод | Путь | Описание |
@@ -276,7 +310,8 @@ make migrate
 ```
 event_hub/
 ├── api/           # FastAPI backend, миграции, тесты, ARQ worker, AI и realtime
-├── web/           # Nuxt frontend (события, чаты, карта, AI-виджет)
+├── web/           # Nuxt frontend (события, чаты, карта, AI-виджет, PWA)
+├── web/public/    # PWA icons, push-sw.js
 ├── nginx/         # Reverse proxy (API + Web + WebSocket upgrade)
 ├── docker/        # Init-скрипты для PostgreSQL
 ├── docker-compose.yml
