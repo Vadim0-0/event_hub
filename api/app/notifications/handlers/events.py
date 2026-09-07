@@ -1,13 +1,13 @@
 from uuid import UUID
-
-from sqlalchemy import select
+from datetime import datetime, timedelta, timezone
+from sqlalchemy import select, and_
 
 from ...database import AsyncSessionLocal
 from ...models.event import Event
 from ...models.user import User
 from ...models.registration import EventRegistration
 from ...redis_client import get_redis
-from .. import messages
+from .. import messages, push_delivery
 from ...notifications import delivery, types
 
 
@@ -66,3 +66,48 @@ async def notify_event_deleted(ctx, event_id: UUID, title: str, participant_emai
       task_name="notify_event_deleted",
       event_id=event_id,
     )
+
+
+async def notify_upcoming_events(ctx):
+  now = datetime.now(timezone.utc)
+  window_end = now + timedelta(minutes=15)
+
+  async with AsyncSessionLocal() as db:
+    result = await db.execute(
+      select(Event, User)
+      .join(EventRegistration, EventRegistration.event_id == Event.id)
+      .join(User, User.id == EventRegistration.user_id)
+      .where(
+        and_(
+          Event.starts_at > now,
+          Event.starts_at <= window_end,
+        )
+      )
+    )
+
+    rows = result.all()
+
+  for event, user in rows:
+    minutes = max(1, int((event.starts_at - now).total_seconds() // 60))
+    subject, body = messages.event_starting_message(event.title, minutes)
+
+    await delivery.send(
+      to=user.email,
+      subject=subject,
+      body=body,
+      redis=get_redis(),
+      notification_type=types.NotificationType.EVENT_STARTING,
+      task_name="notify_upcoming_events",
+      event_id=event.id,
+      user_id=user.id,
+    )
+
+    await push_delivery.send_to_user(
+      user_id=user.id,
+      title=subject,
+      body=body,
+      url="/events/joinedEventsPage",
+      tag=f"event-start:{event.id}",
+    )
+    
+  return {"sent": len(rows)}

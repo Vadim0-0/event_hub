@@ -12,6 +12,7 @@ from app.models import (
   user, event, registration, notification,
   conversation, message, conversation_read,
   conversation_user_state, message_user_hide, ai_message,
+  push_subscription,
 )
 from app.config import settings
 

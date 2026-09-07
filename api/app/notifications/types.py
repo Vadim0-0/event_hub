@@ -18,6 +18,7 @@ class NotificationType(StrEnum):
   EVENT_CREATED = "event_created"
   EVENT_UPDATED = "event_updated"
   EVENT_DELETED = "event_deleted"
+  EVENT_STARTING = "event_starting"
 
   # registrations
   REGISTRATION_CONFIRMED = "registration_confirmed"

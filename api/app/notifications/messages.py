@@ -73,6 +73,13 @@ def event_deleted_message(title: str) -> tuple[str, str]:
   return (f"Event deleted: {title}", f"The event '{title}' was cancelled.")
 
 
+def event_starting_message(title: str, minutes: int) -> tuple[str, str]:
+  return (
+    "The event is about to begin",
+    f"«{title}» will start in {minutes} minutes",
+  )
+
+
 # Registrations
 def registration_confirmed_message(title: str, starts_at: str) -> tuple[str, str]:
   return (
@@ -113,6 +120,14 @@ def new_message_message(sender_username: str, preview: str) -> tuple[str, str]:
   return (
     f"New message from {sender_username}",
     f"{sender_username} wrote:\n\n{preview}\n\nOpen Event Hub to reply.",
+  )
+
+
+def new_message_push_message(sender_username: str, preview: str) -> tuple[str, str]:
+  preview = preview[:120] + ("..." if len(preview) > 120 else "")
+  return (
+    f"New message from {sender_username}",
+    preview,
   )
 
 

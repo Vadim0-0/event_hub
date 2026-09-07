@@ -6,7 +6,7 @@ from ...database import AsyncSessionLocal
 from ...models.event import Event
 from ...models.user import User
 from ...redis_client import get_redis
-from .. import messages
+from .. import messages, push_delivery
 from ...notifications import delivery, types
 
 
@@ -73,6 +73,7 @@ async def notify_leave_confirmed(
     event_id=event_id,
   )
 
+
 async def notify_participant_left(ctx, event_id: UUID, participant_email: str):
   async with AsyncSessionLocal() as db:
     event = await db.get(Event, event_id)
@@ -108,6 +109,9 @@ async def notify_participant_removed(ctx, event_id: UUID, participant_email: str
 
     subject, body = messages.participant_removed_message(event.title)
 
+    result = await db.execute(select(User).where(User.email == participant_email))
+    participant = result.scalar_one_or_none()
+
   await delivery.send(
     to=participant_email,
     subject=subject,
@@ -117,3 +121,12 @@ async def notify_participant_removed(ctx, event_id: UUID, participant_email: str
     task_name="notify_participant_removed",
     event_id=event_id,
   )
+
+  if participant is not None:
+    await push_delivery.send_to_user(
+      user_id=participant.id,
+      title=subject,
+      body=body,
+      url="/events/joinedEventsPage",
+      tag=f"event-removed:{event_id}",
+    )

@@ -5,7 +5,7 @@ from sqlalchemy import select
 from ...database import AsyncSessionLocal
 from ...models.user import User
 from ...redis_client import get_redis
-from .. import messages
+from .. import messages, push_delivery
 from ...notifications import delivery, types
 
 
@@ -22,6 +22,7 @@ async def notify_new_message(
       return {"status": "skipped"}
 
   subject, text = messages.new_message_message(sender_username, body_preview)
+  push_title, push_body = messages.new_message_push_message(sender_username, body_preview)
 
   await delivery.send(
     to=recipient.email,
@@ -31,4 +32,12 @@ async def notify_new_message(
     notification_type=types.NotificationType.NEW_MESSAGE,
     task_name="notify_new_message",
     user_id=recipient.id,
+  )
+
+  await push_delivery.send_to_user(
+    user_id=recipient.id,
+    title=push_title,
+    body=push_body,
+    url=f"/chats?conversation={conversation_id}",
+    tag=f"message:{conversation_id}",
   )

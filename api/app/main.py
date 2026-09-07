@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Depends, FastAPI
 
 from .config import Settings, get_settings
-from .routers import auth, user, events, notifications, messaging, realtime, ai
+from .routers import auth, user, events, notifications, messaging, realtime, ai, push
 
 from .redis_client import init_redis, close_redis
 from .worker.enqueue import init_arq_pool, close_arq_pool
@@ -36,6 +36,7 @@ app.include_router(messaging.router)
 app.include_router(notifications.router)
 app.include_router(realtime.router)
 app.include_router(ai.router)
+app.include_router(push.router)
 
 
 @app.get("/health")

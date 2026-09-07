@@ -103,6 +103,20 @@ class Settings(BaseSettings):
   demo_simulator_interval_minutes: int = 15
   demo_simulator_max_users: int = 200
 
+  # --- Web Push ---
+  push_enabled: bool = False
+  vapid_public_key: str = ""
+  vapid_private_key: str = ""
+  vapid_subject: str = "mailto:noreply@eventhub.local"
+
+  @field_validator("vapid_private_key", mode="before")
+  @classmethod
+  def normalize_vapid_private_key(cls, value: Any) -> str:
+    if not isinstance(value, str):
+      return ""
+    key = value.strip().strip('"').strip("'")
+    return "".join(key.split())
+
 # Caching result
 @lru_cache
 def get_settings() -> Settings:

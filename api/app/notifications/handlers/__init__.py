@@ -7,6 +7,7 @@ from .events import (
   notify_event_created,
   notify_event_updated,
   notify_event_deleted,
+  notify_upcoming_events,
 )
 from .profile import (
   notify_email_change_code,
@@ -33,6 +34,7 @@ __all__ = [
   "notify_event_created",
   "notify_event_updated",
   "notify_event_deleted",
+  "notify_upcoming_events",
 
   "notify_email_change_code",
   "notify_password_changed",

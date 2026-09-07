@@ -16,6 +16,7 @@ from ..notifications.handlers import (
   notify_event_created,
   notify_event_updated,
   notify_event_deleted,
+  notify_upcoming_events,
   notify_registration_confirmed,
   notify_new_participant,
   notify_leave_confirmed,
@@ -63,6 +64,7 @@ class WorkerSettings:
     notify_event_created,
     notify_event_updated,
     notify_event_deleted,
+    notify_upcoming_events,
     notify_registration_confirmed,
     notify_new_participant,
     notify_leave_confirmed,
@@ -73,10 +75,14 @@ class WorkerSettings:
   ]
 
   cron_jobs = [
-  cron(
-    demo_simulator_tick,
-    minute=set(range(0, 60, settings.demo_simulator_interval_minutes)),
-    run_at_startup=True,
-    unique=True,
-  ),
+    cron(
+      notify_upcoming_events, 
+      minute={0, 15, 30, 45}, unique=True
+    ),
+    cron(
+      demo_simulator_tick,
+      minute=set(range(0, 60, settings.demo_simulator_interval_minutes)),
+      run_at_startup=True,
+      unique=True,
+    ),
   ]
