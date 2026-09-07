@@ -5,6 +5,8 @@ export const locales = [
 
 export type I18nLocaleCode = (typeof locales)[number]['code']
 
+export const LOCALE_COOKIE_KEY = 'event_hub_locale'
+
 const defaultLocale: I18nLocaleCode = 'en'
 
 export function resolveI18nLocaleCode(i18nLocale: string): I18nLocaleCode {
@@ -18,5 +20,11 @@ export default {
   defaultLocale,
   locales: [...locales],
   strategy: 'prefix_except_default' as const,
-  detectBrowserLanguage: false as const,
+  detectBrowserLanguage: {
+    useCookie: true,
+    cookieKey: LOCALE_COOKIE_KEY,
+    redirectOn: 'root',
+    alwaysRedirect: false,
+    fallbackLocale: 'en',
+  },
 }

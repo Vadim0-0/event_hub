@@ -1,5 +1,5 @@
 import type { I18nLocaleCode } from '~~/i18n.options';
-import { locales, resolveI18nLocaleCode } from '~~/i18n.options';
+import { locales, resolveI18nLocaleCode, LOCALE_COOKIE_KEY } from '~~/i18n.options';
 
 export type LocaleSelectOption = {
   value: I18nLocaleCode
@@ -17,6 +17,7 @@ export const languageOptions: LocaleSelectOption[] = locales.map((l) => ({
 export function useLocaleSwitch() {
   const { locale, setLocale } = useI18n();
   const { withLoader } = useLoader();
+  const localeCookie = useCookie<I18nLocaleCode | null>(LOCALE_COOKIE_KEY);
 
   const selectedLocale = computed({
     get: () => resolveI18nLocaleCode(locale.value),
@@ -24,7 +25,10 @@ export function useLocaleSwitch() {
       const next = resolveI18nLocaleCode(code);
       if (next === resolveI18nLocaleCode(locale.value)) return;
 
-      void withLoader(() => setLocale(next));
+      void withLoader(async () => {
+        await setLocale(next);
+        localeCookie.value = next;
+      });
     },
   });
 

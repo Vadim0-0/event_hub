@@ -9,6 +9,9 @@
 
   usePageScrollLockWhen(isLoaderVisible, { mobileOnly: false });
 
+  const i18nHead = useLocaleHead();
+  useHead(i18nHead);
+
   onMounted(() => {
     if (auth.isAuthenticated) {
       auth.fetchMe();
