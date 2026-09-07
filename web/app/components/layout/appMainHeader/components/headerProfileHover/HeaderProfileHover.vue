@@ -95,8 +95,8 @@
     </div>
     <div
       class="flex flex-col gap-1 mb-5 w-full
-        text-lg text-text-main
-
+        text-lg text-text-main break-all
+ 
         max-sm:mb-3 max-sm:gap-0
       "
     >
