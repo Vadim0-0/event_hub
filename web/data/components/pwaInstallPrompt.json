@@ -1,0 +1,40 @@
+[
+  {
+    "iosTitle": {
+      "ru": "Добавить на экран",
+      "en": "Add to Home Screen"
+    },
+    "androidTitle": {
+      "ru": "Установить Event Hub?",
+      "en": "Install Event Hub?"
+    },
+    "iosDescription": {
+      "ru": "Нажмите «Поделиться» в Safari, затем «На экран Домой».",
+      "en": "Tap Share in Safari, then Add to Home Screen."
+    },
+    "androidDescription": {
+      "ru": "Добавьте приложение на главный экран для быстрого доступа.",
+      "en": "Add the app to your home screen for quick access."
+    },
+    "androidManualDescription": {
+      "ru": "Откройте меню Chrome (⋮) → «Установить приложение» или «Добавить на главный экран».",
+      "en": "Open Chrome menu (⋮) → Install app or Add to Home screen."
+    },
+    "confirmInstall": {
+      "ru": "Установить",
+      "en": "Install"
+    },
+    "confirmGotIt": {
+      "ru": "Понятно",
+      "en": "Got it"
+    },
+    "cancelLabel": {
+      "ru": "Не сейчас",
+      "en": "Not now"
+    },
+    "checkboxLabel": {
+      "ru": "Больше не показывать",
+      "en": "Don't show again"
+    }
+  }
+]

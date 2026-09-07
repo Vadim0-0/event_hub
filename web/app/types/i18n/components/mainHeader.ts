@@ -10,11 +10,21 @@ export type MainHeaderRaw = {
     icon: string
     countKey: StatisticCountKey
   }>
-  profileBtns: Array<{
-    id: string
-    text: LocalizedScalar
-    icon: string
-  }>
+  profileBtns: Array<
+    | {
+      id: string
+      text: LocalizedScalar
+      icon: string
+    }
+    | {
+      id: string
+      'text-on': LocalizedScalar
+      'text-off': LocalizedScalar
+      'text-needs-pwa'?: LocalizedScalar
+      'icon-on': string
+      'icon-off': string
+    }
+  >
   profileDefaults: {
     username: LocalizedScalar
     email: LocalizedScalar
@@ -35,11 +45,22 @@ export type StatisticItem = {
   count: number
 };
 
-export type ProfileBtnItem = {
-  id: string
-  text: string
-  icon: string
-};
+export type ProfileBtnItem =
+  | {
+    id: string
+    kind: 'action'
+    text: string
+    icon: string
+  }
+  | {
+    id: string
+    kind: 'toggle'
+    textOn: string
+    textOff: string
+    textNeedsPwa?: string
+    iconOn: string
+    iconOff: string
+  };
 
 export type ProfileDefaults = {
   username: string

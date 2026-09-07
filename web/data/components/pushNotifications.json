@@ -1,0 +1,68 @@
+[
+  {
+    "needsPwaTitle": {
+      "ru": "Нужно установить приложение",
+      "en": "Install the app first"
+    },
+    "needsPwaBody": {
+      "ru": "На iPhone push работает только в установленном PWA. Добавьте Event Hub на экран «Домой» через Safari.",
+      "en": "On iPhone, push works only in the installed PWA. Add Event Hub to your Home Screen from Safari."
+    },
+    "disabledTitle": {
+      "ru": "Push недоступен",
+      "en": "Push unavailable"
+    },
+    "disabledBody": {
+      "ru": "Уведомления не поддерживаются в этом браузере или без HTTPS.",
+      "en": "Notifications are not supported in this browser or without HTTPS."
+    },
+    "deniedTitle": {
+      "ru": "Доступ запрещён",
+      "en": "Permission denied"
+    },
+    "deniedBody": {
+      "ru": "Разрешите уведомления в настройках браузера или телефона.",
+      "en": "Allow notifications in your browser or phone settings."
+    },
+    "deniedIosBody": {
+      "ru": "Настройки → Event Hub → Уведомления → Разрешить. Если не помогло: удалите PWA с экрана, установите заново, нажмите «Включить» и сразу «Разрешить».",
+      "en": "Settings → Event Hub → Notifications → Allow. If that fails: remove PWA, reinstall, tap Enable and Allow immediately."
+    },
+    "serverDisabledTitle": {
+      "ru": "Push отключён",
+      "en": "Push disabled"
+    },
+    "serverDisabledBody": {
+      "ru": "Сервер не настроил push-уведомления.",
+      "en": "Push notifications are not configured on the server."
+    },
+    "swNotReadyTitle": {
+      "ru": "Service Worker",
+      "en": "Service Worker"
+    },
+    "swNotReadyBody": {
+      "ru": "Подождите пару секунд и попробуйте снова.",
+      "en": "Wait a few seconds and try again."
+    },
+    "subscribeErrorTitle": {
+      "ru": "Ошибка подписки",
+      "en": "Subscription failed"
+    },
+    "missingSubscriptionKeys": {
+      "ru": "Браузер не вернул ключи push-подписки.",
+      "en": "Browser did not return push subscription keys."
+    },
+    "unknownError": {
+      "ru": "Неизвестная ошибка",
+      "en": "Unknown error"
+    },
+    "enabledTitle": {
+      "ru": "Уведомления включены",
+      "en": "Notifications enabled"
+    },
+    "enabledBody": {
+      "ru": "Push-уведомления активны.",
+      "en": "Push notifications are active."
+    }
+  }
+]

@@ -20,7 +20,7 @@
 
         max-sm:p-1 
       "
-      :class="isMine ? 'bg-primary' : 'bg-third my-1.5'"
+      :class="isMine ? 'bg-primary' : 'bg-third'"
     >
       <p 
         class="w-full text-body-sm font-medium max-sm:text-sm"

@@ -9,11 +9,28 @@ export function mapMainHeader(data: MainHeaderRaw, locale: string) {
       icon: item.icon,
       countKey: item.countKey,
     })),
-    profileBtns: data.profileBtns.map((item) => ({
-      id: item.id,
-      text: pickScalar(item.text, locale),
-      icon: item.icon,
-    })),
+    profileBtns: data.profileBtns.map((item) => {
+      if ('text-on' in item) {
+        return {
+          id: item.id,
+          kind: 'toggle' as const,
+          textOn: pickScalar(item['text-on'], locale),
+          textOff: pickScalar(item['text-off'], locale),
+          textNeedsPwa: item['text-needs-pwa']
+            ? pickScalar(item['text-needs-pwa'], locale)
+            : undefined,
+          iconOn: item['icon-on'],
+          iconOff: item['icon-off'],
+        };
+      }
+
+      return {
+        id: item.id,
+        kind: 'action' as const,
+        text: pickScalar(item.text, locale),
+        icon: item.icon,
+      };
+    }),
     profileDefaults: {
       username: pickScalar(data.profileDefaults.username, locale),
       email: pickScalar(data.profileDefaults.email, locale),

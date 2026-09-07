@@ -1,0 +1,24 @@
+[
+  {
+    "title": {
+      "ru": "Включить уведомления",
+      "en": "Enable notifications"
+    },
+    "description": {
+      "ru": "Получайте push-уведомления о новых сообщениях, событиях и изменениях в ваших регистрациях.",
+      "en": "Get push notifications about new messages, events, and registration updates."
+    },
+    "confirmLabel": {
+      "ru": "Включить",
+      "en": "Enable"
+    },
+    "cancelLabel": {
+      "ru": "Не сейчас",
+      "en": "Not now"
+    },
+    "checkboxLabel": {
+      "ru": "Больше не показывать",
+      "en": "Don't show again"
+    }
+  }
+]

@@ -1,6 +1,12 @@
+import pwaInstallPromptRaw from '~~/data/components/pwaInstallPrompt.json';
+import { mapPwaInstallPrompt } from '~/mappers/components/pwaInstallPrompt';
+import type { PwaInstallPromptRaw } from '~/types/i18n/components/pwaInstallPrompt';
+
 const STORAGE_KEY = 'pwa-install-dismissed';
 
 export function usePwaInstallPrompt() {
+  const { locale } = useI18n();
+
   const confirmStore = useConfirmStore();
   const nuxtApp = useNuxtApp();
   const isMobileViewport = useMediaQuery('(max-width: 767px)');
@@ -12,38 +18,38 @@ export function usePwaInstallPrompt() {
   function isStandalone() {
     return window.matchMedia('(display-mode: standalone)').matches
       || (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
-  }
+  };
 
   function isIOS() {
     return /iPad|iPhone|iPod/.test(navigator.userAgent);
-  }
+  };
 
   function isAndroid() {
     return /Android/i.test(navigator.userAgent);
-  }
+  };
 
   function isMobileDevice() {
     return isMobileViewport.value || isAndroid() || isIOS();
-  }
+  };
 
   function isInstalled() {
     return isStandalone() || unref(nuxtApp.$pwa?.isPWAInstalled) === true;
-  }
+  };
 
   function wasDismissed() {
     return localStorage.getItem(STORAGE_KEY) === '1';
-  }
+  };
 
   function markDismissed() {
     localStorage.setItem(STORAGE_KEY, '1');
-  }
+  };
 
   function clearFallbackTimer() {
     if (fallbackTimer) {
       clearTimeout(fallbackTimer);
       fallbackTimer = null;
-    }
-  }
+    };
+  };
 
   function canShowPrompt() {
     if (!import.meta.client) return false;
@@ -51,7 +57,11 @@ export function usePwaInstallPrompt() {
     if (isInstalled()) return false;
     if (wasDismissed()) return false;
     return true;
-  }
+  };
+
+  const content = computed(() =>
+    mapPwaInstallPrompt((pwaInstallPromptRaw as PwaInstallPromptRaw[])[0]!, locale.value),
+  );
 
   function openPrompt(options?: { manualAndroid?: boolean }) {
     if (!canShowPrompt() || confirmStore.isOpen) return;
@@ -62,19 +72,21 @@ export function usePwaInstallPrompt() {
     if (!manualAndroid) {
       primaryPromptShown = true;
       clearFallbackTimer();
-    }
+    };
+
+    const t = content.value;
 
     confirmStore.open({
-      title: ios ? 'Добавить на экран' : 'Установить Event Hub?',
+      title: ios ? t.iosTitle : t.androidTitle,
       description: ios
-        ? 'Нажмите «Поделиться» в Safari, затем «На экран Домой».'
+        ? t.iosDescription
         : manualAndroid
-          ? 'Откройте меню Chrome (⋮) → «Установить приложение» или «Добавить на главный экран».'
-          : 'Добавьте приложение на главный экран для быстрого доступа.',
-      confirmLabel: ios || manualAndroid ? 'Понятно' : 'Установить',
-      cancelLabel: 'Не сейчас',
+          ? t.androidManualDescription
+          : t.androidDescription,
+      confirmLabel: ios || manualAndroid ? t.confirmGotIt : t.confirmInstall,
+      cancelLabel: t.cancelLabel,
       showCheckbox: true,
-      checkboxLabel: 'Больше не показывать',
+      checkboxLabel: t.checkboxLabel,
       onConfirm: async () => {
         if (confirmStore.checkboxValue) {
           markDismissed();
@@ -87,7 +99,7 @@ export function usePwaInstallPrompt() {
         }
       },
     });
-  }
+  };
 
   function tryShowPrompt() {
     if (!canShowPrompt()) return;
@@ -95,12 +107,12 @@ export function usePwaInstallPrompt() {
     if (nuxtApp.$pwa?.showInstallPrompt) {
       openPrompt();
       return;
-    }
+    };
 
     if (isIOS()) {
       openPrompt();
-    }
-  }
+    };
+  };
 
   function tryShowAndroidFallback() {
     if (primaryPromptShown || installOfferSeen || wasDismissed() || isInstalled()) return;
@@ -108,7 +120,7 @@ export function usePwaInstallPrompt() {
     if (nuxtApp.$pwa?.showInstallPrompt) return;
 
     openPrompt({ manualAndroid: true });
-  }
+  };
 
   watch(
     () => confirmStore.isOpen,
@@ -150,7 +162,7 @@ export function usePwaInstallPrompt() {
       tryShowPrompt();
       fallbackTimer = setTimeout(tryShowAndroidFallback, 3000);
     }, 1500);
-  }
+  };
 
   onUnmounted(clearFallbackTimer);
 

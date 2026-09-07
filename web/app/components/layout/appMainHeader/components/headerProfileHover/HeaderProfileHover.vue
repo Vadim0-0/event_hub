@@ -1,29 +1,68 @@
 <script setup lang="ts">
-  import type { HeaderProfileHoverProps } from '../../../../../types/i18n/components/mainHeader';
+  import type { HeaderProfileHoverProps, ProfileBtnItem } from '../../../../../types/i18n/components/mainHeader';
 
   defineProps<HeaderProfileHoverProps>();
 
   const eventsStore = useEventsStore();
   const auth = useAuthStore();
   const editProfilerStore = useEditProfilerStore();
+  const {
+    availability: pushAvailability,
+    isSubscribed: isPushSubscribed,
+    isLoading: isPushLoading,
+    refreshSubscriptionState,
+    toggleFromUserGesture,
+  } = usePushNotifications();
 
   const emit = defineEmits<{
     closeProfile: []
-  }>()
+  }>();
 
-  function handleProfileBtnClick(btnId: string) {
-    if (btnId === 'logOut') {
+  onMounted(() => {
+    void refreshSubscriptionState();
+  });
+
+  function isPushToggleBtn(btn: ProfileBtnItem) {
+    return btn.kind === 'toggle' && btn.id === 'push-notification';
+  };
+
+  function getBtnText(btn: ProfileBtnItem) {
+    if (btn.kind === 'toggle') {
+      if (pushAvailability.value === 'needs-pwa') {
+        return btn.textNeedsPwa ?? btn.textOff;
+      }
+
+      return isPushSubscribed.value ? btn.textOn : btn.textOff;
+    }
+
+    return btn.text;
+  }
+
+  function getBtnIcon(btn: ProfileBtnItem) {
+    if (btn.kind === 'toggle') {
+      return isPushSubscribed.value ? btn.iconOn : btn.iconOff;
+    }
+
+    return btn.icon;
+  };
+
+  function handleProfileBtnClick(btn: ProfileBtnItem) {
+    if (btn.kind === 'toggle' && btn.id === 'push-notification') {
+      toggleFromUserGesture();
+      return;
+    };
+
+    if (btn.id === 'logOut') {
       auth.logout();
       eventsStore.reset();
       return;
-    }
-    if (btnId === 'settings') {
+    };
+
+    if (btn.id === 'settings') {
       editProfilerStore.open();
       emit('closeProfile');
-    }
+    };
   };
-
-
 </script>
 
 <template>
@@ -72,9 +111,12 @@
     >
       <button
         v-for="btn in profileBtns"
+        v-show="!isPushToggleBtn(btn) || pushAvailability !== 'unsupported'"
         :key="btn.id"
         type="button"
-        @click="handleProfileBtnClick(btn.id)"
+        :disabled="isPushToggleBtn(btn) && isPushLoading"
+        :data-btn-id="btn.id"
+        @click="handleProfileBtnClick(btn)"
         class="
           flex items-center gap-2 px-3 py-2 w-full
           bg-secondary border border-solid border-fifth
@@ -82,7 +124,7 @@
         "
       >
         <Icon 
-          :name="btn.icon"
+          :name="getBtnIcon(btn)"
           class="
             size-6 text-text-main
             transition-transform ease-in-out duration-300
@@ -93,7 +135,7 @@
         <p
           class="text-body-xl text-text-main text-body-sm"
         >
-          {{ btn.text }}
+          {{ getBtnText(btn) }}
         </p>
       </button>
     </div>
@@ -106,7 +148,7 @@
 
     & button {
 
-      &:nth-child(1) {
+      &[data-btn-id='settings'] {
 
         &:hover {
 
@@ -116,7 +158,7 @@
         }
       }
 
-      &:nth-child(2) {
+      &[data-btn-id='logOut'] {
         background-color: #FECACA;
         border-color: #f87171;
         

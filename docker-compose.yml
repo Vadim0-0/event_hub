@@ -75,6 +75,12 @@ services:
       DEMO_SIMULATOR_ENABLED: ${DEMO_SIMULATOR_ENABLED:-false}
       DEMO_SIMULATOR_INTERVAL_MINUTES: ${DEMO_SIMULATOR_INTERVAL_MINUTES:-15}
       DEMO_SIMULATOR_MAX_USERS: ${DEMO_SIMULATOR_MAX_USERS:-200}
+
+      # Web Push (VAPID)
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY}
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:noreply@eventhub.local}
+      PUSH_ENABLED: ${PUSH_ENABLED:-true}
     depends_on:
       db:
         condition: service_healthy
@@ -125,6 +131,12 @@ services:
       DEMO_SIMULATOR_ENABLED: ${DEMO_SIMULATOR_ENABLED:-false}
       DEMO_SIMULATOR_INTERVAL_MINUTES: ${DEMO_SIMULATOR_INTERVAL_MINUTES:-15}
       DEMO_SIMULATOR_MAX_USERS: ${DEMO_SIMULATOR_MAX_USERS:-200}
+
+      # Web Push (VAPID) — push отправляется из worker
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY}
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:noreply@eventhub.local}
+      PUSH_ENABLED: ${PUSH_ENABLED:-true}
     depends_on:
       redis:
         condition: service_healthy

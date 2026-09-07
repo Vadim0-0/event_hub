@@ -113,9 +113,11 @@ export default defineNuxtConfig({
       'apple-touch-icon.png',
       'pwa-192x192.png',
       'pwa-512x512.png',
+      'push-sw.js',
     ],
     workbox: {
-      mode: 'development',
+      importScripts: ['/push-sw.js'],
+      mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
       navigateFallback: '/',
       cleanupOutdatedCaches: true,
       clientsClaim: true,

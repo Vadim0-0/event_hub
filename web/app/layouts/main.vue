@@ -14,6 +14,7 @@
   const confirmStore = useConfirmStore();
   const aiChatStore = useAiChatStore();
   const { schedulePrompt } = usePwaInstallPrompt();
+  const { schedulePrompt: schedulePushPrompt } = usePushNotificationPrompt();
 
 
   // --- Layout ---
@@ -136,6 +137,7 @@
     };
 
     schedulePrompt();
+    schedulePushPrompt();
   });
 
   onUnmounted(() => {
