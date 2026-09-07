@@ -13,7 +13,7 @@
   // --- Composables ---
   const aiChatStore = useAiChatStore();
   const { getHealth } = useAiApi();
-  const dayjs = useDayjs();
+  const localizedDayjs = useLocalizedDayjs();
 
 
   // --- Constants ---
@@ -353,7 +353,7 @@
 
   // --- Chat ---
   function formatMessageTime(iso: string) {
-    return dayjs(iso).format('HH:mm');
+    return localizedDayjs(iso).format('HH:mm');
   };
 
   async function checkAiHealth() {

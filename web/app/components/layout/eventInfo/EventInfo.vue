@@ -27,7 +27,7 @@
 
 
   // --- Composables ---
-  const dayjs = useDayjs();
+  const localizedDayjs = useLocalizedDayjs();
   const { getEventById, joinEvent, leaveEvent } = useEventsApi();
 
 
@@ -57,11 +57,11 @@
 
   // --- Formatted fields ---
   const formattedStart = computed(() =>
-    dayjs(currentEvent.value.starts_at).format('DD MMMM YYYY, HH:mm'),
+    localizedDayjs(currentEvent.value.starts_at).format('DD MMMM YYYY, HH:mm'),
   );
 
   const formattedCreatedAt = computed(() =>
-    dayjs(currentEvent.value.created_at).format('DD MMMM YYYY'),
+    localizedDayjs(currentEvent.value.created_at).format('DD MMMM YYYY'),
   );
 
   const maxParticipantsLabel = computed(() =>
@@ -100,7 +100,7 @@
   });
 
   const isStarted = computed(() =>
-    dayjs(currentEvent.value.starts_at).isBefore(dayjs()),
+    localizedDayjs(currentEvent.value.starts_at).isBefore(localizedDayjs()),
   );
 
 

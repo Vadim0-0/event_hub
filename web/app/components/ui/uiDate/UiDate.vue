@@ -13,6 +13,7 @@
   );
 
   const dayjs = useDayjs()
+  const localizedDayjs = useLocalizedDayjs()
 
   interface Props {
     label?: string
@@ -198,7 +199,7 @@
   };
 
   const monthLabel = computed(() =>
-    viewDate.value.locale(locale.value).format('MMMM YYYY'),
+    localizedDayjs(viewDate.value).format('MMMM YYYY'),
   );
 
   function prevMonth() {

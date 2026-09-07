@@ -16,7 +16,7 @@
     select: []
   }>();
 
-  const dayjs = useDayjs();
+  const localizedDayjs = useLocalizedDayjs();
 
   const preview = computed(() =>
     props.previewText
@@ -27,7 +27,7 @@
   const timeLabel = computed(() => {
     const date = props.conversation.last_message?.created_at
       ?? props.conversation.updated_at
-    return dayjs(date).format('HH:mm')
+    return localizedDayjs(date).format('HH:mm')
   });
 </script>
 

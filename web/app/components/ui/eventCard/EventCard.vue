@@ -6,7 +6,7 @@
     event: Event 
     index?: number
   }>();
-  const dayjs = useDayjs();
+  const localizedDayjs = useLocalizedDayjs();
 
   const route = useRoute();
   const selectedEventStore = useSelectedEventStore();
@@ -24,7 +24,7 @@
   };
 
   const formattedStartsAt = computed(() =>
-    dayjs(props.event.starts_at).format('DD MMMM YYYY')
+    localizedDayjs(props.event.starts_at).format('DD MMMM YYYY')
   );
 
   const cardRef = ref<HTMLElement | null>(null);

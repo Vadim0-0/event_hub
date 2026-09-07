@@ -18,24 +18,24 @@
     hasMore?: boolean 
   }>();
 
-  const dayjs = useDayjs();
+  const localizedDayjs = useLocalizedDayjs();
 
   type ChatItem =
     | { type: 'date'; key: string; label: string }
     | { type: 'message'; key: string; message: Message }
   
   function formatMessageTime(iso: string) {
-    return dayjs(iso).format('HH:mm')
+    return localizedDayjs(iso).format('HH:mm')
   };
 
   function formatDateLabel(iso: string) {
-    const d = dayjs(iso);
-    const today = dayjs();
+    const d = localizedDayjs(iso);
+    const today = localizedDayjs();
 
     if (d.isSame(today, 'day')) return content.value.today;
     if (d.isSame(today.subtract(1, 'day'), 'day')) return content.value.yesterday;
 
-    return d.locale(locale.value).format('DD MMMM YYYY');
+    return d.format('DD MMMM YYYY');
   };
 
   const chatItems = computed<ChatItem[]>(() => {
@@ -43,7 +43,7 @@
     let lastDate = '';
 
     for (const message of props.messages) {
-      const dateKey = dayjs(message.created_at).format('YYYY-MM-DD')
+      const dateKey = localizedDayjs(message.created_at).format('YYYY-MM-DD')
 
       if (dateKey !== lastDate) {
         items.push({
