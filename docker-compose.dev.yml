@@ -36,6 +36,8 @@ services:
     volumes:
       - ./web:/app
       - web_node_modules:/app/node_modules
+      # Keep generated Nuxt/PWA dev files inside the container (avoids ENOENT on dev-sw-dist/sw.js)
+      - web_nuxt:/app/.nuxt
     environment:
       NUXT_PUBLIC_API_BASE: http://localhost:8000
       HOST: 0.0.0.0
@@ -72,3 +74,4 @@ services:
 volumes:
   pgadmin_data:
   web_node_modules:
+  web_nuxt:
