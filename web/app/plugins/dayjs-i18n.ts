@@ -1,3 +1,4 @@
+import type { Ref } from 'vue';
 import en from 'dayjs/locale/en';
 import ru from 'dayjs/locale/ru';
 
@@ -13,21 +14,17 @@ function applyDayjsLocale(dayjs: ReturnType<typeof useDayjs>, locale: string) {
   dayjs.locale(code, localeData[code]);
 }
 
-export default defineNuxtPlugin({
-  name: 'dayjs-i18n',
-  dependsOn: ['i18n:plugin'],
-  setup(nuxtApp) {
-    const dayjs = useDayjs();
-    const { locale } = useI18n();
+export default defineNuxtPlugin((nuxtApp) => {
+  const dayjs = useDayjs();
+  const locale = (nuxtApp.$i18n as { locale: Ref<string> }).locale;
 
-    applyDayjsLocale(dayjs, locale.value);
+  const syncLocale = () => applyDayjsLocale(dayjs, locale.value);
 
-    nuxtApp.hook('app:created', () => {
-      applyDayjsLocale(dayjs, locale.value);
-    });
+  syncLocale();
 
-    nuxtApp.hook('i18n:localeSwitched', ({ newLocale }) => {
-      applyDayjsLocale(dayjs, newLocale);
-    });
-  },
+  nuxtApp.hook('app:created', syncLocale);
+
+  nuxtApp.hook('i18n:localeSwitched', ({ newLocale }) => {
+    applyDayjsLocale(dayjs, newLocale);
+  });
 });
