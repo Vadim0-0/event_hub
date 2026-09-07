@@ -191,7 +191,7 @@
       const payload = buildPayload();
 
       if (isCreateMode.value) {
-        await api('/events', { method: 'POST', body: payload });
+        await api('/events/', { method: 'POST', body: payload });
 
         notifications.success(
           content.value.notifications.eventCreatedSuccess.title,
@@ -388,11 +388,11 @@
       </div>
     </div>
 
-    <p v-if="saveError" class="text-error text-body-sm">
+    <p v-if="saveError" class="text-error text-body-sm p-5 max-sm:p-3">
       {{ saveError }}
     </p>
 
-    <p v-if="deleteError" class="text-error text-body-sm">
+    <p v-if="deleteError" class="text-error text-body-sm p-5 max-sm:p-3">
       {{ deleteError }}
     </p>
 

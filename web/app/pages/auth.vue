@@ -20,6 +20,12 @@
     mapAuthPage,
   );
 
+  function queryEmail() {
+    const email = route.query.email;
+    if (Array.isArray(email)) return email[0] ?? '';
+    return String(email ?? '');
+  }
+
   const mode = computed<AuthMode>({
     get() {
       const m = route.query.mode
@@ -30,14 +36,14 @@
         query: {
           ...route.query,
           mode: value === 'login' ? undefined : value,
-          email: value === 'verify' ? pendingEmail.value || route.query.email : undefined,
+          email: value === 'verify' ? queryEmail() || undefined : undefined,
         },
       })
     },
   });
   
   const pendingEmail = computed({
-    get: () => String(route.query.email ?? ''),
+    get: () => queryEmail(),
     set: (email: string) => {
       router.replace({
         query: {
@@ -55,8 +61,13 @@
 
   async function openVerify(email: string) {
     await showFor(300);
-    pendingEmail.value = email;
-    mode.value = 'verify';
+    await router.replace({
+      query: {
+        ...route.query,
+        mode: 'verify',
+        email: email || undefined,
+      },
+    });
   };
 
   async function backToLogin() {

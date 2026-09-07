@@ -64,7 +64,7 @@
     } catch (e) {
       const parsed = parseApiError(e);
       fieldError.value = parsed.fieldErrors.code ?? '';
-      formError.value = parsed.formError;
+      formError.value = parsed.formError || parsed.fieldErrors.email || '';
     };
   };
 
