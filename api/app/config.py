@@ -62,7 +62,7 @@ class Settings(BaseSettings):
   def _redis_auth(self) -> str:
     if not self.redis_password:
       return ""
-    return f":{quote(self.redis_password, safe='')}@"
+    return f"default:{quote(self.redis_password, safe='')}@"
 
   @computed_field
   @property
