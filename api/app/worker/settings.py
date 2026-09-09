@@ -1,7 +1,7 @@
-from arq.connections import RedisSettings
 from arq import cron
 
 from .demo_simulator import demo_simulator_tick
+from .enqueue import arq_redis_settings
 from ..config import settings
 from ..redis_client import init_redis, close_redis
 
@@ -51,7 +51,7 @@ class WorkerSettings:
   on_startup = startup
   on_shutdown = shutdown
 
-  redis_settings = RedisSettings.from_dsn(settings.arq_redis_url)
+  redis_settings = arq_redis_settings()
 
   functions = [
     notify_verification_code,

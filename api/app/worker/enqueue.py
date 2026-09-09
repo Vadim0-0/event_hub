@@ -6,9 +6,20 @@ from app.config import settings
 _arq_pool = None
 
 
+def arq_redis_settings() -> RedisSettings:
+  password = settings.redis_password or None
+  return RedisSettings(
+    host=settings.redis_host,
+    port=settings.redis_port,
+    database=settings.arq_redis_db,
+    username="default" if password else None,
+    password=password,
+  )
+
+
 async def init_arq_pool():
   global _arq_pool
-  _arq_pool = await create_pool(RedisSettings.from_dsn(settings.arq_redis_url))
+  _arq_pool = await create_pool(arq_redis_settings())
 
 
 async def close_arq_pool():
