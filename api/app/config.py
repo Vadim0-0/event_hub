@@ -1,6 +1,7 @@
 from functools import lru_cache
 from pathlib import Path
 from typing import Annotated, Any
+from urllib.parse import quote
 
 from pydantic import computed_field, field_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
@@ -32,6 +33,7 @@ class Settings(BaseSettings):
   redis_url: str | None = None
   redis_host: str = "localhost"
   redis_port: int = 6379
+  redis_password: str = ""
   redis_db: int = 0
   cache_ttl_seconds: int = 60
 
@@ -56,12 +58,18 @@ class Settings(BaseSettings):
       f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
     )
 
+  @property
+  def _redis_auth(self) -> str:
+    if not self.redis_password:
+      return ""
+    return f":{quote(self.redis_password, safe='')}@"
+
   @computed_field
   @property
   def final_redis_url(self) -> str:
     if self.redis_url:
       return self.redis_url
-    return f"redis://{self.redis_host}:{self.redis_port}/{self.redis_db}"
+    return f"redis://{self._redis_auth}{self.redis_host}:{self.redis_port}/{self.redis_db}"
 
   @computed_field
   @property
@@ -69,7 +77,7 @@ class Settings(BaseSettings):
     if self.redis_url:
       base = self.redis_url.rsplit("/", 1)[0]
       return f"{base}/{self.arq_redis_db}"
-    return f"redis://{self.redis_host}:{self.redis_port}/{self.arq_redis_db}"
+    return f"redis://{self._redis_auth}{self.redis_host}:{self.redis_port}/{self.arq_redis_db}"
 
   # CORS
   cors_origins: Annotated[list[str], NoDecode] = [

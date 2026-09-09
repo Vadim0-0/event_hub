@@ -3,6 +3,10 @@ services:
     ports:
       - "${POSTGRES_PORT:-5436}:5432"
 
+  redis:
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+
   nginx:
     ports:
       - "80:80"
